@@ -22,3 +22,13 @@ Class design:
         - Returns the contents of the file
         - Handles file access errors without terminating
         - Note: Does it make more sense for file names or file paths? Should we handle both?
+
+Unit testing:
+    The class will be tested using JUnit. The test will create a temporary directory called "testData" and delete the directory after testing, so that tests can be isolated from production data.
+
+    The tests should:
+    - Verify that getAvailableFiles() returns all files stored in the configured directory.
+    - Verify that readFile() returns the correct contents of an existing file.
+    - Verify that readFile() correctly preserves multiple lines of text.
+    - Verify that readFile() correctly handles an existing empty file.
+    - Verify that requesting a nonexistent file does not terminate or crash the application.
