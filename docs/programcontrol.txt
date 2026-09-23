@@ -1,1 +1,18 @@
+Program Control Testing Plan
+
+The ProgramControl component will connect the user interface, file handler, and cipher components.ProgramControl will not directly access files. All file access will be through FileHandler.
+
+Example Tests:
+1. Test requesting a valid file. Expected: ProgramControl returns the contents provided by FileHandler.
+
+2. Test requesting a file that does not exist. Expected: ProgramControl handles the error without crashing.
+
+3. Test requesting an encrypted file using the default cipher key. Expected: ProgramControl returns deciphered text.
+
+4. Test requesting a file using an alternate cipher key. Expected: ProgramControl uses the provided alternate key.
+
+5. Test invalid input/file requests. Expected: ProgramControl returns an appropriate error result.
+
+ProgramControl will be tested independently from the command-line interface whenever possible.
+
 
