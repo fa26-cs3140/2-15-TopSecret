@@ -1,0 +1,6 @@
+Cipher
+--------------------------------------
+cipherKey: CipherKey
+--------------------------------------
+Cipher(cipherKey: CipherKey)
+decipher(cipheredText: String): String

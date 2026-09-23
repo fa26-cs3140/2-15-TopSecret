@@ -1,0 +1,24 @@
+The CipherKey class is responsible for validating the cipher key and determining the shift amount needed to decipher text.
+
+Responsibilities & requirements:
+- Accept the contents of the key file as a String.
+- Validate that the key contains exactly two lines of equal length.
+- Verify that the characters follow a consistent shift.
+- Determine and store the shift amount.
+- Handle invalid keys without terminating the program.
+- Do not directly access files.
+
+Class design:
+    Attributes:
+        shift: int
+        - Stores the shift amount determined from the cipher key.
+
+    Methods:
+        CipherKey(key: String)
+        - Validates the provided key and initializes the shift amount.
+
+        validateKey(key: String): boolean
+        - Returns true if the key is valid and represents a consistent shift.
+
+        getShift(): int
+        - Returns the shift amount used for deciphering.

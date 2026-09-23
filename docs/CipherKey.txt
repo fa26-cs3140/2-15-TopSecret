@@ -1,0 +1,21 @@
+The Cipher class is responsible for deciphering encrypted text using the shift amount stored in a validated CipherKey object.
+
+Responsibilities & requirements:
+- Accept encrypted text and return the deciphered String.
+- Shift each encrypted character backward by the specified shift amount.
+- Wrap around the alphabet when necessary.
+- Leave characters not included in the cipher unchanged.
+- Do not directly access files or display output.
+
+Class design:
+    Attributes:
+        cipherKey: CipherKey
+        - Stores the validated cipher key containing the shift amount.
+
+    Methods:
+        Cipher(cipherKey: CipherKey)
+        - Initializes the Cipher using a validated CipherKey object.
+
+        decipher(cipheredText: String): String
+        - Iterates through the encrypted text and shifts each applicable character backward by the specified amount.
+        - Returns the deciphered String.

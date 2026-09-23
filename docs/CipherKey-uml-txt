@@ -1,0 +1,7 @@
+CipherKey
+--------------------------------------
+shift: int
+--------------------------------------
+CipherKey(key: String)
+validateKey(key: String): boolean
+getShift(): int
