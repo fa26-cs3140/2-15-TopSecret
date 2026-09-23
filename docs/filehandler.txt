@@ -1,0 +1,24 @@
+The FileHandler class is responsible for reading data files. Other parts of the program should not directly access files. Instead, they should request file information or file contents through FileHandler.
+
+Responsibilities & requirements:
+- The program should expect files in a folder named 'data' (in the same directory of the program, or in the root of the project folder).
+- When a request for a file is received, this part of the program will return the file contents.
+- This part of the program should handle all direct access to files.
+- The program should not end the program on a file error (For example if the file does not exist).
+
+Class design:
+    Attributes:
+        dataDirectory: String
+        - Stores the path to the directory containing the data files
+        - Is set to "data" by default
+
+    Methods:
+        getAvailableFiles(): List<String>
+        - Reads the data directory and returns a list of available data files
+        - Note: What happens when there are subdirectories in the data directory? Do we return strings of file paths or just filenames?
+
+        readFile(String fileName) : String
+        - Reads the requested file from the data directory
+        - Returns the contents of the file
+        - Handles file access errors without terminating
+        - Note: Does it make more sense for file names or file paths? Should we handle both?
