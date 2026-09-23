@@ -17,7 +17,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.example.TopSecret")
+    mainClass.set("org.example.Main")
 }
 
 tasks.test {
