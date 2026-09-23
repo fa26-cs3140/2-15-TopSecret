@@ -1,0 +1,7 @@
+Class UserInterface // Zaid Al Falah
+
+Fields:
+- directory : string
+
+Methods:
+
