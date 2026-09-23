@@ -2,12 +2,19 @@ Class UserInterface // Zaid Al Falah
 
 Fields:
 - directory : string
+- cipher : int
 
 Methods:
 + getFileData(string) : File
 + getFileText(string) : string
 + getFileText(file) : string
 + getCipherKey(int) : int
-- runInterface() : void
++ runInterface() : void
 - runCipher(string) : string
-- 
+
+Tests:
+no args > runs the display function
+1 arg > chooses the correct file
+2 args > chooses the correect file with the correct cipher
+3+ args > returns an error message
+
