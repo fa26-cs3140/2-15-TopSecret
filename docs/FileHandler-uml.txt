@@ -1,0 +1,6 @@
+FileHandler
+--------------------------------------
+dataDirectory: String
+--------------------------------------
+getAvailableFiles(): List<String>
+readFile(fileName: String): String
