@@ -4,4 +4,10 @@ Fields:
 - directory : string
 
 Methods:
-
++ getFileData(string) : File
++ getFileText(string) : string
++ getFileText(file) : string
++ getCipherKey(int) : int
+- runInterface() : void
+- runCipher(string) : string
+- 
