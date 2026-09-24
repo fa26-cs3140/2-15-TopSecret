@@ -1,0 +1,20 @@
+Class UserInterface // Zaid Al Falah
+
+Fields:
+- fHandler : FileHandler
+
+Methods:
++ runInterface(String[]) : void
+
+Tests:
+no args : throws no exception
+one arg : throws no exception
+two args : throws no exception
+one arg out of range : throws IllegalArgumentException
+one arg not a number : throws IllegalArgumentException
+two args second out of range : throws IllegalArgumentException
+two args second not a number : throws IllegalArgumentException
+two args with valid cipher : throws no exception
+
+All display testing has been validated
+

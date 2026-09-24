@@ -1,20 +1,15 @@
-Class UserInterface // Zaid Al Falah
+Zaid Al Falah // UserInterface Class Description
 
-Fields:
-- directory : string
-- cipher : int
+Public UserInterface class will be used to manage all command-line arguments input by a user.
 
-Methods:
-+ getFileData(string) : File
-+ getFileText(string) : string
-+ getFileText(file) : string
-+ getCipherKey(int) : int
-+ runInterface() : void
-- runCipher(string) : string
+Responsibilities & Reqs:
+- Handles and verifies user input, handles invalid input by
+  throwing IllegalArgumentException.
+- There is only one public method to this class, which is to
+  run the interface. 
+- All requisite UI logic is contained in runInterface
 
-Tests:
-no args > runs the display function
-1 arg > chooses the correct file
-2 args > chooses the correect file with the correct cipher
-3+ args > returns an error message
+Class design:
+- See UserInterface-uml.txt
+
 
