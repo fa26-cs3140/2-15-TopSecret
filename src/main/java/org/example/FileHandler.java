@@ -1,8 +1,14 @@
 package org.example;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Handles all direct access to data files.
+ * Provides methods for listing available files and reading file contents.
+ */
 public class FileHandler {
     private String dataDirectory;
 
@@ -43,11 +49,25 @@ public class FileHandler {
     /**
      * Returns the names of all available files in the data directory.
      *
-     * @return a list of available filenames
+     * @return a list of available filenames or an empty list if the
+     * directory cannot be accessed
      */
     public List<String> getAvailableFiles() {
-        // TODO
-        return new ArrayList<>();
+        // implementation inspired by GeeksForGeeks:
+        // https://www.geeksforgeeks.org/java/how-to-list-all-files-in-a-directory-in-java/
+        File directory = new File(dataDirectory);
+        File[] allFiles = directory.listFiles();
+
+        ArrayList<String> fileList = new ArrayList<>();
+
+        if (allFiles != null) {
+            for (File file : allFiles) {
+                if (file.isFile())
+                    fileList.add(file.getName());
+            }
+        }
+
+        return fileList;
     }
 
     /**
