@@ -2,6 +2,7 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -13,34 +14,49 @@ class UserInterfaceTest {
     @Test
     void runInterface() 
     {
+        // Test 1: No arguments
         tUser = new UserInterface();
-        assertDoesNotThrow(()->tUser.runInterface(), "Threw an exception");
-    }
+        String[] args_t1 = new String[0];
+        assertDoesNotThrow(()->tUser.runInterface(args_t1), "Test 1 Failed: Threw an exception");
+        
+        // Test 2: One argument, valid
+        String[] args_t2 = new String[1];
+        args_t2[0] = "0";
+        assertDoesNotThrow(()->tUser.runInterface(args_t2), "Test 2 Failed: Threw an exception");
 
-    @Test
-    void getFileData() 
-    {
-        tUser = new UserInterface();
-        File f = tUser.getFileData();
-        if (f == null) throw new NullPointerException("File not found");
-    }
+        // Test 3: Two arguments, both valid
+        String[] args_t3 = new String[2];
+        args_t3[0] = "0";
+        args_t3[1] = "0";
+        assertDoesNotThrow(()->tUser.runInterface(args_t3), "Test 3 Failed: Thew an exception");
 
-    @Test
-    void getFileText() 
-    {
-        tUser = new UserInterface();
-        String f_txt = tUser.getFileText();
-        if (f_txt == null) throw new NullPointerException("File text not found");
-    }
+        // Test 4: One argument, invalid out of range
+        String[] args_t4 = new String[1];
+        args_t4[0] = "9";
+        assertDoesNotThrow(()->tUser.runInterface(args_t4), "Test 4 Failed: Thew an exception");
 
+        // Test 5: One argument, invalid not a number
+        String[] args_t5 = new String[1];
+        args_t4[0] = "NotANumber";
+        assertDoesNotThrow(()->tUser.runInterface(args_t5), "Test 4 Failed: Thew an exception");
 
-    @Test
-    void getCipherKey() 
-    {
-        tUser = new UserInterface();
-        int intendedCipher = (new Random()).nextInt(0, 10);
-        int cipher = tUser.getCipherKey();
-        assertEquals(cipher, intendedCipher, "Ciphers not equal");
+        // Test 6: Two arguments, second invalid out of range
+        String[] args_t6 = new String[2];
+        args_t6[0] = "0";
+        args_t6[1] = "1000";
+        assertDoesNotThrow(()->tUser.runInterface(args_t6), "Test 6 Failed: Thew an exception");
+
+        // Test 7: Two arguments, second invalid not a number
+        String[] args_t7 = new String[2];
+        args_t7[0] = "0";
+        args_t7[1] = "NotANumber";
+        assertDoesNotThrow(()->tUser.runInterface(args_t7), "Test 7 Failed: Thew an exception");
+
+        // Test 8: Two arguments, deciphered text
+        String[] args_t8 = new String[2];
+        args_t8[0] = "0";
+        args_t8[1] = "1";
+        assertDoesNotThrow(()->tUser.runInterface(args_t8), "Test 8 Failed: Thew an exception");
     }
 
 }
