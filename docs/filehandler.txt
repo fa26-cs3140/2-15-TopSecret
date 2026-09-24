@@ -1,5 +1,7 @@
 The FileHandler class is responsible for reading data files. Other parts of the program should not directly access files. Instead, they should request file information or file contents through FileHandler.
 
+During normal program execution, FileHandler uses the "data" directory by default. A different directory can also be specified (this was just implemented mainly for testing purposes).
+
 Responsibilities & requirements:
 - The program should expect files in a folder named 'data' (in the same directory of the program, or in the root of the project folder).
 - When a request for a file is received, this part of the program will return the file contents.
@@ -12,16 +14,29 @@ Class design:
         - Stores the path to the directory containing the data files
         - Is set to "data" by default
 
+    Constructors:
+        FileHandler()
+        - Creates a FileHandler that uses the default directory "data"
+
+        FileHandler()
+        - Creates a FilesHandler that accesses the specified directory instead of the default "data" directory
+
     Methods:
         getAvailableFiles(): List<String>
-        - Reads the data directory and returns a list of available data files
-        - Note: What happens when there are subdirectories in the data directory? Do we return strings of file paths or just filenames?
+        - Reads the data directory and returns a list of available data files in dataDirectory
+        - If the directory cannot be accessed, an empty list is returned
 
         readFile(String fileName) : String
         - Reads the requested file from the data directory
-        - Returns the contents of the file
-        - Handles file access errors without terminating
-        - Note: Does it make more sense for file names or file paths? Should we handle both?
+        - Returns the contents of the file as a String
+        - Returns null if the file cannot be opened or read for some reason
+        - Caller should check for null and determine what happens next
+
+        getDataDirectory(): String
+        - Accessor. Returns the current directory being used by the FileHandler instance
+
+        setDataDirectory(String dataDirectory): void
+        - Changes the directory that FileHandler uses for future file operations
 
 Unit testing:
     The class will be tested using JUnit. The test will create a temporary directory called "testData" and delete the directory after testing, so that tests can be isolated from production data.
