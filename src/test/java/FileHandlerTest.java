@@ -24,10 +24,10 @@ public class FileHandlerTest {
         testDirectory = Path.of("testData");
         Files.createDirectory(testDirectory);
 
-        String file1Content = "This is file 1";
+        String file1Content = "This is file 1.";
         Files.writeString(testDirectory.resolve("file1.txt"), file1Content);
 
-        String file2Content = "This is file 2";
+        String file2Content = "This is file 2.";
         Files.writeString(testDirectory.resolve("file2.txt"), file2Content);
 
         String multilineContent = "Line 1\nLine 2\nLine 3";
@@ -65,8 +65,9 @@ public class FileHandlerTest {
     @Test
     void readFileReturnsCorrectContents() {
         String contents = fileHandler.readFile("file1.txt");
-
         assertEquals("This is file 1.", contents);
+        contents = fileHandler.readFile("file2.txt");
+        assertEquals("This is file 2.", contents);
     }
 
     @Test

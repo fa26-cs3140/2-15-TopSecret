@@ -1,43 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="FileHandlerTest" tests="5" skipped="0" failures="3" errors="0" timestamp="2026-09-24T02:35:18.916Z" hostname="Mikes-Macbook.local" time="0.025">
+<testsuite name="FileHandlerTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-24T02:50:44.134Z" hostname="Mikes-Macbook.local" time="0.022">
   <properties/>
-  <testcase name="readFileDoesNotCrashForMissingFile()" classname="FileHandlerTest" time="0.011"/>
-  <testcase name="readFileReturnsEmptyStringForEmptyFile()" classname="FileHandlerTest" time="0.004">
-    <failure message="org.opentest4j.AssertionFailedError: expected: &lt;&gt; but was: &lt;null&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;&gt; but was: &lt;null&gt;
-	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
-	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
-	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:201)
-	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:184)
-	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:179)
-	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1188)
-	at FileHandlerTest.readFileReturnsEmptyStringForEmptyFile(FileHandlerTest.java:83)
-</failure>
-  </testcase>
-  <testcase name="readFileReturnsMultilineContents()" classname="FileHandlerTest" time="0.001">
-    <failure message="org.opentest4j.AssertionFailedError: expected: &lt;Line 1&#10;Line 2&#10;Line 3&gt; but was: &lt;null&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;Line 1
-Line 2
-Line 3&gt; but was: &lt;null&gt;
-	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
-	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
-	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:201)
-	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:184)
-	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:179)
-	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1188)
-	at FileHandlerTest.readFileReturnsMultilineContents(FileHandlerTest.java:76)
-</failure>
-  </testcase>
+  <testcase name="readFileDoesNotCrashForMissingFile()" classname="FileHandlerTest" time="0.012"/>
+  <testcase name="readFileReturnsEmptyStringForEmptyFile()" classname="FileHandlerTest" time="0.001"/>
+  <testcase name="readFileReturnsMultilineContents()" classname="FileHandlerTest" time="0.001"/>
   <testcase name="getAvailableFilesReturnsAllFiles()" classname="FileHandlerTest" time="0.001"/>
-  <testcase name="readFileReturnsCorrectContents()" classname="FileHandlerTest" time="0.001">
-    <failure message="org.opentest4j.AssertionFailedError: expected: &lt;This is file 1.&gt; but was: &lt;null&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;This is file 1.&gt; but was: &lt;null&gt;
-	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
-	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
-	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:201)
-	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:184)
-	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:179)
-	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1188)
-	at FileHandlerTest.readFileReturnsCorrectContents(FileHandlerTest.java:69)
-</failure>
-  </testcase>
+  <testcase name="readFileReturnsCorrectContents()" classname="FileHandlerTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

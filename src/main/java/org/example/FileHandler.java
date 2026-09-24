@@ -1,6 +1,9 @@
 package org.example;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +80,19 @@ public class FileHandler {
      * @return the file contents, or null if the file cannot be read
      */
     public String readFile(String filename) {
-        // TODO
-        return null;
+        // Similar implementation to Professor Stone's video
+        String returnString = "";
+        File targetFile = new File(dataDirectory, filename);
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(targetFile))) {
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                returnString += line + "\n";
+            }
+        } catch (IOException e) {
+            return null;
+        }
+
+        return returnString.strip();
     }
 }
