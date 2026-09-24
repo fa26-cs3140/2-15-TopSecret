@@ -1,7 +1,18 @@
 CipherKey
 --------------------------------------
-shift: int
+original: char[]
+ciphered: char[]
 --------------------------------------
 CipherKey(key: String)
 validateKey(key: String): boolean
-getShift(): int
+getOriginal(): char[]
+getCiphered(): char[]
+
+CipherUML.txt
+
+Cipher
+--------------------------------------
+cipherKey: CipherKey
+--------------------------------------
+Cipher(cipherKey: CipherKey)
+decipher(cipheredText: String): String
