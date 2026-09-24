@@ -6,6 +6,10 @@ public class TopSecret
 {
     static void main(String[] args) 
     {
-        
+        UserInterface uInterface = new UserInterface();
+
+        // uInterface can throw many types of errors
+        // Catch if anything happens
+        uInterface.runInterface(args);
     }
 }
