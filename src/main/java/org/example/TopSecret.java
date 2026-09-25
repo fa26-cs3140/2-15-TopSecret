@@ -4,7 +4,7 @@ package org.example;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class TopSecret
 {
-    static void main(String[] args) 
+    public static void main(String[] args)
     {
         UserInterface uInterface = new UserInterface();
 
