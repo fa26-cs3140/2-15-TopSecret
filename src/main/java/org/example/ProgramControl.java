@@ -55,13 +55,10 @@ public class ProgramControl {
         return getFileContentsWithKey(filename, mapping + "\n" + mapping);
     }
 
-    /**
-     * Reads and deciphers the selected file using a particular
-     * key mapping from key.txt.
-     * @param filename file to read
-     * @param keyIndex index of the cipher mapping in key.txt
-     * @return deciphered contents, or null if the file/key cannot be read
-     */
+    //Reads and deciphers the selected file using a particular key mapping from key.txt.
+    //@param filename file to read
+    //@param keyIndex index of the cipher mapping in key.txt
+    // @return deciphered contents, or null if the file/key cannot be read
     public String getFileContents(String filename, int keyIndex) {
         String keyContents = fileHandler.readFile("key.txt");
 
