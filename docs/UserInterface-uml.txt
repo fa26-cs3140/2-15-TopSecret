@@ -1,7 +1,7 @@
 Class UserInterface // Zaid Al Falah
 
 Fields:
-- fHandler : FileHandler
+- pControl : ProgramControl
 
 Methods:
 + runInterface(String[]) : void
