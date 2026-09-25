@@ -1,24 +1,28 @@
-The CipherKey class is responsible for validating the cipher key and determining the shift amount needed to decipher text.
+The Cipher class is responsible for deciphering encrypted text using a validated CipherKey object.
 
 Responsibilities & requirements:
-- Accept the contents of the key file as a String.
-- Validate that the key contains exactly two lines of equal length.
-- Verify that the characters follow a consistent shift.
-- Determine and store the shift amount.
-- Handle invalid keys without terminating the program.
-- Do not directly access files.
+
+* Accept encrypted text and return the deciphered String.
+* Use the character arrays stored in CipherKey to decipher each character.
+* Find each encrypted character in the ciphered array and replace it with the original character at the corresponding index.
+* Leave characters not included in the cipher unchanged.
+* Do not directly access files or display output.
 
 Class design:
-    Attributes:
-        shift: int
-        - Stores the shift amount determined from the cipher key.
 
-    Methods:
-        CipherKey(key: String)
-        - Validates the provided key and initializes the shift amount.
+Attributes:
+    cipherKey: CipherKey
+    - Stores the validated CipherKey object used for deciphering.
 
-        validateKey(key: String): boolean
-        - Returns true if the key is valid and represents a consistent shift.
+Methods:
+    Cipher(cipherKey: CipherKey)
+    - Initializes the Cipher using a validated CipherKey object.
+    - Throws an IllegalArgumentException if the provided key is null.
 
-        getShift(): int
-        - Returns the shift amount used for deciphering.
+    decipher(cipheredText: String): String
+    - Iterates through each character in the encrypted text.
+    - Searches for the character in the ciphered array.
+    - Replaces it with the character at the same index in the original array.
+    - Leaves characters not found in the ciphered array unchanged.
+    - Returns the deciphered String.
+    - Throws an IllegalArgumentException if the provided text is null.

@@ -1,21 +1,35 @@
-The Cipher class is responsible for deciphering encrypted text using the shift amount stored in a validated CipherKey object.
+The CipherKey class is responsible for validating and storing the character mappings used to decipher text.
 
 Responsibilities & requirements:
-- Accept encrypted text and return the deciphered String.
-- Shift each encrypted character backward by the specified shift amount.
-- Wrap around the alphabet when necessary.
-- Leave characters not included in the cipher unchanged.
-- Do not directly access files or display output.
+
+* Accept the contents of the key file as a String.
+* Validate that the key contains exactly two lines of equal length.
+* Verify that the characters in each line are unique.
+* Store the original and encrypted characters in separate arrays.
+* Handle invalid keys without terminating the program.
+* Do not directly access files.
 
 Class design:
-    Attributes:
-        cipherKey: CipherKey
-        - Stores the validated cipher key containing the shift amount.
 
-    Methods:
-        Cipher(cipherKey: CipherKey)
-        - Initializes the Cipher using a validated CipherKey object.
+Attributes:
+    original: char[]
+    - Stores the original characters from the first line of the key.
 
-        decipher(cipheredText: String): String
-        - Iterates through the encrypted text and shifts each applicable character backward by the specified amount.
-        - Returns the deciphered String.
+    ciphered: char[]
+    - Stores the encrypted characters from the second line of the key.
+
+Methods:
+    CipherKey(key: String)
+    - Validates the provided key and initializes both character arrays.
+    - Throws an IllegalArgumentException if the key is invalid.
+
+    validateKey(key: String): boolean
+    - Returns true if the key contains two lines of equal length with unique characters.
+    - Returns false if the key is invalid.
+
+    getOriginal(): char[]
+    - Returns a copy of the original character array.
+
+    getCiphered(): char[]
+    - Returns a copy of the encrypted character array.
+```
