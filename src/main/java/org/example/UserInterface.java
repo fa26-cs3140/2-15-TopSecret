@@ -1,23 +1,16 @@
 package org.example;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
 public class UserInterface
 {
-    File filedata;
-    FileHandler fHandler;
+    ProgramControl pControl;
 
     public UserInterface()
     {
-        // fHandler points to data directory by default
-        this.fHandler = new FileHandler();
-        this.filedata = null;
+        pControl = new ProgramControl();
     }
 
     // This will do all the meaningful heavy lifting for displaying and processing
@@ -27,17 +20,11 @@ public class UserInterface
         // All useful local variables to run this program
         Scanner scanner = new Scanner(System.in);
         int selectedFileNum = 0;
-        CipherKey cipKey = null;
-        Cipher cipher = null;
-        List<String> fNames = fHandler.getAvailableFiles();
-        
-        // Get map and default key (in key.txt)
-        String mapping = fHandler.readFile("key.txt").split("\\R")[0];
+        List<String> fNames = pControl.getAvailableFiles();
         
         if (args.length > 2)
         {
             // No more than three arguments can be thrown
-            IO.println("Error: Too many arguments.");
             scanner.close();
             throw new IllegalArgumentException("Exiting program... Too many arguments (3 max).\n");
         }
@@ -73,44 +60,39 @@ public class UserInterface
             catch (NumberFormatException e)
             {
                 scanner.close();
-                throw new IllegalArgumentException("Exiitng program... First argument must be an integer.\n");
+                throw new IllegalArgumentException("Exitng program... First argument must be an integer.\n");
             }
             // Select the cipher we are going to use
             // Read from the integer selected from a args[1],
             // not strictly the number itself.
+            int cipIndex = 0;
             if (args.length == 2) 
             {
-                int cipIndex = 0;
                 try
                 {
                     cipIndex = Integer.parseInt(args[1]);
-                    if (cipIndex > fNames.size() - 1)
+                    if (cipIndex > pControl.getFileContents("key.txt").split("\\R").length - 1)
                     {
                         scanner.close();
-                        throw new IllegalArgumentException();
+                        throw new IllegalArgumentException("Exiting program... Invalid cipher.\n");
                     }
                 }
                 catch (InputMismatchException e)
                 {
                     scanner.close();
-                    throw new IllegalArgumentException("Exiitng program... Second argument must be an integer.\n");
+                    throw new IllegalArgumentException("Exitng program... Second argument must be an integer.\n");
                 }
-                String cipMap = fHandler.readFile("key.txt").split("\\R")[cipIndex];
-                cipKey = new CipherKey(mapping + "\n" + cipMap);
             }
-            // Otherwise 
-            else cipKey = new CipherKey(mapping + "\n" + mapping);
 
-            cipher = new Cipher(cipKey);
 
             // Find and decipher the text
-            String cipheredContent = fHandler.readFile(fNames.get(selectedFileNum));
-            String decipheredContent = cipher.decipher(cipheredContent);
+            String selectedFileName = fNames.get(selectedFileNum);
+            String content = pControl.getFileContents(selectedFileName, cipIndex); 
 
             // Display content
             IO.println("File Conents: ");
             IO.println("---------------------");
-            IO.println(decipheredContent);
+            IO.println(content);
             IO.println("---------------------");
         }
         // Close scanner
