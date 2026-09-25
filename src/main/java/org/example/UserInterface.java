@@ -33,8 +33,8 @@ public class UserInterface
         if (args.length == 0)
         {
             // Display menu
-            IO.println("Choose a file option:");
-            IO.println("---------------------");
+            System.out.println("Choose a file option:");
+            System.out.println("---------------------");
             for (int i = 0; i < fNames.size(); i++)
             {
                 IO.println("" + i + " " + fNames.get(i));
@@ -89,10 +89,10 @@ public class UserInterface
             String content = pControl.getFileContents(selectedFileName, cipIndex); 
 
             // Display content
-            IO.println("File Conents: ");
-            IO.println("---------------------");
-            IO.println(content);
-            IO.println("---------------------");
+            System.out.println("File Conents: ");
+            System.out.println("---------------------");
+            System.out.println(content);
+            System.out.println("---------------------");
         }
         // Close scanner
         scanner.close();

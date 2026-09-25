@@ -16,7 +16,7 @@ public class TopSecret
         }
         catch (IllegalArgumentException e)
         {
-            IO.println("Error... Aborting program...");
+            System.out.println("Error... Aborting program...");
         }
     }
 }
