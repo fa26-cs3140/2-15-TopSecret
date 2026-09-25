@@ -37,9 +37,9 @@ public class UserInterface
             System.out.println("---------------------");
             for (int i = 0; i < fNames.size(); i++)
             {
-                IO.println("" + i + " " + fNames.get(i));
+                System.out.println("" + i + " " + fNames.get(i));
             }
-            IO.println("---------------------");
+            System.out.println("---------------------");
             // Return early, we are done here
             scanner.close();
             return;
