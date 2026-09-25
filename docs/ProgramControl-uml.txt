@@ -1,0 +1,10 @@
+ProgramControl
+--------------------------------------
+- fileHandler: FileHandler
+--------------------------------------
++ ProgramControl()
++ ProgramControl(fileHandler: FileHandler)
++ getAvailableFiles(): List<String>
++ getFileContents(filename: String): String
++ getFileContents(filename: String, keyIndex: int): String
+- getFileContentsWithKey(filename: String, key: String): String
