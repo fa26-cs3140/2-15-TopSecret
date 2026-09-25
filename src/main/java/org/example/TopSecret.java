@@ -10,6 +10,13 @@ public class TopSecret
 
         // uInterface can throw many types of errors
         // Catch if anything happens
-        uInterface.runInterface(args);
+        try
+        {
+            uInterface.runInterface(args);
+        }
+        catch (IllegalArgumentException e)
+        {
+            IO.println("Error... Aborting program...");
+        }
     }
 }

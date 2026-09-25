@@ -84,7 +84,6 @@ public class UserInterface
                 }
             }
 
-
             // Find and decipher the text
             String selectedFileName = fNames.get(selectedFileNum);
             String content = pControl.getFileContents(selectedFileName, cipIndex); 
