@@ -1,18 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.example.UserInterfaceTest" tests="4" skipped="0" failures="2" errors="0" timestamp="2026-09-24T02:50:44.157Z" hostname="Mikes-Macbook.local" time="0.005">
+<testsuite name="org.example.UserInterfaceTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-25T17:01:37.122Z" hostname="hortensius" time="0.034">
   <properties/>
-  <testcase name="getCipherKey()" classname="org.example.UserInterfaceTest" time="0.0"/>
-  <testcase name="runInterface()" classname="org.example.UserInterfaceTest" time="0.001"/>
-  <testcase name="getFileData()" classname="org.example.UserInterfaceTest" time="0.003">
-    <failure message="java.lang.NullPointerException: File not found" type="java.lang.NullPointerException">java.lang.NullPointerException: File not found
-	at org.example.UserInterfaceTest.getFileData(UserInterfaceTest.java:25)
-</failure>
-  </testcase>
-  <testcase name="getFileText()" classname="org.example.UserInterfaceTest" time="0.001">
-    <failure message="java.lang.NullPointerException: File text not found" type="java.lang.NullPointerException">java.lang.NullPointerException: File text not found
-	at org.example.UserInterfaceTest.getFileText(UserInterfaceTest.java:33)
-</failure>
-  </testcase>
-  <system-out><![CDATA[]]></system-out>
+  <testcase name="runInterface()" classname="org.example.UserInterfaceTest" time="0.033"/>
+  <system-out><![CDATA[Choose a file option:
+---------------------
+0 carnivore.txt
+1 cointelpro.txt
+2 carnivore.cip
+3 key.txt
+4 cointelpro.cip
+---------------------
+File Conents: 
+---------------------
+Carnivore, later renamed DCS1000, was a system implemented by the Federal Bureau of Investigation (FBI) that was
+designed to monitor email and electronic communications. It used a customizable packet sniffer that could monitor all
+of a target user's Internet traffic. Carnivore was implemented in October 1997. By 2005 it had been replaced with
+improved commercial software.
+---------------------
+File Conents: 
+---------------------
+Carnivore, later renamed DCS1000, was a system implemented by the Federal Bureau of Investigation (FBI) that was
+designed to monitor email and electronic communications. It used a customizable packet sniffer that could monitor all
+of a target user's Internet traffic. Carnivore was implemented in October 1997. By 2005 it had been replaced with
+improved commercial software.
+---------------------
+File Conents: 
+---------------------
+B0qmhunqd, k0sdq qdm0ldc CBRZ999, v0r 0 rxrsdl hlokdldmsdc ax sgd Edcdq0k Atqd0t ne Hmudrshf0shnm (EAH) sg0s v0r
+cdrhfmdc sn lnmhsnq dl0hk 0mc dkdbsqnmhb bnlltmhb0shnmr. Hs trdc 0 btrsnlhy0akd o0bjds rmheedq sg0s bntkc lnmhsnq 0kk
+ne 0 s0qfds trdq'r Hmsdqmds sq0eehb. B0qmhunqd v0r hlokdldmsdc hm Nbsnadq Z886. Ax 1994 hs g0c addm qdok0bdc vhsg
+hloqnudc bnlldqbh0k rnesv0qd.
+---------------------
+]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
