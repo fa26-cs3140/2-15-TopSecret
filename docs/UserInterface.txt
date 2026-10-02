@@ -1,15 +1,49 @@
 Zaid Al Falah // UserInterface Class Description
 
-Public UserInterface class will be used to manage all command-line arguments input by a user.
+The UserInterface class is responsible for handling the terminal interface presented to the user.
 
-Responsibilities & Reqs:
-- Handles and verifies user input, handles invalid input by
-  throwing IllegalArgumentException.
-- There is only one public method to this class, which is to
-  run the interface. 
-- All requisite UI logic is contained in runInterface
+Homework 3 Design:
+The Homework 3 version of UserInterface managed command-line arguments used to select a file and cipher. The interface displayed available files and passed requests to ProgramControl.
+
+Homework 4 Changes (Vrisag Desinani):
+Homework 4 changes the interface from a one-command utility into an interactive menu that remains running until the user chooses to exit.
+
+The mission reports are now stored in a SQLite database rather than individual text files. UserInterface should not directly access the database. Mission information should instead be requested through another component or interface agreed upon by the team.
+
+Authentication is handled before the mission menu is displayed. UserInterface is not responsible for validating usernames or passwords.
+
+Responsibilities & Requirements:
+- Display the mission menu after a successful login.
+- Keep the program interactive until the user chooses to exit.
+- Allow the user to list available mission briefs.
+- Display mission titles with corresponding numbers.
+- Allow the user to enter a mission number and display the selected mission.
+- Redisplay the menu after a mission has been viewed.
+- Provide access to the search option implemented by Team Member C.
+- Handle invalid menu selections without crashing the program.
+- Handle invalid mission selections without crashing the program.
+- Do not directly access SQLite.
+- Do not directly perform password validation.
+- Communicate with other components through agreed-upon interfaces where appropriate.
+
+Planned User Interface Flow:
+
+1. Authentication is completed by Team Member B's component.
+2. UserInterface displays the mission menu.
+3. The user selects an action.
+4. UserInterface requests the necessary information from the appropriate component.
+5. UserInterface displays the result.
+6. The menu is displayed again.
+7. The process continues until the user selects Exit.
+
+Planned Menu Options:
+
+1. List available mission briefs
+2. Read a mission brief
+3. Search mission briefs
+4. Exit
+
+The exact menu formatting and component/interface names may be refined after the team finalizes the Homework 4 system design.
 
 Class design:
 - See UserInterface-uml.txt
-
-

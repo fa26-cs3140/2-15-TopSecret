@@ -1,20 +1,51 @@
 Class UserInterface // Zaid Al Falah
 
-Fields:
-- pControl : ProgramControl
+Current Homework 3 Design:
+--------------------------------------
+pControl : ProgramControl
+--------------------------------------
+runInterface(args : String[]) : void
 
-Methods:
-+ runInterface(String[]) : void
 
-Tests:
-no args : throws no exception
-one arg : throws no exception
-two args : throws no exception
-one arg out of range : throws IllegalArgumentException
-one arg not a number : throws IllegalArgumentException
-two args second out of range : throws IllegalArgumentException
-two args second not a number : throws IllegalArgumentException
-two args with valid cipher : throws no exception
+Planned Homework 4 Design (Vrisag Desinani):
+--------------------------------------
+missionAccess : MissionAccess
+--------------------------------------
+UserInterface(missionAccess : MissionAccess)
+runInterface() : void
+displayMenu() : void
+displayMissionList() : void
+displayMission(missionNumber : int) : void
+handleSelection(selection : String) : void
 
-All display testing has been validated
 
+Planned Responsibilities:
+- Display the interactive menu.
+- List mission titles with corresponding numbers.
+- Display a selected mission.
+- Allow access to the search feature.
+- Continue displaying the menu until Exit is selected.
+- Handle invalid user input without terminating unexpectedly.
+- Do not directly access SQLite.
+- Do not perform authentication.
+
+Planned Unit Tests:
+- Interface starts without throwing an unexpected exception.
+- Menu options are displayed.
+- Mission titles are displayed as a numbered list.
+- A valid mission number displays the requested mission.
+- An invalid mission number is handled gracefully.
+- Invalid menu input is handled gracefully.
+- The menu is redisplayed after reading a mission.
+- Selecting Exit ends the interface loop.
+
+Planned Integration Tests:
+- Successful authentication transfers control to UserInterface.
+- Mission records supplied by the database layer can be displayed by UserInterface.
+- Selecting a mission displays the correct database-backed record.
+- Search results supplied by Team Member C can be displayed.
+- Multiple actions can be performed during a single program session.
+
+Note:
+MissionAccess is a proposed interface name for planning purposes.
+The final interface name and methods should be coordinated with the team before implementation.
