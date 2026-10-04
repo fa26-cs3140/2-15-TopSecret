@@ -1,0 +1,43 @@
+class DatabaseManager // Zaid Al Falah
+
+DatabaseManager:
+- Queries SQL commands and returns data pulled from .tsv formatted datasets.
+- Interfaces with java.sql pacakage
+- All getters and setters pull from remote data, the class itself does not
+  store any data from the tables. Think of it like a middle-man between the user
+  and the requesitioned data
+
+  Class design:
+    Fields:
+    connection : Connection
+    - Holds connection protocol for sqlite3 queiries
+    - Set in constructor
+    URL : static final String
+    - Location of databse as a path
+
+  Constructors: 
+    DatabaseManager()
+    - Creates a DatabaseManager with default directory "data"
+
+    DatabaseManager(string)
+    - Creates a DatabaseManager with given direcotry 
+    
+  Methods:   
+    + setRecord(string, string) : int
+    - Takes in key, value pair as strings and updates a remote SQL databse
+      pointed at by URL. Returns the number of records changed.
+    + setColumn(string, stirng) : int
+    - Takes in headr, value pair as strings and updates a remote SQL databse
+      pointed at by URL. Returns the number of records changed.
+    + insertRecord(string, string) : int
+    - Takes in key, value pair as strings and updates a remote SQL databse
+      pointed at by URL. Returns the number of records changed.
+    + getRecords(string) : string
+    - Takes in a key and returns the associated record from a remote SQL databse
+      point at by URL.
+    + getColumns(string) : string
+    - Takes in a header and returns the associated column from a remote SQL databse
+      point at by URL.
+
+    
+
