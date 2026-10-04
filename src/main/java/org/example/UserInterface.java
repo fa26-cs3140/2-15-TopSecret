@@ -28,8 +28,7 @@ public class UserInterface
             scanner.close();
             throw new IllegalArgumentException("Exiting program... Too many arguments (3 max).\n");
         }
-        // No args, print out directory and await file selection
-        // before moving on
+        // No args, print out directory
         if (args.length == 0)
         {
             // Display menu

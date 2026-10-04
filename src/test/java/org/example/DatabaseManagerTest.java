@@ -21,6 +21,7 @@ class DatabaseManagerTest
     private Connection testConnection;
     private static final String testURL = "jdbc::sqlite::data/" + testDatabase;
 
+    // Set up a dummy directory and databse to work with
     @BeforeEach
     void setUp() throws IOException
     {
@@ -28,6 +29,12 @@ class DatabaseManagerTest
         Files.createDirectory(testDirectory);
 
         this.testManager = new DatabaseManager(testURL);
+    }
+
+    // Remove dummy directory
+    @AfterEach
+    void cleanUp() throws IOException
+    {
     }
 
     @Test
