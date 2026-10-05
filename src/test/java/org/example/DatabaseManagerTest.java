@@ -16,17 +16,18 @@ import java.sql.*;
 class DatabaseManagerTest
 {
     private Path testDirectory;
-    private static final String testDatabase = "testDatabase.db";
+    private final String testDatabase = "testDatabase.db";
+    private final String missionData = "data/mission_briefs.tsv";
     private DatabaseManager testManager;
 
     private Connection testConnection;
-    private static final String testURL = "jdbc::sqlite::data/" + testDatabase;
+    private final String testURL = "jdbc::sqlite::data/" + testDatabase;
 
     // Set up a dummy directory and databse to work with
     @BeforeEach
     void setUp() throws IOException
     {
-        this.testDirectory = Path.of(testDatabase);
+        this.testDirectory = Path.of("testDir");
         Files.createDirectory(testDirectory);
 
         this.testManager = new DatabaseManager(testURL);
@@ -50,18 +51,19 @@ class DatabaseManagerTest
     @Test
     void createDatabaseTest()
     {
-        this.testManager = new DatabaseManager(testDatabase);
+        this.testManager = new DatabaseManager(this.testDatabase);
         Boolean success = false;
         try
         {
-            success = testManager.createMissionDatabaseFromTSV("data/mission_briefs.tsv", "data", "test_briefs.db");
+            success = this.testManager.createMissionDatabaseFromTSV(this.missionData, 
+                      this.testDirectory.toString(), this.testDatabase);
         }
         catch (IOException e)
         {
             System.err.print(e.getMessage());
         }
         
-        assertTrue(success, "createDatabaseTest failed: database not successfuly made");
+        assertTrue(success);
 
     }
 
@@ -104,6 +106,20 @@ class DatabaseManagerTest
     @Test
     void getColumnTest()
     {
+    }
+
+    private void createTestDatabase()
+    {
+        // Create temporary database
+        try
+        {
+            this.testManager.createMissionDatabaseFromTSV(this.missionData, 
+                 this.testDirectory.toString(), this.testDatabase);
+        }
+        catch (IOException e)
+        {
+            System.err.print(e.getMessage());
+        }
     }
 }
 
