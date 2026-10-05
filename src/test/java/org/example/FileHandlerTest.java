@@ -1,3 +1,5 @@
+package org.example;
+
 import org.example.FileHandler;
 
 import org.junit.jupiter.api.BeforeEach;
