@@ -1,7 +1,7 @@
 package org.example;
 
 // This is a helper class with some useful debug functions I've created. 
-class DebugHelper
+public class DebugHelper
 {
     // Prints out a message but also includes the name of the
     // method it printed out from
