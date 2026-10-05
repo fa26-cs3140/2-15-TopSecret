@@ -1,0 +1,7 @@
+class DebugHelper // Zaid Al Falah
+
+Fields: -
+
+Methods:
++ debugPrintln(text : string) : static void
+

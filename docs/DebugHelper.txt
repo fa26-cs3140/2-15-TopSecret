@@ -1,0 +1,12 @@
+class DebugHelper // Zaid
+
+DebugHelper is a 'static' class (i.e. has no instanced information) which is designed
+to provide helper functions for the purposes of live-debugging the project.
+
+Fields: -
+
+Methods:
+
+debugPrintln(text : string) : void
+- Prints out message in 'text', but also includes the current method
+  from which the method came from
