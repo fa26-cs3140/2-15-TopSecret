@@ -12,6 +12,18 @@ public class DebugHelper
         System.out.println("[" + currentMethod + "]: " + text);
     }
 
+    // Debug to manage integer input
+    public static void debugPrintln(int num)
+    {
+        debugPrintln("" + num);
+    }
+
+    // Debug to manage floats/double input
+    public static void debugPrintln(double num)
+    {
+        debugPrintln("" + num);
+    }
+
     public static void debugPrintArray(Object[] arr)
     {
         String currentMethod = Thread.currentThread().getStackTrace()[2].getMethodName();
