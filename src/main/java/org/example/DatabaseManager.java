@@ -6,12 +6,15 @@ import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
+import java.util.ArrayList;
 
 public class DatabaseManager
 {
-    String sqlURL = "jdbc:sqlite:data/mission_briefs.db";
-    String username = "user";
-    String password = "pwd";
+    private String sqlURL = "jdbc:sqlite:data/mission_briefs.db";
+    private String username = "user";
+    private String password = "pwd";
+
+    private final String mission_table = "mission_briefs"; 
 
     public DatabaseManager()
     {
@@ -52,12 +55,68 @@ public class DatabaseManager
         return 0;
     }
 
-    public String[] getRecords(String url, String header)
+    /**
+     * Returns a String[] object containing tab separated values
+     * matching the format of the database record
+     *
+     * Returns null if the operation fails
+     */
+    public String[] getRecords(String url, String column, String value)
     {
-        return null;
+        String query = "SELECT Title, Date, Text FROM mission_briefs WHERE " + column + " LIKE ?";
+        DebugHelper.debugPrintln("Query: " + query);
+        // Get a ResultSet containing matching records
+        // ResultSet rs = this.createQuery(url, query);
+        ResultSet rs = null;
+        try (
+                Connection conn = DriverManager.getConnection(url, this.username, this.password);
+            )
+        {
+            PreparedStatement prepStatement = conn.prepareStatement(query);
+
+            // Bind values
+            prepStatement.setString(1, value);
+
+            rs = prepStatement.executeQuery();
+
+            if (rs == null) return null;
+            DebugHelper.debugPrintln("Result set returned.");
+            try
+            {
+                // Create an array and then parse out the records
+                // Much time spent here reading the documentation
+                // And perhaps much wasted in an effort to understand
+                ArrayList<String> temp = new ArrayList<String>();
+                while (rs.next())
+                {
+                    String record = String.format(
+                            "%s\t%s\t%s",
+                            rs.getString("Title"),
+                            rs.getDate("Date").toString(),
+                            rs.getString("Text")
+                            );
+                    DebugHelper.debugPrintln("record: " + record);
+
+                    temp.add(record);
+                }
+
+                String[] out = temp.toArray(new String[0]);
+                return out;
+            }
+            catch (SQLException e)
+            {
+                this.printSQLDiagonistics(e);
+                return null;
+            }
+        } 
+        catch (SQLException e)
+        {
+            this.printSQLDiagonistics(e);
+            return null;
+        }
     }
 
-    public String getColumns(String header)
+    public String getColumns(String url, String header, String key)
     {
         return null;
     }
@@ -113,12 +172,9 @@ public class DatabaseManager
             Files.createFile(Path.of(fullOutDBPath));
             DebugHelper.debugPrintln("File made: " + fullOutDBPath);
         }
-        // 
         
-        // Once the table has been created, we change the query
-        // to insert into the new table
         DebugHelper.debugPrintln("Creating table...");
-        query = "CREATE TABLE IF NOT EXISTS mission_briefs (Title TEXT, Date DATE, Text TEXT)";
+        query = "CREATE TABLE mission_briefs (Title TEXT, Date DATE, Text TEXT)";
         this.createQuery(jdbcURL, query);
 
         DebugHelper.debugPrintln("Trying connection...");
@@ -126,6 +182,8 @@ public class DatabaseManager
                 Connection conn = DriverManager.getConnection(jdbcURL, this.username, this.password);
             )
         {
+            // Once the table has been created, we change the query
+            // to insert into the new table
             query = "INSERT INTO mission_briefs (Title, Date, Text) VALUES (?, ?, ?)";
             PreparedStatement statement = conn.prepareStatement(query);
             BufferedReader reader = new BufferedReader(new FileReader(pathToTSV));
@@ -151,7 +209,7 @@ public class DatabaseManager
             // After obtaining all the necessary statements, execute
             statement.executeBatch();
             // System.out.println("[" + this.getFunctionName() + "]: Database made.");
-            DebugHelper.debugPrintln("Datase successfuly made.");
+            DebugHelper.debugPrintln("Database successfuly made.");
 
             // Final stuff
             reader.close();
@@ -165,24 +223,26 @@ public class DatabaseManager
     }
 
     // Generates a compilable query from an input string in SQLite3 query syntax
-    // Returns whether or not the query was completed as a boolean (true if so, false if not)
-    private Boolean createQuery(String url, String query)
+    // Returns a ResultSet object containing the retrieved query items
+    private ResultSet createQuery(String url, String query)
     {
         DebugHelper.debugPrintln("Trying connection...");
         try // Conditions for the try statement
             (
                 Connection conn = DriverManager.getConnection(url, this.username, this.password);
-                Statement statement = conn.createStatement();
             )
         {
+            Statement statement = conn.createStatement();
+            DebugHelper.debugPrintln("Connection made. URL: " + url);
+            DebugHelper.debugPrintln("Query: " + query);
             statement.setQueryTimeout(30);
             ResultSet rs = statement.executeQuery(query);
-            return true;
+            return rs;
         }
         catch (SQLException e)
         {
             this.printSQLDiagonistics(e);
-            return false;
+            return null;
         }
     }
 
