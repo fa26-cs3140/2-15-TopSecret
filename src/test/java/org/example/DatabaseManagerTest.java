@@ -16,18 +16,19 @@ import java.sql.*;
 class DatabaseManagerTest
 {
     private Path testDirectory;
+    private final String testDirName = "testDir";
     private final String testDatabase = "testDatabase.db";
     private final String missionData = "data/mission_briefs.tsv";
     private DatabaseManager testManager;
 
     private Connection testConnection;
-    private final String testURL = "jdbc::sqlite::data/" + testDatabase;
+    private final String testURL = "jdbc:sqlite:" + testDirName + "/" + testDatabase;
 
     // Set up a dummy directory and databse to work with
     @BeforeEach
     void setUp() throws IOException
     {
-        this.testDirectory = Path.of("testDir");
+        this.testDirectory = Path.of(testDirName);
         Files.createDirectory(testDirectory);
 
         this.testManager = new DatabaseManager(testURL);
@@ -51,7 +52,8 @@ class DatabaseManagerTest
     @Test
     void createDatabaseTest()
     {
-        this.testManager = new DatabaseManager(this.testDatabase);
+        DebugHelper.debugPrintln("Starting test...");
+        this.testManager = new DatabaseManager(this.testURL);
         Boolean success = false;
         try
         {
@@ -63,7 +65,10 @@ class DatabaseManagerTest
             System.err.print(e.getMessage());
         }
         
-        assertTrue(success);
+        // Sleep for 30s so i can check the database myself
+        assertTrue(success, "Table not successfuly made.");
+
+        DebugHelper.debugPrintln("Test passed!");
 
     }
 
@@ -101,6 +106,28 @@ class DatabaseManagerTest
     @Test
     void getRecordTest()
     {
+        DebugHelper.debugPrintln("Starting test...");
+        this.testManager = new DatabaseManager(this.testURL);
+        // Create temporary database
+        this.createTestDatabase(this.testManager);
+        DebugHelper.debugPrintln("Database created.");
+        // Create expeceted output
+        String[] expOut_1 = new String[1];
+        expOut_1[0] = "Operation Sandtrap\t1970-11-03\tBug the diplomatic pouch of the Libyan attaché during the layover in Rome.";
+
+        DebugHelper.debugPrintln("Getting records...");
+        String[] out_1 = testManager.getRecords(this.testManager.getURL(), "Title", "Operation Sandtrap");
+
+        if (out_1 == null) 
+        {
+            DebugHelper.debugPrintln("out_1 is null.");
+            throw new AssertionError("out_1 is null");
+        }
+
+        String[] record_out_1 = out_1[0].split("\t");
+        String[] record_expOut_1 = expOut_1[0].split("\t");
+        
+        assertEquals(record_out_1[0], record_expOut_1[0], "1. Records do not match");
     }
 
     @Test
@@ -108,12 +135,16 @@ class DatabaseManagerTest
     {
     }
 
-    private void createTestDatabase()
+    // Helper function to create temporary databases without 
+    // invoking testing issues
+    // Must be run within testing bodies, setUp() and cleanUp()
+    // can handle removing test files
+    private void createTestDatabase(DatabaseManager manager)
     {
         // Create temporary database
         try
         {
-            this.testManager.createMissionDatabaseFromTSV(this.missionData, 
+            manager.createMissionDatabaseFromTSV(this.missionData, 
                  this.testDirectory.toString(), this.testDatabase);
         }
         catch (IOException e)
