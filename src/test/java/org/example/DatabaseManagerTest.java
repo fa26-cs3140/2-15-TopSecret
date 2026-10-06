@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.File;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 class DatabaseManagerTest
 {
@@ -111,6 +113,11 @@ class DatabaseManagerTest
         // Create temporary database
         this.createTestDatabase(this.testManager);
         DebugHelper.debugPrintln("Database created.");
+
+        // Store all information (including headers) into an array
+        FileHandler fhandler = new FileHandler();
+        String[] data_raw = fhandler.readFile("mission_briefs.tsv").split("\n");
+        // Test 1 -- Pull exactly one record by title
         // Create expeceted output
         String[] expOut_1 = new String[1];
         expOut_1[0] = "Operation Sandtrap\t1970-11-03\tBug the diplomatic pouch of the Libyan attaché during the layover in Rome.";
@@ -124,10 +131,27 @@ class DatabaseManagerTest
             throw new AssertionError("out_1 is null");
         }
 
+        // Format the output here to make sure that
+        // the behaviour for splitting around tabs is also
+        // tested.
         String[] record_out_1 = out_1[0].split("\t");
         String[] record_expOut_1 = expOut_1[0].split("\t");
         
         assertEquals(record_out_1[0], record_expOut_1[0], "1. Records do not match");
+
+        // Test 2 -- Pull entire table
+        String[] expOut_2 = Arrays.copyOfRange(data_raw, 1, data_raw.length);
+        String[] out_2 = testManager.getRecords(this.testManager.getURL(), "Title", "%");
+
+        DebugHelper.debugPrintln(out_2.length);
+        assertTrue(out_2.length == expOut_2.length, "2. Records do not match");
+        for (int i = 0; i < out_2.length; i++)
+        {
+            assertEquals(out_2[i], expOut_2[i], "2. Records do not match");
+        }
+
+        // Test 3 -- Pull three random items by date
+        
     }
 
     @Test
