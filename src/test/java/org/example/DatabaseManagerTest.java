@@ -192,7 +192,6 @@ class DatabaseManagerTest
         {
             assertEquals(out_3[i], expOut_3[i], "3. Arrays are not equivalent.");
         }
-        
     }
 
     // Helper function to create temporary databases without 
