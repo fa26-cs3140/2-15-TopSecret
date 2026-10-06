@@ -86,6 +86,7 @@ public class DatabaseManager
                 // Create an array and then parse out the records
                 // Much time spent here reading the documentation
                 // And perhaps much wasted in an effort to understand
+                // Update: HAHA! IT WORKS! IM A GOD!
                 ArrayList<String> temp = new ArrayList<String>();
                 while (rs.next())
                 {
@@ -116,11 +117,56 @@ public class DatabaseManager
         }
     }
 
-    public String getColumns(String url, String column, String key)
+    // Overload to use default URL
+    public String[] getRecords(String column, String key)
     {
-        // First, get the records which match the search
-        String query = "SELECT " + column + " FROM " + main_table; 
-        return null;
+        return this.getRecords(this.sqlURL, column, key);
+    }
+
+    public String[] getColumn(String url, String column)
+    {
+        // Get the records which match the search
+        String query = "SELECT " + column + " FROM " + main_table;
+
+        // Pipe it into an sql statement
+        try (
+                Connection conn = DriverManager.getConnection(url, this.username, this.password);
+            )
+        {
+            PreparedStatement prepStatement = conn.prepareStatement(query);
+            ResultSet rs = prepStatement.executeQuery();
+
+            if (rs == null) return null;
+            
+            ArrayList<String> tempout = new ArrayList<String>();
+            while (rs.next())
+            {
+                int columntype = rs.getMetaData().getColumnType(1);
+                String rs_value;
+                if (columntype == Types.DATE)
+                {
+                    rs_value = rs.getDate(column).toString();
+                }
+                else
+                {
+                     rs_value = rs.getString(column);
+                }
+                tempout.add(rs_value);
+            }
+
+            String[] out = tempout.toArray(new String[0]);
+            return out;
+        }
+        catch (SQLException e)
+        {
+            this.printSQLDiagonistics(e);
+            return null;
+        }
+    }
+
+    public String[] getColumn(String column)
+    {
+        return this.getColumn(this.sqlURL, column);
     }
 
     // Creates a database from an input TSV file
@@ -129,7 +175,14 @@ public class DatabaseManager
     // NOTE: Do not include trailing '/' at the end of the dirOut path
     public Boolean createMissionDatabaseFromTSV(String pathToTSV, String dirOut, String dbOutName) throws IOException
     {
-        // Making sure JDBC exists
+        // Remove trailing slashes from pathToTSV in an effort to reduce error
+        if (pathToTSV.charAt(pathToTSV.length() - 1) == '\\' ||
+            pathToTSV.charAt(pathToTSV.length() - 1) == '/')
+        {
+            String tmp = pathToTSV.substring(0, pathToTSV.length() - 2);
+            pathToTSV = tmp;
+        }
+        // Making sure JDBC exists, giving me hell trying to fix
         try 
         {
             DebugHelper.debugPrintln("Checking JDBC exists.");
@@ -193,7 +246,7 @@ public class DatabaseManager
 
             // Skip header
             reader.readLine();
-
+            
             // Read out all the information from the TSV
             while ((readText = reader.readLine()) != null)
             {
