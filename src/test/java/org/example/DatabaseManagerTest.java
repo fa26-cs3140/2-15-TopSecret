@@ -54,7 +54,6 @@ class DatabaseManagerTest
     @Test
     void createDatabaseTest()
     {
-        DebugHelper.debugPrintln("Starting test...");
         this.testManager = new DatabaseManager(this.testURL);
         Boolean success = false;
         try
@@ -67,11 +66,7 @@ class DatabaseManagerTest
             System.err.print(e.getMessage());
         }
         
-        // Sleep for 30s so i can check the database myself
         assertTrue(success, "Table not successfuly made.");
-
-        DebugHelper.debugPrintln("Test passed!");
-
     }
 
     @Test
@@ -108,11 +103,9 @@ class DatabaseManagerTest
     @Test
     void getRecordTest()
     {
-        DebugHelper.debugPrintln("Starting test...");
         this.testManager = new DatabaseManager(this.testURL);
         // Create temporary database
         this.createTestDatabase(this.testManager);
-        DebugHelper.debugPrintln("Database created.");
 
         // Store all information (including headers) into an array
         FileHandler fhandler = new FileHandler();
@@ -122,7 +115,6 @@ class DatabaseManagerTest
         String[] expOut_1 = new String[1];
         expOut_1[0] = "Operation Sandtrap\t1970-11-03\tBug the diplomatic pouch of the Libyan attaché during the layover in Rome.";
 
-        DebugHelper.debugPrintln("Getting records...");
         String[] out_1 = testManager.getRecords(this.testManager.getURL(), "Title", "Operation Sandtrap");
 
         if (out_1 == null) 
@@ -143,7 +135,6 @@ class DatabaseManagerTest
         String[] expOut_2 = Arrays.copyOfRange(data_raw, 1, data_raw.length);
         String[] out_2 = testManager.getRecords(this.testManager.getURL(), "Title", "%");
 
-        DebugHelper.debugPrintln(out_2.length);
         assertTrue(out_2.length == expOut_2.length, "2. Records do not match");
         for (int i = 0; i < out_2.length; i++)
         {
@@ -157,6 +148,51 @@ class DatabaseManagerTest
     @Test
     void getColumnTest()
     {
+        this.testManager = new DatabaseManager(this.testURL);
+        this.createTestDatabase(this.testManager);
+
+        // Store all information (including headers) into an array
+        FileHandler fhandler = new FileHandler();
+        String[] data_raw = fhandler.readFile("mission_briefs.tsv").split("\n");
+        ArrayList<String> temp_titles = new ArrayList<String>();
+        ArrayList<String> temp_dates = new ArrayList<String>();
+        ArrayList<String> temp_texts = new ArrayList<String>();
+        // Get expected output from raw
+        for (int i = 1; i < data_raw.length; i++)
+        {
+            temp_titles.add(data_raw[i].split("\t")[0]);
+            temp_dates.add(data_raw[i].split("\t")[1]);
+            temp_texts.add(data_raw[i].split("\t")[2]);
+        }
+        String[] expOut_1 = temp_titles.toArray(new String[0]);
+        String[] expOut_2 = temp_dates.toArray(new String[0]);
+        String[] expOut_3 = temp_texts.toArray(new String[0]);
+
+        // Get Title column
+        String[] out_1 = testManager.getColumn("Title");
+        assertTrue(out_1.length == expOut_1.length);
+        for (int i = 0; i < out_1.length; i++)
+        {
+            assertEquals(out_1[i], expOut_1[i], "1. Arrays are not equivalent.");
+        }
+
+        // Get Date column
+        String[] out_2 = testManager.getColumn("Date");
+        assertTrue(out_2.length == expOut_2.length);
+        for (int i = 0; i < out_2.length; i++)
+        {
+            assertEquals(out_2[i], expOut_2[i], "2. Arrays are not equivalent.");
+        }
+        
+        DebugHelper.debugPrintln("Test 3: Text");
+        // Get Text column
+        String[] out_3 = testManager.getColumn("Text");
+        assertTrue(out_3.length == expOut_3.length);
+        for (int i = 0; i < out_3.length; i++)
+        {
+            assertEquals(out_3[i], expOut_3[i], "3. Arrays are not equivalent.");
+        }
+        
     }
 
     // Helper function to create temporary databases without 
