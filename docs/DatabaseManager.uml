@@ -1,13 +1,18 @@
 class DatabaseManager // Zaid Al Falah
 
 Fields:
-- connection : Connection
-- URL : static final String
+- sqlURL : static final string
+- username : static final string
+- password : static final string
+
+Constructors:
++ DatabaseManager(string) : void
 
 Methods:
 + setRecord(string, string) : int
 + setColumn(string, stirng) : int
 + insertRecord(string, string) : int
 + getRecords(string) : string
-+ getColumns(string) : string
++ getColumns(string, string, string) : string[]
++ getColumns(string, string) : string[]
 

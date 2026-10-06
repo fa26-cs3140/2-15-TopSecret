@@ -9,35 +9,47 @@ DatabaseManager:
 
   Class design:
     Fields:
-    connection : Connection
-    - Holds connection protocol for sqlite3 queiries
-    - Set in constructor
-    URL : static final String
-    - Location of databse as a path
+    - sqlURL : string
+      Points to the database to process. Can be changed via setURL() or
+      in the constructor
+    - username : string
+      Dummy username for use in connections
+    - password : string
+      Dummy password for use in connections
 
   Constructors: 
     DatabaseManager()
-    - Creates a DatabaseManager with default directory "data"
+    - Creates a DatabaseManager with default database "data/mission_briefs.db"
 
     DatabaseManager(string)
-    - Creates a DatabaseManager with given direcotry 
-    
+    - Creates a DatabaseManager pointing to a specific database,
+      specified by the String url parameter.
+
   Methods:   
     + setRecord(string, string) : int
     - Takes in key, value pair as strings and updates a remote SQL databse
       pointed at by URL. Returns the number of records changed.
+
     + setColumn(string, stirng) : int
     - Takes in headr, value pair as strings and updates a remote SQL databse
-      pointed at by URL. Returns the number of records changed.
+      pointed at by URL. Returns the number of records changed.\
+
     + insertRecord(string, string) : int
     - Takes in key, value pair as strings and updates a remote SQL databse
       pointed at by URL. Returns the number of records changed.
-    + getRecords(string) : string
-    - Takes in a key and returns the associated record from a remote SQL databse
-      point at by URL.
-    + getColumns(string) : string
-    - Takes in a header and returns the associated column from a remote SQL databse
-      point at by URL.
+
+    + getRecords(string, string, string) : string[]
+      Returns an String array of all matching records. Records are
+      formatted as tab-separated values, which can be parsed out
+      easily with a .split('\t') command. Takes in a String URL to the
+      database (in which the DatabaseManager's current URL may be passed),
+      a String column which contains the title of the column to match,
+      and a String value which the query will search for.
+    + getRecords(string, string) : string[]
+      Overload for the previous function, when URL is not specified,
+      the manager will use the URL it was instantiated with.
+
+      
 
     
 
