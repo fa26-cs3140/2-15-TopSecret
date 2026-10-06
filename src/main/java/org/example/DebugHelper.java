@@ -11,4 +11,13 @@ public class DebugHelper
         String currentMethod = Thread.currentThread().getStackTrace()[2].getMethodName();
         System.out.println("[" + currentMethod + "]: " + text);
     }
+
+    public static void debugPrintArray(Object[] arr)
+    {
+        String currentMethod = Thread.currentThread().getStackTrace()[2].getMethodName();
+        for (int i = 0; i < arr.length; i++)
+        {
+            System.out.println("[" + currentMethod + "]: " + i + " : "+ arr[i].toString());
+        }
+    }
 }
