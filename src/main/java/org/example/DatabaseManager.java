@@ -14,7 +14,7 @@ public class DatabaseManager
     private String username = "user";
     private String password = "pwd";
 
-    private final String mission_table = "mission_briefs"; 
+    private final String main_table = "mission_briefs"; 
 
     public DatabaseManager()
     {
@@ -116,8 +116,10 @@ public class DatabaseManager
         }
     }
 
-    public String getColumns(String url, String header, String key)
+    public String getColumns(String url, String column, String key)
     {
+        // First, get the records which match the search
+        String query = "SELECT " + column + " FROM " + main_table; 
         return null;
     }
 
