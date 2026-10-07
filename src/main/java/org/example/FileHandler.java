@@ -1,12 +1,10 @@
 package org.example;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
 
 /**
  * Handles all direct access to data files.
@@ -94,5 +92,16 @@ public class FileHandler {
         }
 
         return returnString.strip();
+    }
+    public boolean writeFile(String filename, String contents) {
+        File targetFile = new File(dataDirectory, filename);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile))) {
+            writer.write(contents);
+            return true;
+        }
+        catch (IOException e) {
+            return false;
+        }
+
     }
 }
