@@ -1,0 +1,42 @@
+// Mike Ly (mch3jy)
+
+TODO: Specify how this class interacts with other classes, especially a user guide for UserInterface to use this class
+TODO: Write tests
+TODO: Implement class
+TODO: Update final docs
+TODO: Flag Zaid (A) about mismatches in DatabaseManager and DatabaseManager-uml, also discuss about returning List<String> instead of String[] (maybe?)
+
+The MissionSearch class is the program's search feature. From a given word or phrase, it is responsible for searching the mission database for mission briefs containing that word or phrase and display a list of matches.
+
+This class shouldn't directly access the database or uses SQLite, but rather handle that using DatabaseManager.
+
+Responsibilities & Requirements:
+- Searches mission database or mission briefs containing a given word/phrase
+- Returns a list of matches
+- Does not search for titles
+- Search should ignore case
+- If no matches are found, return a message indicating no matches were found
+- Must be tested by both unit and integration tests
+
+Class design:
+    Attributes:
+        databaseManager: DatabaseManager
+        - The DatabaseManager instance that is responsible for database access
+        - Handles all SQLite/database operations
+
+    Constructors:
+        MissionSearch()
+        - Creates a MissionSearch instance using a new DatabaseManager with the default database URL
+
+        MissionSearch(DatabaseManager databaseManager)
+        - Creates a MissionSearch instance using the provided DatabaseManager, allowing another database to be used other than the default
+        - This is mainly for testing purposes
+
+    Methods:
+        search(String searchTerm): SearchResult
+        - Searches mission database for mission briefs including the given word or phrase in searchTerm
+        - Returns a SearchResult containing the list of matching mission briefs and any message indicating the result/status of the search operation (see SearchResult.txt for more details)
+        - If matches are found, the returned SearchResult contains the matching records and no message is required/sent back
+        - If no matches are found, the SearchResult contains an empty List<String> and the message "No matches were found."
+        - If the database search operation fails, the SearchResult contains null for the matches records and a failure message
+        - Note: a null or blank searchTerm should return an empty List<String> and an appropriate message

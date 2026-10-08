@@ -1,0 +1,41 @@
+// Mike Ly (mch3jy)
+
+The SearchResult class is the outcome of the search feature. It is responsible for separating the returned matching mission records from status or error messages.
+
+Class Design:
+    Attributes:
+        matches: List<String>
+        - Contains all mission briefs that matched the search
+        - A non-empty list means matching mission brief(s) were found
+        - An empty list mean the search completed and no matching briefs were found
+        - null indicates that the search failed, possibly due to an error
+
+        message: String
+        - Contains a message that the caller can display to the user
+        - May be null
+
+    Constructor:
+        SearchResult(List<String> matches, String message)
+        - Create a SearchResult containing the supplied matches and message
+        - Note: matches and message may be null
+
+    Methods:
+        getMatches(): List<String>
+        - Returns the list of matching mission records
+        - Returns an empty list if the search was completed but found to matches
+        - Return null if the search operation failed
+
+        getMessage(): String
+        - Returns the message associated with the search operation results
+        - Note: Could be null if no message is necessary
+
+Returned Record Format:
+    DatabaseManager returns matching mission briefs as tab-separated Strings. Thus, the MissionSearch class will place these Strings into matches list of SearchResult.
+
+    Each String has the following format:
+    Title<TAB>Date<TAB>Text
+
+    Example:
+    Operation Sandtrap	1970-11-03	This is a mission description.
+
+    Because of that, caller can parse the individual fields using .split("\t").

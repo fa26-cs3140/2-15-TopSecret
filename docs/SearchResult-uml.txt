@@ -1,0 +1,11 @@
+// Mike Ly (mch3jy)
+
+SearchResult
+--------------------------------------
+matches: List<String>
+message: String
+--------------------------------------
+SearchResult(matches: List<String>, message: String)
+
+getMatches(): List<String>
+getMessage(): String

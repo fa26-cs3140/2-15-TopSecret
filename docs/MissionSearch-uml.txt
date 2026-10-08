@@ -1,0 +1,10 @@
+// Mike Ly (mch3jy)
+
+MissionSearch
+--------------------------------------
+databaseManager: DatabaseManager
+--------------------------------------
+MissionSearch()
+MissionSearch(databaseManager: DatabaseManager)
+
+search(searchTerm: String): SearchResult
