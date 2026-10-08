@@ -1,195 +1,276 @@
 package org.example;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserInterfaceTest {
 
-    UserInterface tUser;
-
     /*
-     * Homework 3 tests are preserved below.
-     * Homework 4 test stubs are added afterward.
+     * Simple fake DatabaseManager used so UserInterface can be
+     * unit tested without accessing SQLite.
      */
+    static class FakeDatabaseManager extends DatabaseManager {
 
-    @Test
-    void runInterface()
-    {
-        // Test 1: No arguments
-        tUser = new UserInterface();
-        String[] args_t1 = new String[0];
-        assertDoesNotThrow(
-                () -> tUser.runInterface(args_t1),
-                "Test 1 Failed: Threw an exception"
-        );
+        private final String[] titles = {
+                "Operation Sandtrap",
+                "The Munich Lead",
+                "Project Bluebird"
+        };
 
-        // Test 2: One argument, valid
-        String[] args_t2 = new String[1];
-        args_t2[0] = "0";
-        assertDoesNotThrow(
-                () -> tUser.runInterface(args_t2),
-                "Test 2 Failed: Threw an exception"
-        );
+        private final String[] records = {
+                "Operation Sandtrap\t1970-11-03\tBug the diplomatic pouch.",
+                "The Munich Lead\t1972-09-15\tIdentify the logistical backbone.",
+                "Project Bluebird\t1973-04-20\tExfiltrate the defector."
+        };
 
-        // Test 3: Two arguments, both valid
-        String[] args_t3 = new String[2];
-        args_t3[0] = "0";
-        args_t3[1] = "0";
-        assertDoesNotThrow(
-                () -> tUser.runInterface(args_t3),
-                "Test 3 Failed: Threw an exception"
-        );
+        @Override
+        public String[] getColumn(String column) {
+            if ("Title".equals(column)) {
+                return titles;
+            }
 
-        // Test 4: One argument, invalid out of range
-        String[] args_t4 = new String[1];
-        args_t4[0] = "9";
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> tUser.runInterface(args_t4),
-                "Test 4 Failed: Did not throw an exception"
-        );
+            return null;
+        }
 
-        // Test 5: One argument, invalid not a number
-        String[] args_t5 = new String[1];
-        args_t5[0] = "NotANumber";
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> tUser.runInterface(args_t5),
-                "Test 5 Failed: Did not throw an exception"
-        );
+        @Override
+        public String[] getRecords(String column, String value) {
+            if (!"Title".equals(column)) {
+                return null;
+            }
 
-        // Test 6: Two arguments, second invalid out of range
-        String[] args_t6 = new String[2];
-        args_t6[0] = "0";
-        args_t6[1] = "1000";
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> tUser.runInterface(args_t6),
-                "Test 6 Failed: Did not throw an exception"
-        );
+            if ("%".equals(value)) {
+                return records;
+            }
 
-        // Test 7: Two arguments, second invalid not a number
-        String[] args_t7 = new String[2];
-        args_t7[0] = "0";
-        args_t7[1] = "NotANumber";
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> tUser.runInterface(args_t7),
-                "Test 7 Failed: Did not throw an exception"
-        );
+            for (String record : records) {
+                String[] fields = record.split("\t", 3);
 
-        // Test 8: Two arguments, deciphered text
-        String[] args_t8 = new String[2];
-        args_t8[0] = "0";
-        args_t8[1] = "1";
-        assertDoesNotThrow(
-                () -> tUser.runInterface(args_t8),
-                "Test 8 Failed: Threw an exception"
+                if (fields[0].equals(value)) {
+                    return new String[]{record};
+                }
+            }
+
+            return new String[0];
+        }
+    }
+
+    private UserInterface createInterface(
+            String input,
+            ByteArrayOutputStream output
+    ) {
+        return new UserInterface(
+                new FakeDatabaseManager(),
+                new Scanner(input),
+                new PrintStream(output)
         );
     }
 
-
-    /*
-     * Homework 4 Week 1 Test Stubs
-     *
-     * These tests define expected Homework 4 behavior.
-     * They are disabled until the new interactive UserInterface
-     * and its connections to the other components are implemented.
-     */
-
     @Test
-    @Disabled("Homework 4 Week 1 test stub")
-    void displaysMenuOptions()
-    {
-        /*
-         * Expected:
-         * UserInterface displays options to:
-         * 1. List missions
-         * 2. Read a mission
-         * 3. Search missions
-         * 4. Exit
-         */
+    void displayMenuShowsRequiredOptions() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        UserInterface ui = createInterface("", output);
+
+        ui.displayMenu();
+
+        String text = output.toString();
+
+        assertTrue(text.contains("List available mission briefs"));
+        assertTrue(text.contains("Read a mission brief"));
+        assertTrue(text.contains("Exit"));
     }
 
     @Test
-    @Disabled("Homework 4 Week 1 test stub")
-    void displaysNumberedMissionList()
-    {
-        /*
-         * Expected:
-         * Mission titles are displayed with corresponding numbers.
-         *
-         * Example:
-         * 1 Operation Sandtrap
-         * 2 The Munich Lead
-         */
+    void displayMissionListShowsNumberedTitles() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        UserInterface ui = createInterface("", output);
+
+        ui.displayMissionList();
+
+        String text = output.toString();
+
+        assertTrue(text.contains("1. Operation Sandtrap"));
+        assertTrue(text.contains("2. The Munich Lead"));
+        assertTrue(text.contains("3. Project Bluebird"));
     }
 
     @Test
-    @Disabled("Homework 4 Week 1 test stub")
-    void validMissionSelectionDisplaysMission()
-    {
-        /*
-         * Expected:
-         * When the user selects a valid mission number,
-         * the corresponding mission information is displayed.
-         */
+    void displayMissionShowsSelectedMission() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        UserInterface ui = createInterface("", output);
+
+        ui.displayMission(2);
+
+        String text = output.toString();
+
+        assertTrue(text.contains("The Munich Lead"));
+        assertTrue(text.contains("1972-09-15"));
+        assertTrue(text.contains("Identify the logistical backbone."));
     }
 
     @Test
-    @Disabled("Homework 4 Week 1 test stub")
-    void invalidMissionSelectionIsHandled()
-    {
-        /*
-         * Expected:
-         * An invalid mission number produces an appropriate
-         * response and does not terminate the program unexpectedly.
-         */
+    void displayMissionRejectsNumberThatIsTooSmall() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        UserInterface ui = createInterface("", output);
+
+        ui.displayMission(0);
+
+        assertTrue(
+                output.toString().contains("Invalid mission number")
+        );
     }
 
     @Test
-    @Disabled("Homework 4 Week 1 test stub")
-    void invalidMenuSelectionIsHandled()
-    {
-        /*
-         * Expected:
-         * Invalid menu input is handled gracefully and the
-         * user is allowed to make another selection.
-         */
+    void displayMissionRejectsNumberThatIsTooLarge() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        UserInterface ui = createInterface("", output);
+
+        ui.displayMission(100);
+
+        assertTrue(
+                output.toString().contains("Invalid mission number")
+        );
     }
 
     @Test
-    @Disabled("Homework 4 Week 1 test stub")
-    void menuReturnsAfterMissionIsDisplayed()
-    {
+    void runInterfaceCanListThenExit() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
         /*
-         * Expected:
-         * After displaying a mission, UserInterface displays
-         * the menu again rather than terminating.
+         * 1 = list missions
+         * 3 = exit
          */
+        UserInterface ui = createInterface(
+                "1\n3\n",
+                output
+        );
+
+        ui.runInterface();
+
+        String text = output.toString();
+
+        assertTrue(text.contains("1. Operation Sandtrap"));
+        assertTrue(text.contains("2. The Munich Lead"));
+        assertTrue(text.contains("Exiting"));
     }
 
     @Test
-    @Disabled("Homework 4 Week 1 test stub")
-    void exitSelectionEndsInterface()
-    {
+    void runInterfaceCanReadMissionThenReturnToMenu() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
         /*
-         * Expected:
-         * Selecting the Exit option ends the interactive loop.
+         * 2 = read mission
+         * 1 = mission number
+         * 3 = exit
          */
+        UserInterface ui = createInterface(
+                "2\n1\n3\n",
+                output
+        );
+
+        ui.runInterface();
+
+        String text = output.toString();
+
+        assertTrue(text.contains("Operation Sandtrap"));
+        assertTrue(text.contains("1970-11-03"));
+
+        /*
+         * The menu should have been displayed once before reading
+         * the mission and again afterward.
+         */
+        assertTrue(
+                countOccurrences(text, "List available mission briefs") >= 2
+        );
     }
 
     @Test
-    @Disabled("Homework 4 Week 1 test stub")
-    void multipleActionsCanOccurInOneSession()
-    {
+    void invalidMenuInputDoesNotEndProgram() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        UserInterface ui = createInterface(
+                "hello\n3\n",
+                output
+        );
+
+        ui.runInterface();
+
+        String text = output.toString();
+
+        assertTrue(text.contains("Invalid menu selection"));
+        assertTrue(text.contains("Exiting"));
+    }
+
+    @Test
+    void invalidMissionInputDoesNotEndProgram() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
         /*
-         * Expected:
-         * The user can list missions, read a mission,
-         * and perform another action without restarting
-         * the program.
+         * 2 = read
+         * hello = invalid mission number
+         * 3 = exit
          */
+        UserInterface ui = createInterface(
+                "2\nhello\n3\n",
+                output
+        );
+
+        ui.runInterface();
+
+        String text = output.toString();
+
+        assertTrue(text.contains("Invalid mission number"));
+        assertTrue(text.contains("Exiting"));
+    }
+
+    @Test
+    void missingMissionDataIsHandledGracefully() {
+
+        DatabaseManager brokenDatabase = new DatabaseManager() {
+            @Override
+            public String[] getColumn(String column) {
+                return null;
+            }
+
+            @Override
+            public String[] getRecords(String column, String value) {
+                return null;
+            }
+        };
+
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        UserInterface ui = new UserInterface(
+                brokenDatabase,
+                new Scanner(""),
+                new PrintStream(output)
+        );
+
+        ui.displayMissionList();
+
+        assertTrue(
+                output.toString().contains("Unable to load missions")
+        );
+    }
+
+    private int countOccurrences(String text, String target) {
+        int count = 0;
+        int index = 0;
+
+        while ((index = text.indexOf(target, index)) != -1) {
+            count++;
+            index += target.length();
+        }
+
+        return count;
     }
 }

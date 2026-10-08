@@ -1,49 +1,76 @@
-Zaid Al Falah // UserInterface Class Description
+Vrisag Desinani - Team Member D
+UserInterface Class Description
 
-The UserInterface class is responsible for handling the terminal interface presented to the user.
+The UserInterface class is responsible for the interactive terminal interface shown after authentication has completed.
 
-Homework 3 Design:
-The Homework 3 version of UserInterface managed command-line arguments used to select a file and cipher. The interface displayed available files and passed requests to ProgramControl.
-
-Homework 4 Changes (Vrisag Desinani):
-Homework 4 changes the interface from a one-command utility into an interactive menu that remains running until the user chooses to exit.
-
-The mission reports are now stored in a SQLite database rather than individual text files. UserInterface should not directly access the database. Mission information should instead be requested through another component or interface agreed upon by the team.
-
-Authentication is handled before the mission menu is displayed. UserInterface is not responsible for validating usernames or passwords.
+Homework 4 replaces the Homework 3 file-based command line interface with a menu that remains active until the user selects Exit.
 
 Responsibilities & Requirements:
-- Display the mission menu after a successful login.
-- Keep the program interactive until the user chooses to exit.
+- Display the mission menu.
+- Keep the interface running until Exit is selected.
 - Allow the user to list available mission briefs.
 - Display mission titles with corresponding numbers.
-- Allow the user to enter a mission number and display the selected mission.
-- Redisplay the menu after a mission has been viewed.
-- Provide access to the search option implemented by Team Member C.
-- Handle invalid menu selections without crashing the program.
-- Handle invalid mission selections without crashing the program.
-- Do not directly access SQLite.
-- Do not directly perform password validation.
-- Communicate with other components through agreed-upon interfaces where appropriate.
+- Allow the user to select a mission by number.
+- Display the title, date, and brief of the selected mission.
+- Return to the menu after an operation is completed.
+- Handle invalid menu input without terminating unexpectedly.
+- Handle invalid mission numbers without terminating unexpectedly.
+- Handle unavailable mission data gracefully.
+- Do not execute SQL or directly access SQLite.
+- Obtain mission information through DatabaseManager.
+- Authentication occurs before UserInterface is started and is handled by Team Member B.
+- Mission searching is Team Member C's responsibility and will be connected to the user interface through the team's final search component.
 
-Planned User Interface Flow:
+Class Design:
 
-1. Authentication is completed by Team Member B's component.
-2. UserInterface displays the mission menu.
-3. The user selects an action.
-4. UserInterface requests the necessary information from the appropriate component.
-5. UserInterface displays the result.
-6. The menu is displayed again.
-7. The process continues until the user selects Exit.
+Attributes:
 
-Planned Menu Options:
+    databaseManager: DatabaseManager
+    - Supplies mission records to UserInterface.
+    - UserInterface does not execute SQL itself.
 
-1. List available mission briefs
-2. Read a mission brief
-3. Search mission briefs
-4. Exit
+    scanner: Scanner
+    - Reads terminal input from the user.
 
-The exact menu formatting and component/interface names may be refined after the team finalizes the Homework 4 system design.
+    output: PrintStream
+    - Displays menus, missions, and messages.
+    - Can be replaced during testing so output can be verified.
 
-Class design:
-- See UserInterface-uml.txt
+Constructors:
+
+    UserInterface()
+    - Creates an interface using the default DatabaseManager,
+      System.in, and System.out.
+
+    UserInterface(DatabaseManager databaseManager,
+                  Scanner scanner,
+                  PrintStream output)
+    - Allows dependencies to be supplied.
+    - Primarily supports unit and integration testing.
+
+Methods:
+
+    runInterface(): void
+    - Starts the interactive menu loop.
+    - Continues until the user selects Exit.
+
+    runInterface(String[] args): void
+    - Compatibility method used by the existing TopSecret class.
+    - Starts the Homework 4 interactive interface.
+
+    displayMenu(): void
+    - Displays the available user-interface options.
+
+    displayMissionList(): void
+    - Retrieves mission titles through DatabaseManager.
+    - Displays each title with a corresponding number.
+
+    displayMission(int missionNumber): void
+    - Displays the title, date, and brief for the selected mission.
+    - Handles an invalid mission number without crashing.
+
+Testing:
+
+Unit tests use a fake DatabaseManager so UserInterface can be tested without SQLite.
+
+Integration tests use a temporary SQLite database through the real DatabaseManager to verify that the user interface can display database-backed mission information.
