@@ -164,9 +164,7 @@ public class DatabaseManager
         // Making sure JDBC exists, giving me hell trying to fix
         try 
         {
-            DebugHelper.debugPrintln("Checking JDBC exists.");
             Class.forName("org.sqlite.JDBC");
-            DebugHelper.debugPrintln("JDBC exists.");
         }
         catch (ClassNotFoundException e)
         {
@@ -175,22 +173,11 @@ public class DatabaseManager
         }
 
         // System.out.println("[" + this.getFunctionName() + "]: Creating db...");
-        DebugHelper.debugPrintln("Creating db...");
 
         // Check if directory and/or tsv exists
-        if (!Files.exists(Path.of(dirOut)))
-        {
-            // System.out.println("[" + this.getFunctionName() + "]: output directory not found.");
-            DebugHelper.debugPrintln("Output directory not found.");
-            return false;
-        }
+        if (!Files.exists(Path.of(dirOut))) return false;
 
-        if (!Files.exists(Path.of(pathToTSV)))
-        {
-            // System.out.println("[" + this.getFunctionName() + "]: output directory not found.");
-            DebugHelper.debugPrintln("Input .tsv not found.");
-            return false;
-        }
+        if (!Files.exists(Path.of(pathToTSV))) return false;
         
         // Helper variable for clairty on where outputs are found
         String fullOutDBPath = dirOut + "/" + dbOutName;
@@ -200,18 +187,11 @@ public class DatabaseManager
 
         // Create table to be inserted, following mission table format (Name, Date, Text)
         String query; 
-        if (!Files.exists(Path.of(fullOutDBPath))) 
-        {
-            // Create the file
-            Files.createFile(Path.of(fullOutDBPath));
-            DebugHelper.debugPrintln("File made: " + fullOutDBPath);
-        }
+        if (!Files.exists(Path.of(fullOutDBPath))) Files.createFile(Path.of(fullOutDBPath));
         
-        DebugHelper.debugPrintln("Creating table...");
         query = "CREATE TABLE mission_briefs (Title TEXT, Date DATE, Text TEXT)";
         this.createQuery(jdbcURL, query);
 
-        DebugHelper.debugPrintln("Trying connection...");
         try (
                 Connection conn = DriverManager.getConnection(jdbcURL, this.username, this.password);
             )
@@ -243,8 +223,6 @@ public class DatabaseManager
             // After obtaining all the necessary statements, execute
             statement.executeBatch();
             // System.out.println("[" + this.getFunctionName() + "]: Database made.");
-            DebugHelper.debugPrintln("Database successfuly made.");
-
             // Final stuff
             reader.close();
             return true;
@@ -267,8 +245,6 @@ public class DatabaseManager
             )
         {
             Statement statement = conn.createStatement();
-            DebugHelper.debugPrintln("Connection made. URL: " + url);
-            DebugHelper.debugPrintln("Query: " + query);
             statement.setQueryTimeout(30);
             ResultSet rs = statement.executeQuery(query);
             return rs;
