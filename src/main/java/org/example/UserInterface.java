@@ -1,37 +1,46 @@
 package org.example;
 
 import java.io.PrintStream;
+import java.util.List;
 import java.util.Scanner;
 
 /**
  * Handles the interactive Homework 4 terminal interface.
  *
- * Mission data is requested through DatabaseManager.
- * This class does not directly execute SQL or access SQLite.
+ * Mission data is obtained through DatabaseManager.
+ * Search operations are performed through MissionSearch.
+ * UserInterface does not directly access SQLite.
  */
 public class UserInterface {
 
     private final DatabaseManager databaseManager;
+    private final MissionSearch missionSearch;
     private final Scanner scanner;
     private final PrintStream output;
 
     /**
-     * Creates a UserInterface using the normal program input,
-     * output, and default mission database.
+     * Creates the normal application UserInterface.
      */
     public UserInterface() {
-        this(
-                new DatabaseManager(),
-                new Scanner(System.in),
-                System.out
-        );
+
+        this.databaseManager =
+                new DatabaseManager();
+
+        this.missionSearch =
+                new MissionSearch(databaseManager);
+
+        this.scanner =
+                new Scanner(System.in);
+
+        this.output =
+                System.out;
     }
 
     /**
-     * Creates a UserInterface using supplied dependencies.
+     * Creates a UserInterface using the supplied database,
+     * input, and output.
      *
-     * This constructor makes the class easier to test because
-     * tests can provide their own database manager, input, and output.
+     * A MissionSearch is created using the same DatabaseManager.
      *
      * @param databaseManager database access component
      * @param scanner input source
@@ -42,9 +51,40 @@ public class UserInterface {
             Scanner scanner,
             PrintStream output
     ) {
+        this(
+                databaseManager,
+                createMissionSearch(databaseManager),
+                scanner,
+                output
+        );
+    }
+
+    /**
+     * Creates a UserInterface using supplied dependencies.
+     *
+     * This constructor is useful for unit and integration testing.
+     *
+     * @param databaseManager database access component
+     * @param missionSearch mission search component
+     * @param scanner input source
+     * @param output output destination
+     */
+    public UserInterface(
+            DatabaseManager databaseManager,
+            MissionSearch missionSearch,
+            Scanner scanner,
+            PrintStream output
+    ) {
+
         if (databaseManager == null) {
             throw new IllegalArgumentException(
                     "DatabaseManager cannot be null."
+            );
+        }
+
+        if (missionSearch == null) {
+            throw new IllegalArgumentException(
+                    "MissionSearch cannot be null."
             );
         }
 
@@ -60,13 +100,21 @@ public class UserInterface {
             );
         }
 
-        this.databaseManager = databaseManager;
-        this.scanner = scanner;
-        this.output = output;
+        this.databaseManager =
+                databaseManager;
+
+        this.missionSearch =
+                missionSearch;
+
+        this.scanner =
+                scanner;
+
+        this.output =
+                output;
     }
 
     /**
-     * Runs the interactive mission menu until the user selects Exit.
+     * Runs the interactive mission menu until Exit is selected.
      */
     public void runInterface() {
 
@@ -80,7 +128,8 @@ public class UserInterface {
                 return;
             }
 
-            String selection = scanner.nextLine().trim();
+            String selection =
+                    scanner.nextLine().trim();
 
             switch (selection) {
 
@@ -93,13 +142,21 @@ public class UserInterface {
                     break;
 
                 case "3":
-                    output.println("Exiting Top Secret.");
+                    runSearch();
+                    break;
+
+                case "4":
+                    output.println(
+                            "Exiting Top Secret."
+                    );
+
                     running = false;
                     break;
 
                 default:
                     output.println(
-                            "Invalid menu selection. Please try again."
+                            "Invalid menu selection. " +
+                                    "Please try again."
                     );
                     break;
             }
@@ -109,9 +166,8 @@ public class UserInterface {
     /**
      * Compatibility method for the existing TopSecret class.
      *
-     * Homework 4 no longer uses mission-selection command-line
-     * arguments, so the arguments are ignored and the interactive
-     * interface is started.
+     * Homework 4 uses an interactive interface, so command-line
+     * mission-selection arguments are no longer used here.
      *
      * @param args command-line arguments
      */
@@ -120,17 +176,38 @@ public class UserInterface {
     }
 
     /**
-     * Displays the available menu options.
+     * Displays the main application menu.
      */
     public void displayMenu() {
 
         output.println();
-        output.println("Top Secret Mission Menu");
-        output.println("-----------------------");
-        output.println("1. List available mission briefs");
-        output.println("2. Read a mission brief");
-        output.println("3. Exit");
-        output.print("Select an option: ");
+        output.println(
+                "Top Secret Mission Menu"
+        );
+
+        output.println(
+                "-----------------------"
+        );
+
+        output.println(
+                "1. List available mission briefs"
+        );
+
+        output.println(
+                "2. Read a mission brief"
+        );
+
+        output.println(
+                "3. Search mission briefs"
+        );
+
+        output.println(
+                "4. Exit"
+        );
+
+        output.print(
+                "Select an option: "
+        );
     }
 
     /**
@@ -156,22 +233,42 @@ public class UserInterface {
         }
 
         output.println();
-        output.println("Available Mission Briefs");
-        output.println("------------------------");
+        output.println(
+                "Available Mission Briefs"
+        );
 
-        for (int i = 0; i < titles.length; i++) {
+        output.println(
+                "------------------------"
+        );
+
+        for (
+                int i = 0;
+                i < titles.length;
+                i++
+        ) {
             output.println(
-                    (i + 1) + ". " + titles[i]
+                    (i + 1) +
+                            ". " +
+                            titles[i]
             );
         }
     }
 
     /**
-     * Displays one mission selected using its displayed number.
+     * Displays a mission selected using its displayed number.
      *
      * @param missionNumber one-based mission number
      */
-    public void displayMission(int missionNumber) {
+    public void displayMission(
+            int missionNumber
+    ) {
+
+        if (missionNumber < 1) {
+            output.println(
+                    "Invalid mission number."
+            );
+            return;
+        }
 
         String[] records =
                 databaseManager.getRecords(
@@ -186,10 +283,7 @@ public class UserInterface {
             return;
         }
 
-        if (
-                missionNumber < 1 ||
-                        missionNumber > records.length
-        ) {
+        if (missionNumber > records.length) {
             output.println(
                     "Invalid mission number."
             );
@@ -199,27 +293,102 @@ public class UserInterface {
         String record =
                 records[missionNumber - 1];
 
-        String[] fields =
-                record.split("\t", 3);
+        displayRecord(
+                record,
+                "Mission Brief"
+        );
+    }
 
-        if (fields.length < 3) {
+    /**
+     * Displays the contents of a SearchResult.
+     *
+     * @param result result returned by MissionSearch
+     */
+    public void displaySearchResults(
+            SearchResult result
+    ) {
+
+        if (result == null) {
             output.println(
-                    "Unable to display mission."
+                    "Search failed."
             );
             return;
         }
 
+        String message =
+                result.getMessage();
+
+        if (
+                message != null &&
+                        !message.isBlank()
+        ) {
+            output.println(message);
+        }
+
+        List<String> matches =
+                result.getMatches();
+
+        if (
+                matches == null ||
+                        matches.isEmpty()
+        ) {
+            return;
+        }
+
         output.println();
-        output.println("Mission Brief");
-        output.println("-------------");
-        output.println("Title: " + fields[0]);
-        output.println("Date: " + fields[1]);
-        output.println("Brief: " + fields[2]);
+        output.println(
+                "Search Results"
+        );
+
+        output.println(
+                "--------------"
+        );
+
+        for (
+                int i = 0;
+                i < matches.size();
+                i++
+        ) {
+
+            String record =
+                    matches.get(i);
+
+            String[] fields =
+                    record.split(
+                            "\t",
+                            3
+                    );
+
+            if (fields.length < 3) {
+                output.println(
+                        (i + 1) +
+                                ". " +
+                                record
+                );
+
+                continue;
+            }
+
+            output.println(
+                    (i + 1) +
+                            ". " +
+                            fields[0]
+            );
+
+            output.println(
+                    "   Date: " +
+                            fields[1]
+            );
+
+            output.println(
+                    "   Brief: " +
+                            fields[2]
+            );
+        }
     }
 
     /**
-     * Prompts the user to select a mission and handles
-     * invalid number input.
+     * Prompts the user for a mission number.
      */
     private void readMissionSelection() {
 
@@ -237,10 +406,13 @@ public class UserInterface {
                 scanner.nextLine().trim();
 
         try {
+
             int missionNumber =
                     Integer.parseInt(input);
 
-            displayMission(missionNumber);
+            displayMission(
+                    missionNumber
+            );
 
         } catch (NumberFormatException e) {
 
@@ -248,5 +420,103 @@ public class UserInterface {
                     "Invalid mission number."
             );
         }
+    }
+
+    /**
+     * Prompts for a search word or phrase and displays
+     * the result returned by MissionSearch.
+     */
+    private void runSearch() {
+
+        output.print(
+                "Enter search word or phrase: "
+        );
+
+        if (!scanner.hasNextLine()) {
+            return;
+        }
+
+        String searchTerm =
+                scanner.nextLine();
+
+        SearchResult result =
+                missionSearch.search(
+                        searchTerm
+                );
+
+        displaySearchResults(
+                result
+        );
+    }
+
+    /**
+     * Displays a tab-separated mission record.
+     */
+    private void displayRecord(
+            String record,
+            String heading
+    ) {
+
+        if (record == null) {
+            output.println(
+                    "Unable to display mission."
+            );
+            return;
+        }
+
+        String[] fields =
+                record.split(
+                        "\t",
+                        3
+                );
+
+        if (fields.length < 3) {
+            output.println(
+                    "Unable to display mission."
+            );
+            return;
+        }
+
+        output.println();
+        output.println(heading);
+
+        output.println(
+                "-".repeat(
+                        heading.length()
+                )
+        );
+
+        output.println(
+                "Title: " +
+                        fields[0]
+        );
+
+        output.println(
+                "Date: " +
+                        fields[1]
+        );
+
+        output.println(
+                "Brief: " +
+                        fields[2]
+        );
+    }
+
+    /**
+     * Creates MissionSearch for the three-argument constructor.
+     */
+    private static MissionSearch createMissionSearch(
+            DatabaseManager databaseManager
+    ) {
+
+        if (databaseManager == null) {
+            throw new IllegalArgumentException(
+                    "DatabaseManager cannot be null."
+            );
+        }
+
+        return new MissionSearch(
+                databaseManager
+        );
     }
 }
