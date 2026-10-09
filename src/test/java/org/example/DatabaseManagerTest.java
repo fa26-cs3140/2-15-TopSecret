@@ -58,7 +58,7 @@ class DatabaseManagerTest
         Boolean success = false;
         try
         {
-            success = this.testManager.createMissionDatabaseFromTSV(this.missionData, 
+            success = this.testManager.importTSV(this.missionData, 
                       this.testDirectory.toString(), this.testDatabase);
         }
         catch (IOException e)
@@ -191,7 +191,7 @@ class DatabaseManagerTest
         // Create temporary database
         try
         {
-            manager.createMissionDatabaseFromTSV(this.missionData, 
+            manager.importTSV(this.missionData, 
                  this.testDirectory.toString(), this.testDatabase);
         }
         catch (IOException e)

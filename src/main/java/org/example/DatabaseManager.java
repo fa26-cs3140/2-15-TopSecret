@@ -149,7 +149,7 @@ public class DatabaseManager
     // I decided not to use any other dependent methods for this to make
     // sure that any error could be isolated within this method
     // NOTE: Do not include trailing '/' at the end of the dirOut path
-    public Boolean createMissionDatabaseFromTSV(String pathToTSV, String dirOut, String dbOutName) throws IOException
+    public Boolean importTSV(String pathToTSV, String dirOut, String dbOutName) throws IOException
     {
         // Remove trailing slashes from pathToTSV in an effort to reduce error
         if (pathToTSV.charAt(pathToTSV.length() - 1) == '\\' ||
