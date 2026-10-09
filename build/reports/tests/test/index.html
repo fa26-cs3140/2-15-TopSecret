@@ -14,7 +14,7 @@
 <div class="tab-container">
 <ul class="tabLinks">
 <li>
-<a class="successGroup" href="#">Gradle Test Run :test</a>
+<a class="failureGroup" href="#">Gradle Test Run :test</a>
 </li>
 </ul>
 <div class="tab">
@@ -38,25 +38,25 @@
 <tr>
 <td>
 <div class="infoBox">
-<div class="counter">9</div>
+<div class="counter">68</div>
 <p>tests</p>
 </div>
 </td>
 <td>
 <div class="infoBox">
-<div class="counter">0</div>
+<div class="counter">4</div>
 <p>failures</p>
 </div>
 </td>
 <td>
 <div class="infoBox">
-<div class="counter">0</div>
+<div class="counter">14</div>
 <p>skipped</p>
 </div>
 </td>
 <td>
 <div class="infoBox duration">
-<div class="counter">1.409s</div>
+<div class="counter">1.141s</div>
 <p>duration</p>
 </div>
 </td>
@@ -65,14 +65,54 @@
 </div>
 </td>
 <td>
-<div class="infoBox success successRate">
-<div class="percent">100%</div>
+<div class="infoBox failures successRate">
+<div class="percent">94%</div>
 <p>successful</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a class="" href="#">Failed</a>
+</li>
+<li>
+<a class="" href="#">All</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Failed</h2>
+<table class="test-results sortable">
+<thead>
+<tr>
+<th>Child</th>
+<th>Name</th>
+<th data-sort-default="desc">Tests</th>
+<th data-sort-default="desc">Failures</th>
+<th data-sort-default="desc">Skipped</th>
+<th data-sort-default="desc">Duration</th>
+<th>Success rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="failures">
+<a href="org.example.MissionSearchIntegrationTest/index.html">MissionSearchIntegrationTest</a>
+</td>
+<td class="path">org.example.MissionSearchIntegrationTest</td>
+<td>4</td>
+<td>4</td>
+<td>0</td>
+<td data-sort-value="202">0.202s</td>
+<td class="failures" data-sort-value="0">0%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tab">
+<h2>All</h2>
 <table class="test-results sortable">
 <thead>
 <tr>
@@ -88,17 +128,118 @@
 <tbody>
 <tr>
 <td class="success">
+<a href="org.example.CipherKeyTest/index.html">CipherKeyTest</a>
+</td>
+<td class="path">org.example.CipherKeyTest</td>
+<td>11</td>
+<td>0</td>
+<td>0</td>
+<td data-sort-value="7">0.007s</td>
+<td class="success" data-sort-value="100">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="org.example.CipherTest/index.html">CipherTest</a>
+</td>
+<td class="path">org.example.CipherTest</td>
+<td>11</td>
+<td>0</td>
+<td>0</td>
+<td data-sort-value="5">0.005s</td>
+<td class="success" data-sort-value="100">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="org.example.CredentialManagerLibraryTest/index.html">CredentialManagerLibraryTest</a>
+</td>
+<td class="path">org.example.CredentialManagerLibraryTest</td>
+<td>6</td>
+<td>0</td>
+<td>0</td>
+<td data-sort-value="346">0.346s</td>
+<td class="success" data-sort-value="100">100%</td>
+</tr>
+<tr>
+<td class="success">
 <a href="org.example.DatabaseManagerTest/index.html">DatabaseManagerTest</a>
 </td>
 <td class="path">org.example.DatabaseManagerTest</td>
+<td>3</td>
+<td>0</td>
+<td>0</td>
+<td data-sort-value="207">0.207s</td>
+<td class="success" data-sort-value="100">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="org.example.FileHandlerTest/index.html">FileHandlerTest</a>
+</td>
+<td class="path">org.example.FileHandlerTest</td>
+<td>5</td>
+<td>0</td>
+<td>0</td>
+<td data-sort-value="5">0.005s</td>
+<td class="success" data-sort-value="100">100%</td>
+</tr>
+<tr>
+<td class="failures">
+<a href="org.example.MissionSearchIntegrationTest/index.html">MissionSearchIntegrationTest</a>
+</td>
+<td class="path">org.example.MissionSearchIntegrationTest</td>
+<td>4</td>
+<td>4</td>
+<td>0</td>
+<td data-sort-value="202">0.202s</td>
+<td class="failures" data-sort-value="0">0%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="org.example.MissionSearchTest/index.html">MissionSearchTest</a>
+</td>
+<td class="path">org.example.MissionSearchTest</td>
+<td>6</td>
+<td>0</td>
+<td>0</td>
+<td data-sort-value="28">0.028s</td>
+<td class="success" data-sort-value="100">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="org.example.ProgramControlTest/index.html">ProgramControlTest</a>
+</td>
+<td class="path">org.example.ProgramControlTest</td>
+<td>7</td>
+<td>0</td>
+<td>0</td>
+<td data-sort-value="6">0.006s</td>
+<td class="success" data-sort-value="100">100%</td>
+</tr>
+<tr>
+<td class="skipped">
+<a href="org.example.UserInterfaceIntegrationTest/index.html">UserInterfaceIntegrationTest</a>
+</td>
+<td class="path">org.example.UserInterfaceIntegrationTest</td>
+<td>6</td>
+<td>0</td>
+<td>6</td>
+<td data-sort-value="2">0.002s</td>
+<td class="skipped" data-sort-value="100">100%</td>
+</tr>
+<tr>
+<td class="skipped">
+<a href="org.example.UserInterfaceTest/index.html">UserInterfaceTest</a>
+</td>
+<td class="path">org.example.UserInterfaceTest</td>
 <td>9</td>
 <td>0</td>
-<td>0</td>
-<td data-sort-value="999">0.999s</td>
-<td class="success" data-sort-value="100">100%</td>
+<td>8</td>
+<td data-sort-value="10">0.010s</td>
+<td class="skipped" data-sort-value="100">100%</td>
 </tr>
 </tbody>
 </table>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -111,7 +252,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 9.6.0</a> at Oct 8, 2026, 10:14:55 AM</p>
+<a href="https://www.gradle.org">Gradle 9.6.0</a> at Oct 8, 2026, 9:37:45 PM</p>
 </div>
 </div>
 </body>

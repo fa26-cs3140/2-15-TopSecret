@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.example.CipherTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-25T17:21:53.475Z" hostname="Mikes-Macbook.local" time="0.004">
+<testsuite name="org.example.CipherTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-09T01:37:45.008Z" hostname="Mikes-Macbook.local" time="0.005">
   <properties/>
-  <testcase name="testCharactersOutsideAlternateKey()" classname="org.example.CipherTest" time="0.0"/>
+  <testcase name="testCharactersOutsideAlternateKey()" classname="org.example.CipherTest" time="0.001"/>
   <testcase name="testNullCipherKey()" classname="org.example.CipherTest" time="0.0"/>
-  <testcase name="testRepeatedCharacters()" classname="org.example.CipherTest" time="0.001"/>
+  <testcase name="testRepeatedCharacters()" classname="org.example.CipherTest" time="0.0"/>
   <testcase name="testAlternateKey()" classname="org.example.CipherTest" time="0.0"/>
   <testcase name="testAlphabetWraparound()" classname="org.example.CipherTest" time="0.0"/>
-  <testcase name="testNullCipheredText()" classname="org.example.CipherTest" time="0.0"/>
+  <testcase name="testNullCipheredText()" classname="org.example.CipherTest" time="0.001"/>
   <testcase name="testEmptyString()" classname="org.example.CipherTest" time="0.0"/>
   <testcase name="testBasicDecipher()" classname="org.example.CipherTest" time="0.001"/>
   <testcase name="testUnmappedCharacters()" classname="org.example.CipherTest" time="0.0"/>
   <testcase name="testNumbers()" classname="org.example.CipherTest" time="0.0"/>
-  <testcase name="testPreserveNewlines()" classname="org.example.CipherTest" time="0.001"/>
+  <testcase name="testPreserveNewlines()" classname="org.example.CipherTest" time="0.0"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

@@ -1,8 +1,6 @@
 // Mike Ly (mch3jy)
 
 TODO: Specify how this class interacts with other classes, especially a user guide for UserInterface to use this class
-TODO: Write tests
-TODO: Implement class
 TODO: Update final docs
 TODO: Discuss with Zaid (A) about returning List<String> instead of String[] (maybe?)
 

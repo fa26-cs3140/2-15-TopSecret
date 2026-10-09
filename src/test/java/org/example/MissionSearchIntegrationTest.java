@@ -49,7 +49,7 @@ public class MissionSearchIntegrationTest {
 
         assertTrue(result.getMatches().isEmpty());
 
-        assertEquals("No matches found.", result.getMessage());
+        assertEquals("No matches were found.", result.getMessage());
     }
 
     @Test

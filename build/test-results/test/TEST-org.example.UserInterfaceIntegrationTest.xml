@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.example.UserInterfaceIntegrationTest" tests="6" skipped="6" failures="0" errors="0" timestamp="2026-10-09T01:37:45.611Z" hostname="Mikes-Macbook.local" time="0.002">
+  <properties/>
+  <testcase name="selectedMissionDisplaysDatabaseRecord()" classname="org.example.UserInterfaceIntegrationTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="multipleDatabaseRequestsCanOccurInOneSession()" classname="org.example.UserInterfaceIntegrationTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="successfulLoginOpensMissionInterface()" classname="org.example.UserInterfaceIntegrationTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="searchResultsAreDisplayedByUserInterface()" classname="org.example.UserInterfaceIntegrationTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="noSearchMatchesCanBeDisplayed()" classname="org.example.UserInterfaceIntegrationTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="userInterfaceDisplaysMissionsFromDataLayer()" classname="org.example.UserInterfaceIntegrationTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

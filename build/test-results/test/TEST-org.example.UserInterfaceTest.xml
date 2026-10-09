@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.example.UserInterfaceTest" tests="9" skipped="8" failures="0" errors="0" timestamp="2026-10-09T01:37:45.618Z" hostname="Mikes-Macbook.local" time="0.01">
+  <properties/>
+  <testcase name="menuReturnsAfterMissionIsDisplayed()" classname="org.example.UserInterfaceTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="displaysMenuOptions()" classname="org.example.UserInterfaceTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="runInterface()" classname="org.example.UserInterfaceTest" time="0.008"/>
+  <testcase name="displaysNumberedMissionList()" classname="org.example.UserInterfaceTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="invalidMissionSelectionIsHandled()" classname="org.example.UserInterfaceTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="exitSelectionEndsInterface()" classname="org.example.UserInterfaceTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="validMissionSelectionDisplaysMission()" classname="org.example.UserInterfaceTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="invalidMenuSelectionIsHandled()" classname="org.example.UserInterfaceTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="multipleActionsCanOccurInOneSession()" classname="org.example.UserInterfaceTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[Choose a file option:
+---------------------
+0 mission_briefs.db
+1 mission_briefs.tsv
+2 key.txt
+3 carnivore.txt
+4 cointelpro.cip
+5 carnivore.cip
+6 cointelpro.txt
+---------------------
+File Conents: 
+---------------------
+
+---------------------
+File Conents: 
+---------------------
+
+---------------------
+File Conents: 
+---------------------
+
+---------------------
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

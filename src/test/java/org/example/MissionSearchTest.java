@@ -1,13 +1,15 @@
 package org.example;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,7 +58,7 @@ public class MissionSearchTest {
         SearchResult result = missionSearch.search("missing");
 
         assertTrue(result.getMatches().isEmpty());
-        assertEquals("No matches found.", result.getMessage());
+        assertEquals("No matches were found.", result.getMessage());
     }
 
     @Test
