@@ -16,7 +16,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.mockito:mockito-core:5.+") 
     testImplementation("org.mockito:mockito-junit-jupiter:5.+")
-    implementation("org.xerial:sqlite-jdbc:3.46.0.0")
+    implementation("org.xerial:sqlite-jdbc:3.53.0.0")
 }
 
 application {
@@ -28,4 +28,18 @@ tasks.test {
     testLogging {
         showStandardStreams = true
     }
+}
+
+tasks.jar {
+    manifest {
+        attributes("Main-Class" to "org.example.TopSecret")
+    }
+
+    from({
+        configurations.runtimeClasspath.get().map {  file -> if (file.isDirectory) file else zipTree(file) }
+    })
+
+    // Prevents Gradle from crashing if multiple libraries contain the same meta-files (e.g. LICENSE files)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE 
+
 }
