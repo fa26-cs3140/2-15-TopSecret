@@ -42,8 +42,7 @@ public class DatabaseManager
     
     public String[] getRecords(String url, String column, String value)
     {
-        String query = "SELECT Title, Date, Text FROM mission_briefs WHERE " + column + " LIKE ?";
-        DebugHelper.debugPrintln("Query: " + query);
+        String query = "SELECT Title, Date, Text FROM " + main_table + " WHERE " + column + " LIKE ?";
         // Get a ResultSet containing matching records
         // ResultSet rs = this.createQuery(url, query);
         ResultSet rs = null;
@@ -59,7 +58,6 @@ public class DatabaseManager
             rs = prepStatement.executeQuery();
 
             if (rs == null) return null;
-            DebugHelper.debugPrintln("Result set returned.");
             try
             {
                 // Create an array and then parse out the records
@@ -75,7 +73,6 @@ public class DatabaseManager
                             rs.getDate("Date").toString(),
                             rs.getString("Text")
                             );
-                    DebugHelper.debugPrintln("record: " + record);
 
                     temp.add(record);
                 }
@@ -189,7 +186,7 @@ public class DatabaseManager
         String query; 
         if (!Files.exists(Path.of(fullOutDBPath))) Files.createFile(Path.of(fullOutDBPath));
         
-        query = "CREATE TABLE mission_briefs (Title TEXT, Date DATE, Text TEXT)";
+        query = "CREATE TABLE " + main_table + " (Title TEXT, Date DATE, Text TEXT)";
         this.createQuery(jdbcURL, query);
 
         try (
@@ -198,7 +195,7 @@ public class DatabaseManager
         {
             // Once the table has been created, we change the query
             // to insert into the new table
-            query = "INSERT INTO mission_briefs (Title, Date, Text) VALUES (?, ?, ?)";
+            query = "INSERT INTO " + main_table + " (Title, Date, Text) VALUES (?, ?, ?)";
             PreparedStatement statement = conn.prepareStatement(query);
             BufferedReader reader = new BufferedReader(new FileReader(pathToTSV));
             String readText;
@@ -238,7 +235,6 @@ public class DatabaseManager
     // Returns a ResultSet object containing the retrieved query items
     private ResultSet createQuery(String url, String query)
     {
-        DebugHelper.debugPrintln("Trying connection...");
         try // Conditions for the try statement
             (
                 Connection conn = DriverManager.getConnection(url, this.username, this.password);
