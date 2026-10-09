@@ -25,7 +25,8 @@ DatabaseManager:
     - Creates a DatabaseManager pointing to a specific database,
       specified by the String url parameter.
 
-  Methods:   
+  Methods:
+-- NOTE: All searches are case insensitive via LIKE queries
     + getColumn(url : string, column : string) : string[]
       Takes in a URL and column title and returns all data
       stored within that column.
