@@ -1,10 +1,13 @@
 ProgramControl
 --------------------------------------
 - fileHandler: FileHandler
+- databaseManager : DatabaseManager
 --------------------------------------
 + ProgramControl()
 + ProgramControl(fileHandler: FileHandler)
++ ProgramControl(fileHandler : Filehandler, databaseManager : databaseManager)
 + getAvailableFiles(): List<String>
 + getFileContents(filename: String): String
 + getFileContents(filename: String, keyIndex: int): String
++ run(ui : UserInterface, args : String[]) : void
 - getFileContentsWithKey(filename: String, key: String): String

@@ -1,9 +1,9 @@
 Homework 4 Team
 
 Team Member A
-Name: [NAME]
+Name: Zaid Al Falah
 Role: Database / SQLite
-GitHub ID: [GITHUB ID]
+GitHub ID: za-uv
 
 Team Member B
 Name: [NAME]

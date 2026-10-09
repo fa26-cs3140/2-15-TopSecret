@@ -15,4 +15,7 @@ Example Tests:
 
 ProgramControl will be tested independently from the command-line interface whenever possible.
 
+// NOTE:
+runProgram() added and adjusted by Zaid. This was discussed, just happened that he was most
+available to implement it at the time.
 
