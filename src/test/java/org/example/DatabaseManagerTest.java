@@ -114,7 +114,7 @@ class DatabaseManagerTest
 
         // Test 3 -- Pull random items by date
         /* TODO: Allow this to work in case multiple files have identical dates
-         * For no does not support.
+         * For now does not support.
         */
         int num_loops = 30;
         String[] expOut_3 = new String[num_loops]; 
@@ -134,7 +134,6 @@ class DatabaseManagerTest
     @Test
     void getColumnTest()
     {
-
         // Store all information (including headers) into an array
         FileHandler fhandler = new FileHandler();
         String[] data_raw = fhandler.readFile("mission_briefs.tsv").split("\n");

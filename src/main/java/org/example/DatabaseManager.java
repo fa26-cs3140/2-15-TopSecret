@@ -112,6 +112,7 @@ public class DatabaseManager
             PreparedStatement prepStatement = conn.prepareStatement(query);
             ResultSet rs = prepStatement.executeQuery();
 
+            // No results, return a null object
             if (rs == null) return null;
             
             ArrayList<String> tempout = new ArrayList<String>();
@@ -119,14 +120,8 @@ public class DatabaseManager
             {
                 int columntype = rs.getMetaData().getColumnType(1);
                 String rs_value;
-                if (columntype == Types.DATE)
-                {
-                    rs_value = rs.getDate(column).toString();
-                }
-                else
-                {
-                     rs_value = rs.getString(column);
-                }
+                if (columntype == Types.DATE) rs_value = rs.getDate(column).toString();
+                else rs_value = rs.getString(column);
                 tempout.add(rs_value);
             }
 

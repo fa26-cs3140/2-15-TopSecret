@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.example.ProgramControlTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-09T01:37:45.604Z" hostname="Mikes-Macbook.local" time="0.006">
+<testsuite name="org.example.ProgramControlTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-09T02:08:36.402Z" hostname="hortensius" time="0.023">
   <properties/>
-  <testcase name="getAvailableFilesReturnsFiles()" classname="org.example.ProgramControlTest" time="0.002"/>
-  <testcase name="missingFileReturnsNull()" classname="org.example.ProgramControlTest" time="0.0"/>
-  <testcase name="missingKeyReturnsNull()" classname="org.example.ProgramControlTest" time="0.0"/>
-  <testcase name="defaultKeyReturnsReadableText()" classname="org.example.ProgramControlTest" time="0.001"/>
-  <testcase name="invalidKeyIndexThrowsException()" classname="org.example.ProgramControlTest" time="0.0"/>
-  <testcase name="alternateKeyDeciphersContents()" classname="org.example.ProgramControlTest" time="0.001"/>
-  <testcase name="nullFileHandlerThrowsException()" classname="org.example.ProgramControlTest" time="0.0"/>
+  <testcase name="getAvailableFilesReturnsFiles()" classname="org.example.ProgramControlTest" time="0.007"/>
+  <testcase name="missingFileReturnsNull()" classname="org.example.ProgramControlTest" time="0.002"/>
+  <testcase name="missingKeyReturnsNull()" classname="org.example.ProgramControlTest" time="0.001"/>
+  <testcase name="defaultKeyReturnsReadableText()" classname="org.example.ProgramControlTest" time="0.002"/>
+  <testcase name="invalidKeyIndexThrowsException()" classname="org.example.ProgramControlTest" time="0.003"/>
+  <testcase name="alternateKeyDeciphersContents()" classname="org.example.ProgramControlTest" time="0.004"/>
+  <testcase name="nullFileHandlerThrowsException()" classname="org.example.ProgramControlTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

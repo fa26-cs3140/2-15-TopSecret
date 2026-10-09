@@ -6,6 +6,7 @@ Fields:
 - password : static final string
 
 Constructors:
++ DatabaseManager() : void
 + DatabaseManager(string) : void
 
 Methods:

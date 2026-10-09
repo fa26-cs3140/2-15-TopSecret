@@ -70,7 +70,7 @@ echo location of your Java installation. 1>&2
 :execute
 @rem Setup the command line
 
-set CLASSPATH=%APP_HOME%\lib\Test-1.0-SNAPSHOT.jar
+set CLASSPATH=%APP_HOME%\lib\Test-1.0-SNAPSHOT.jar;%APP_HOME%\lib\sqlite-jdbc-3.46.0.0.jar;%APP_HOME%\lib\slf4j-api-1.7.36.jar
 
 
 @rem Execute Test

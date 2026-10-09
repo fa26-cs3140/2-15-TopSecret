@@ -11,7 +11,7 @@ DatabaseManager:
     Fields:
     - sqlURL : string
       Points to the database to process. Can be changed via setURL() or
-      in the constructor
+      in the constructor. By default it points to jdbc:sqlite:data/mission_briefs.db
     - username : string
       Dummy username for use in connections
     - password : string
@@ -21,7 +21,7 @@ DatabaseManager:
     DatabaseManager()
     - Creates a DatabaseManager with default database "data/mission_briefs.db"
 
-    DatabaseManager(string)
+    DatabaseManager(url : string)
     - Creates a DatabaseManager pointing to a specific database,
       specified by the String url parameter.
 
@@ -44,8 +44,4 @@ DatabaseManager:
       the manager will use the URL it was instantiated with.
     + importTSV(path : string, dirOut : string, dbOutName : string) : Boolean
       Creates a database from a preexisting TSV file. Throws IOException.
-
-      
-
-    
 

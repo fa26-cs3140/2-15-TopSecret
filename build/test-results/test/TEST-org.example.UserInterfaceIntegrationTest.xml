@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.example.UserInterfaceIntegrationTest" tests="6" skipped="6" failures="0" errors="0" timestamp="2026-10-09T01:37:45.611Z" hostname="Mikes-Macbook.local" time="0.002">
+<testsuite name="org.example.UserInterfaceIntegrationTest" tests="6" skipped="6" failures="0" errors="0" timestamp="2026-10-09T02:08:36.426Z" hostname="hortensius" time="0.013">
   <properties/>
-  <testcase name="selectedMissionDisplaysDatabaseRecord()" classname="org.example.UserInterfaceIntegrationTest" time="0.0">
+  <testcase name="selectedMissionDisplaysDatabaseRecord()" classname="org.example.UserInterfaceIntegrationTest" time="0.001">
     <skipped/>
   </testcase>
   <testcase name="multipleDatabaseRequestsCanOccurInOneSession()" classname="org.example.UserInterfaceIntegrationTest" time="0.0">

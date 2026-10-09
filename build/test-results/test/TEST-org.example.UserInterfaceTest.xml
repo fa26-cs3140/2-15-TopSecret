@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.example.UserInterfaceTest" tests="9" skipped="8" failures="0" errors="0" timestamp="2026-10-09T01:37:45.618Z" hostname="Mikes-Macbook.local" time="0.01">
+<testsuite name="org.example.UserInterfaceTest" tests="9" skipped="8" failures="0" errors="0" timestamp="2026-10-09T02:08:36.440Z" hostname="hortensius" time="0.036">
   <properties/>
   <testcase name="menuReturnsAfterMissionIsDisplayed()" classname="org.example.UserInterfaceTest" time="0.0">
     <skipped/>
   </testcase>
-  <testcase name="displaysMenuOptions()" classname="org.example.UserInterfaceTest" time="0.0">
+  <testcase name="displaysMenuOptions()" classname="org.example.UserInterfaceTest" time="0.001">
     <skipped/>
   </testcase>
-  <testcase name="runInterface()" classname="org.example.UserInterfaceTest" time="0.008"/>
+  <testcase name="runInterface()" classname="org.example.UserInterfaceTest" time="0.028"/>
   <testcase name="displaysNumberedMissionList()" classname="org.example.UserInterfaceTest" time="0.0">
     <skipped/>
   </testcase>
@@ -28,25 +28,34 @@
   </testcase>
   <system-out><![CDATA[Choose a file option:
 ---------------------
-0 mission_briefs.db
-1 mission_briefs.tsv
-2 key.txt
-3 carnivore.txt
-4 cointelpro.cip
-5 carnivore.cip
-6 cointelpro.txt
+0 carnivore.txt
+1 cointelpro.txt
+2 carnivore.cip
+3 mission_briefs.db
+4 key.txt
+5 cointelpro.cip
+6 mission_briefs.tsv
 ---------------------
 File Conents: 
 ---------------------
-
+Carnivore, later renamed DCS1000, was a system implemented by the Federal Bureau of Investigation (FBI) that was
+designed to monitor email and electronic communications. It used a customizable packet sniffer that could monitor all
+of a target user's Internet traffic. Carnivore was implemented in October 1997. By 2005 it had been replaced with
+improved commercial software.
 ---------------------
 File Conents: 
 ---------------------
-
+Carnivore, later renamed DCS1000, was a system implemented by the Federal Bureau of Investigation (FBI) that was
+designed to monitor email and electronic communications. It used a customizable packet sniffer that could monitor all
+of a target user's Internet traffic. Carnivore was implemented in October 1997. By 2005 it had been replaced with
+improved commercial software.
 ---------------------
 File Conents: 
 ---------------------
-
+B0qmhunqd, k0sdq qdm0ldc CBRZ999, v0r 0 rxrsdl hlokdldmsdc ax sgd Edcdq0k Atqd0t ne Hmudrshf0shnm (EAH) sg0s v0r
+cdrhfmdc sn lnmhsnq dl0hk 0mc dkdbsqnmhb bnlltmhb0shnmr. Hs trdc 0 btrsnlhy0akd o0bjds rmheedq sg0s bntkc lnmhsnq 0kk
+ne 0 s0qfds trdq'r Hmsdqmds sq0eehb. B0qmhunqd v0r hlokdldmsdc hm Nbsnadq Z886. Ax 1994 hs g0c addm qdok0bdc vhsg
+hloqnudc bnlldqbh0k rnesv0qd.
 ---------------------
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>
