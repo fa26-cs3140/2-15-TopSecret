@@ -34,6 +34,7 @@ class DatabaseManagerTest
         Files.createDirectory(testDirectory);
 
         this.testManager = new DatabaseManager(testURL);
+        this.createTestDatabase(this.testManager);
     }
 
     // Remove dummy directory + all files
@@ -77,10 +78,6 @@ class DatabaseManagerTest
     @Test
     void getRecordTest()
     {
-        this.testManager = new DatabaseManager(this.testURL);
-        // Create temporary database
-        this.createTestDatabase(this.testManager);
-
         // Store all information (including headers) into an array
         FileHandler fhandler = new FileHandler();
         String[] data_raw = fhandler.readFile("mission_briefs.tsv").split("\n");
@@ -137,8 +134,6 @@ class DatabaseManagerTest
     @Test
     void getColumnTest()
     {
-        this.testManager = new DatabaseManager(this.testURL);
-        this.createTestDatabase(this.testManager);
 
         // Store all information (including headers) into an array
         FileHandler fhandler = new FileHandler();
