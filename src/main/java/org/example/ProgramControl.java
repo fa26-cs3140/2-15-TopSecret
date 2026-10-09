@@ -1,16 +1,19 @@
 package org.example;
 
+import java.io.IOException;
 import java.util.List;
 
 //Controls the main application logic by connecting the UserInterface, FileHandler, and Cipher classes.
 public class ProgramControl {
 
     private final FileHandler fileHandler;
+    private final DatabaseManager databaseManager;
 
     //Creates a ProgramControl using the default data directory.
 
     public ProgramControl() {
         this.fileHandler = new FileHandler();
+        this.databaseManager = new DatabaseManager();
     }
 
     //@param fileHandler FileHandler used to access files
@@ -20,6 +23,43 @@ public class ProgramControl {
         }
 
         this.fileHandler = fileHandler;
+        this.databaseManager = new DatabaseManager();
+    }
+
+    public ProgramControl(FileHandler fileHandler, DatabaseManager databaseManager)
+    {
+        if (fileHandler == null) {
+            throw new IllegalArgumentException("FileHandler cannot be null.");
+        }
+        if (databaseManager == null) {
+            throw new IllegalArgumentException("DatabaseManager cannot be null.");
+        }
+
+        this.fileHandler = fileHandler;
+        this.databaseManager = databaseManager;
+    }
+
+    /**
+     * Runs the main program, handles the creation of a database
+     *
+     * @param ui UserInterface to be passed
+     * @param args Arguments to pasesed into ui.runInterface()
+     */
+    public void run(UserInterface ui, String[] args)
+    {
+        if (!this.getAvailableFiles().contains("mission_briefs.db"))
+        {
+            try
+            {
+                this.databaseManager.importTSV(fileHandler.getDataDirectory() + "/mission_briefs.tsv",
+                                               fileHandler.getDataDirectory(), "mission_briefs.db");
+            }
+            catch (IOException e)
+            {
+                DebugHelper.debugPrintln(e.getMessage());
+            }
+        }
+        ui.runInterface(args);
     }
 
     //@return list of available filenames
