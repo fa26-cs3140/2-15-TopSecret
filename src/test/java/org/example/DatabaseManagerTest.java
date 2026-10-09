@@ -14,6 +14,7 @@ import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 
 class DatabaseManagerTest
 {
@@ -23,7 +24,6 @@ class DatabaseManagerTest
     private final String missionData = "data/mission_briefs.tsv";
     private DatabaseManager testManager;
 
-    private Connection testConnection;
     private final String testURL = "jdbc:sqlite:" + testDirName + "/" + testDatabase;
 
     // Set up a dummy directory and databse to work with
@@ -69,36 +69,10 @@ class DatabaseManagerTest
         assertTrue(success, "Table not successfuly made.");
     }
 
-    @Test
-    void insertRecordTest()
-    {
-        
-    }
-
-    @Test
-    void removeRecordTest()
-    {
-    }
-
-    @Test
-    void insertColumnTest()
-    {
-    }
-
-    @Test
-    void removeColumnTest()
-    {
-    }
-
-    @Test
-    void setRecordTest()
-    {
-    }
-
-    @Test 
-    void setColumnTest()
-    {
-    }
+    // TODO: Modifying the original database does not appear to be a part of the current criteria
+    // for the project. As such, I have elected not to include them, not entirely out of
+    // laziness, but also because it may well be a waste of time. Should the need arise, I will
+    // be able to add them in rather easily.
 
     @Test
     void getRecordTest()
@@ -141,8 +115,23 @@ class DatabaseManagerTest
             assertEquals(out_2[i], expOut_2[i], "2. Records do not match");
         }
 
-        // Test 3 -- Pull three random items by date
-        
+        // Test 3 -- Pull random items by date
+        /* TODO: Allow this to work in case multiple files have identical dates
+         * For no does not support.
+        */
+        int num_loops = 30;
+        String[] expOut_3 = new String[num_loops]; 
+        for (int i = 0; i < num_loops; i++)
+        {
+            expOut_3 = data_raw[new Random().nextInt(1, data_raw.length)].split("\t");
+            String dateToFind = expOut_3[1];
+            String[] out_3 = testManager.getRecords("Date", dateToFind);
+
+            for (int k = 0; k < out_3.length; k++)
+            {
+                assertEquals(out_3[k], expOut_3[k], "3. Records do not match");
+            }
+        }
     }
 
     @Test

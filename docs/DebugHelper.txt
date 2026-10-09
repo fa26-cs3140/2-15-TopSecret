@@ -7,6 +7,9 @@ Fields: -
 
 Methods:
 
-debugPrintln(text : string) : void
-- Prints out message in 'text', but also includes the current method
-  from which the method came from
+debugPrintln(obj : Object) : void
+- Prints out message in System.out, but also includes the current method
+  from which the method came from.
+
+debugPrintarray(Object[] arr)
+- Prints out the contents of an array line by line, indexed

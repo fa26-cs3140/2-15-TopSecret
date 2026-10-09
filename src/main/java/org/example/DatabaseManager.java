@@ -34,33 +34,12 @@ public class DatabaseManager
     {
         return this.sqlURL;
     }
-
-    public int setRecord(String key, String data)
-    {
-        return 0;
-    }
-
-    public int setColumn(String header, String data)
-    {
-        return 0;
-    }
-
-    public int insertRecord(String key, String data)
-    {
-        return 0;
-    }
-
-    public int insertColumn(String header, String data)
-    {
-        return 0;
-    }
-
-    /**
-     * Returns a String[] object containing tab separated values
-     * matching the format of the database record
-     *
-     * Returns null if the operation fails
-     */
+    
+    // Returns a String[] object containing tab separated values
+    // matching the format of the database record
+    // 
+    // Returns null if the operation fails
+    
     public String[] getRecords(String url, String column, String value)
     {
         String query = "SELECT Title, Date, Text FROM mission_briefs WHERE " + column + " LIKE ?";

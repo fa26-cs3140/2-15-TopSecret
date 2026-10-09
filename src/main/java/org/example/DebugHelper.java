@@ -5,23 +5,11 @@ public class DebugHelper
 {
     // Prints out a message but also includes the name of the
     // method it printed out from
-    public static void debugPrintln(String text)
+    public static void debugPrintln(Object obj)
     {
         // Pop 2 to acount for depth
         String currentMethod = Thread.currentThread().getStackTrace()[2].getMethodName();
-        System.out.println("[" + currentMethod + "]: " + text);
-    }
-
-    // Debug to manage integer input
-    public static void debugPrintln(int num)
-    {
-        debugPrintln("" + num);
-    }
-
-    // Debug to manage floats/double input
-    public static void debugPrintln(double num)
-    {
-        debugPrintln("" + num);
+        System.out.println("[" + currentMethod + "]: " + obj.toString());
     }
 
     public static void debugPrintArray(Object[] arr)
