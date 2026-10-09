@@ -186,7 +186,7 @@ public class DatabaseManager
         String query; 
         if (!Files.exists(Path.of(fullOutDBPath))) Files.createFile(Path.of(fullOutDBPath));
         
-        query = "CREATE TABLE " + main_table + " (Title TEXT, Date DATE, Text TEXT)";
+        query = "CREATE TABLE IF NOT EXISTS " + main_table + " (Title TEXT, Date DATE, Text TEXT)";
         this.createQuery(jdbcURL, query);
 
         try (
