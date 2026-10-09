@@ -26,17 +26,6 @@ DatabaseManager:
       specified by the String url parameter.
 
   Methods:   
-    + setRecord(string, string) : int
-    - Takes in key, value pair as strings and updates a remote SQL databse
-      pointed at by URL. Returns the number of records changed.
-
-    + setColumn(string, stirng) : int
-    - Takes in headr, value pair as strings and updates a remote SQL databse
-      pointed at by URL. Returns the number of records changed.\
-
-    + insertRecord(string, string) : int
-    - Takes in key, value pair as strings and updates a remote SQL databse
-      pointed at by URL. Returns the number of records changed.
 
     + getRecords(string, string, string) : string[]
       Returns an String array of all matching records. Records are

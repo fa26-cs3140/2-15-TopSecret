@@ -9,9 +9,6 @@ Constructors:
 + DatabaseManager(string) : void
 
 Methods:
-+ setRecord(string, string) : int
-+ setColumn(string, stirng) : int
-+ insertRecord(string, string) : int
 + getRecords(string) : string
 + getColumns(string, string, string) : string[]
 + getColumns(string, string) : string[]
