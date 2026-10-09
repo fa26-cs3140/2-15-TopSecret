@@ -26,17 +26,24 @@ DatabaseManager:
       specified by the String url parameter.
 
   Methods:   
-
-    + getRecords(string, string, string) : string[]
+    + getColumn(url : string, column : string) : string[]
+      Takes in a URL and column title and returns all data
+      stored within that column.
+    + getColumn(column : string) : string[]
+      Overload which uses the current url pointed to in 
+      sqlURL.
+    + getRecords(url : string, column : string, key : string) : string[]
       Returns an String array of all matching records. Records are
       formatted as tab-separated values, which can be parsed out
       easily with a .split('\t') command. Takes in a String URL to the
       database (in which the DatabaseManager's current URL may be passed),
       a String column which contains the title of the column to match,
       and a String value which the query will search for.
-    + getRecords(string, string) : string[]
+    + getRecords(column : string, key : string) : string[]
       Overload for the previous function, when URL is not specified,
       the manager will use the URL it was instantiated with.
+    + importTSV(path : string, dirOut : string, dbOutName : string) : Boolean
+      Creates a database from a preexisting TSV file. Throws IOException.
 
       
 

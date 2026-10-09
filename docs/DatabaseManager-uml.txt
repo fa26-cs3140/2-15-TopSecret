@@ -12,4 +12,5 @@ Methods:
 + getRecords(string) : string
 + getColumns(string, string, string) : string[]
 + getColumns(string, string) : string[]
++ importTSV(string, string, string) : Boolean 
 
