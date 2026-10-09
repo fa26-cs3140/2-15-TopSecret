@@ -1,99 +1,252 @@
 package org.example;
 
-import java.util.InputMismatchException;
-import java.util.List;
+import java.io.PrintStream;
 import java.util.Scanner;
 
-public class UserInterface
-{
-    ProgramControl pControl;
+/**
+ * Handles the interactive Homework 4 terminal interface.
+ *
+ * Mission data is requested through DatabaseManager.
+ * This class does not directly execute SQL or access SQLite.
+ */
+public class UserInterface {
 
-    public UserInterface()
-    {
-        pControl = new ProgramControl();
+    private final DatabaseManager databaseManager;
+    private final Scanner scanner;
+    private final PrintStream output;
+
+    /**
+     * Creates a UserInterface using the normal program input,
+     * output, and default mission database.
+     */
+    public UserInterface() {
+        this(
+                new DatabaseManager(),
+                new Scanner(System.in),
+                System.out
+        );
     }
 
-    // This will do all the meaningful heavy lifting for displaying and processing
-    // user input
-    public void runInterface(String[] args)
-    {
-        // All useful local variables to run this program
-        Scanner scanner = new Scanner(System.in);
-        int selectedFileNum = 0;
-        List<String> fNames = pControl.getAvailableFiles();
-        
-        if (args.length > 2)
-        {
-            // No more than three arguments can be thrown
-            scanner.close();
-            throw new IllegalArgumentException("Exiting program... Too many arguments (3 max).\n");
+    /**
+     * Creates a UserInterface using supplied dependencies.
+     *
+     * This constructor makes the class easier to test because
+     * tests can provide their own database manager, input, and output.
+     *
+     * @param databaseManager database access component
+     * @param scanner input source
+     * @param output output destination
+     */
+    public UserInterface(
+            DatabaseManager databaseManager,
+            Scanner scanner,
+            PrintStream output
+    ) {
+        if (databaseManager == null) {
+            throw new IllegalArgumentException(
+                    "DatabaseManager cannot be null."
+            );
         }
-        // No args, print out directory
-        if (args.length == 0)
-        {
-            // Display menu
-            System.out.println("Choose a file option:");
-            System.out.println("---------------------");
-            for (int i = 0; i < fNames.size(); i++)
-            {
-                System.out.println("" + i + " " + fNames.get(i));
+
+        if (scanner == null) {
+            throw new IllegalArgumentException(
+                    "Scanner cannot be null."
+            );
+        }
+
+        if (output == null) {
+            throw new IllegalArgumentException(
+                    "Output cannot be null."
+            );
+        }
+
+        this.databaseManager = databaseManager;
+        this.scanner = scanner;
+        this.output = output;
+    }
+
+    /**
+     * Runs the interactive mission menu until the user selects Exit.
+     */
+    public void runInterface() {
+
+        boolean running = true;
+
+        while (running) {
+
+            displayMenu();
+
+            if (!scanner.hasNextLine()) {
+                return;
             }
-            System.out.println("---------------------");
-            // Return early, we are done here
-            scanner.close();
+
+            String selection = scanner.nextLine().trim();
+
+            switch (selection) {
+
+                case "1":
+                    displayMissionList();
+                    break;
+
+                case "2":
+                    readMissionSelection();
+                    break;
+
+                case "3":
+                    output.println("Exiting Top Secret.");
+                    running = false;
+                    break;
+
+                default:
+                    output.println(
+                            "Invalid menu selection. Please try again."
+                    );
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Compatibility method for the existing TopSecret class.
+     *
+     * Homework 4 no longer uses mission-selection command-line
+     * arguments, so the arguments are ignored and the interactive
+     * interface is started.
+     *
+     * @param args command-line arguments
+     */
+    public void runInterface(String[] args) {
+        runInterface();
+    }
+
+    /**
+     * Displays the available menu options.
+     */
+    public void displayMenu() {
+
+        output.println();
+        output.println("Top Secret Mission Menu");
+        output.println("-----------------------");
+        output.println("1. List available mission briefs");
+        output.println("2. Read a mission brief");
+        output.println("3. Exit");
+        output.print("Select an option: ");
+    }
+
+    /**
+     * Displays all mission titles with corresponding numbers.
+     */
+    public void displayMissionList() {
+
+        String[] titles =
+                databaseManager.getColumn("Title");
+
+        if (titles == null) {
+            output.println(
+                    "Unable to load missions."
+            );
             return;
         }
-        // If at least one arg, user chooses file at once
-        if (args.length >= 1)
-        {
-            // Find the selected file in the first argument
-            try
-            {
-                selectedFileNum = Integer.parseInt(args[0]);
-                if (selectedFileNum > fNames.size() - 1)
-                {
-                    scanner.close();
-                    throw new IllegalArgumentException();
-                }
-            }
-            catch (NumberFormatException e)
-            {
-                scanner.close();
-                throw new IllegalArgumentException("Exitng program... First argument must be an integer.\n");
-            }
-            // Select the cipher we are going to use
-            // Read from the integer selected from a args[1],
-            // not strictly the number itself.
-            int cipIndex = 0;
-            if (args.length == 2) 
-            {
-                try
-                {
-                    cipIndex = Integer.parseInt(args[1]);
-                    if (cipIndex > pControl.getFileContents("key.txt").split("\\R").length - 1)
-                    {
-                        scanner.close();
-                        throw new IllegalArgumentException("Exiting program... Invalid cipher.\n");
-                    }
-                }
-                catch (InputMismatchException e)
-                {
-                    scanner.close();
-                    throw new IllegalArgumentException("Exitng program... Second argument must be an integer.\n");
-                }
-            }
 
-            // Find and decipher the text
-            String selectedFileName = fNames.get(selectedFileNum);
-            String content = pControl.getFileContents(selectedFileName, cipIndex); 
-
-            // Display content
-            System.out.println("File Conents: ");
-            System.out.println("---------------------");
-            System.out.println(content);
-            System.out.println("---------------------");
+        if (titles.length == 0) {
+            output.println(
+                    "No mission briefs are available."
+            );
+            return;
         }
-        // Close scanner
-        scanner.close();
+
+        output.println();
+        output.println("Available Mission Briefs");
+        output.println("------------------------");
+
+        for (int i = 0; i < titles.length; i++) {
+            output.println(
+                    (i + 1) + ". " + titles[i]
+            );
+        }
+    }
+
+    /**
+     * Displays one mission selected using its displayed number.
+     *
+     * @param missionNumber one-based mission number
+     */
+    public void displayMission(int missionNumber) {
+
+        String[] records =
+                databaseManager.getRecords(
+                        "Title",
+                        "%"
+                );
+
+        if (records == null) {
+            output.println(
+                    "Unable to load missions."
+            );
+            return;
+        }
+
+        if (
+                missionNumber < 1 ||
+                        missionNumber > records.length
+        ) {
+            output.println(
+                    "Invalid mission number."
+            );
+            return;
+        }
+
+        String record =
+                records[missionNumber - 1];
+
+        String[] fields =
+                record.split("\t", 3);
+
+        if (fields.length < 3) {
+            output.println(
+                    "Unable to display mission."
+            );
+            return;
+        }
+
+        output.println();
+        output.println("Mission Brief");
+        output.println("-------------");
+        output.println("Title: " + fields[0]);
+        output.println("Date: " + fields[1]);
+        output.println("Brief: " + fields[2]);
+    }
+
+    /**
+     * Prompts the user to select a mission and handles
+     * invalid number input.
+     */
+    private void readMissionSelection() {
+
+        displayMissionList();
+
+        output.print(
+                "Enter mission number: "
+        );
+
+        if (!scanner.hasNextLine()) {
+            return;
+        }
+
+        String input =
+                scanner.nextLine().trim();
+
+        try {
+            int missionNumber =
+                    Integer.parseInt(input);
+
+            displayMission(missionNumber);
+
+        } catch (NumberFormatException e) {
+
+            output.println(
+                    "Invalid mission number."
+            );
+        }
     }
 }
