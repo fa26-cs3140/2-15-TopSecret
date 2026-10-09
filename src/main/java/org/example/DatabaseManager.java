@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.KeyStore.TrustedCertificateEntry;
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -90,6 +91,26 @@ public class DatabaseManager
         {
             this.printSQLDiagonistics(e);
             return null;
+        }
+    }
+
+    public Boolean tableExists(String tableName)
+    {
+        try (
+                Connection conn = DriverManager.getConnection(this.sqlURL, this.username, this.password);
+            )
+        {
+            DatabaseMetaData meta = conn.getMetaData();
+
+            try (ResultSet rs = meta.getTables(null, null, this.main_table, new String [] {"TABLE"})) {
+                return rs.next();
+            }
+
+        }
+        catch (SQLException e)
+        {
+            this.printSQLDiagonistics(e);
+            return false;
         }
     }
 

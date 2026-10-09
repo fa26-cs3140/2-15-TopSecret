@@ -11,14 +11,13 @@ public class TopSecret
         DatabaseManager dbManager = new DatabaseManager();
         ProgramControl pControl = new ProgramControl(fHandler, dbManager);
 
-
         // uInterface can throw many types of errors
         // Catch if anything happens
         try
         {
             pControl.run(uInterface, args);
         }
-        catch (IllegalArgumentException e)
+        catch (Exception e)
         {
             System.out.println("Error... Aborting program...");
         }

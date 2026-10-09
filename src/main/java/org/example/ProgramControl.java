@@ -45,19 +45,26 @@ public class ProgramControl {
      * @param ui UserInterface to be passed
      * @param args Arguments to pasesed into ui.runInterface()
      */
-    public void run(UserInterface ui, String[] args)
+    public void run(UserInterface ui, String[] args) 
     {
+        // Ensure that the file already exists, if not create it.
         if (!this.getAvailableFiles().contains("mission_briefs.db"))
         {
-            try
+            fileHandler.writeFile("mission_briefs.db", "");
+        }
+
+        // Then import the data from the relevant .tsv file as a .db
+        try
+        {
+            if (!this.databaseManager.tableExists("mission_briefs"))
             {
                 this.databaseManager.importTSV(fileHandler.getDataDirectory() + "/mission_briefs.tsv",
-                                               fileHandler.getDataDirectory(), "mission_briefs.db");
+                        fileHandler.getDataDirectory(), "mission_briefs.db");
             }
-            catch (IOException e)
-            {
-                DebugHelper.debugPrintln(e.getMessage());
-            }
+        }
+        catch (IOException e)
+        {
+            DebugHelper.debugPrintln(e.getMessage());
         }
         ui.runInterface(args);
     }
