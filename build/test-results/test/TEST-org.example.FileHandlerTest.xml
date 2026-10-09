@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.example.FileHandlerTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-09T02:08:36.241Z" hostname="hortensius" time="0.019">
+<testsuite name="org.example.FileHandlerTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-09T02:45:31.776Z" hostname="Mikes-Macbook.local" time="0.005">
   <properties/>
-  <testcase name="readFileDoesNotCrashForMissingFile()" classname="org.example.FileHandlerTest" time="0.005"/>
-  <testcase name="readFileReturnsEmptyStringForEmptyFile()" classname="org.example.FileHandlerTest" time="0.004"/>
-  <testcase name="readFileReturnsMultilineContents()" classname="org.example.FileHandlerTest" time="0.003"/>
-  <testcase name="getAvailableFilesReturnsAllFiles()" classname="org.example.FileHandlerTest" time="0.002"/>
-  <testcase name="readFileReturnsCorrectContents()" classname="org.example.FileHandlerTest" time="0.003"/>
+  <testcase name="readFileDoesNotCrashForMissingFile()" classname="org.example.FileHandlerTest" time="0.002"/>
+  <testcase name="readFileReturnsEmptyStringForEmptyFile()" classname="org.example.FileHandlerTest" time="0.001"/>
+  <testcase name="readFileReturnsMultilineContents()" classname="org.example.FileHandlerTest" time="0.0"/>
+  <testcase name="getAvailableFilesReturnsAllFiles()" classname="org.example.FileHandlerTest" time="0.0"/>
+  <testcase name="readFileReturnsCorrectContents()" classname="org.example.FileHandlerTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

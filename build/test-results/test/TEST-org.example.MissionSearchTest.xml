@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.example.MissionSearchTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-09T02:08:36.268Z" hostname="hortensius" time="0.134">
+<testsuite name="org.example.MissionSearchTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-09T02:45:31.783Z" hostname="Mikes-Macbook.local" time="0.02">
   <properties/>
-  <testcase name="nullSearchReturnsEmpty()" classname="org.example.MissionSearchTest" time="0.114"/>
-  <testcase name="searchReturnsMultipleMatches()" classname="org.example.MissionSearchTest" time="0.006"/>
-  <testcase name="blankSearchReturnsEmpty()" classname="org.example.MissionSearchTest" time="0.002"/>
-  <testcase name="searchDatabaseFailed()" classname="org.example.MissionSearchTest" time="0.003"/>
-  <testcase name="searchReturnsNoMatchesMessage()" classname="org.example.MissionSearchTest" time="0.003"/>
-  <testcase name="searchUsingTextColumn()" classname="org.example.MissionSearchTest" time="0.003"/>
+  <testcase name="nullSearchReturnsEmpty()" classname="org.example.MissionSearchTest" time="0.016"/>
+  <testcase name="searchReturnsMultipleMatches()" classname="org.example.MissionSearchTest" time="0.002"/>
+  <testcase name="blankSearchReturnsEmpty()" classname="org.example.MissionSearchTest" time="0.0"/>
+  <testcase name="searchDatabaseFailed()" classname="org.example.MissionSearchTest" time="0.001"/>
+  <testcase name="searchReturnsNoMatchesMessage()" classname="org.example.MissionSearchTest" time="0.001"/>
+  <testcase name="searchUsingTextColumn()" classname="org.example.MissionSearchTest" time="0.0"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

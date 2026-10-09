@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.example.DatabaseManagerTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T02:08:34.786Z" hostname="hortensius" time="1.454">
+<testsuite name="org.example.DatabaseManagerTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T02:45:31.610Z" hostname="Mikes-Macbook.local" time="0.166">
   <properties/>
-  <testcase name="getRecordTest()" classname="org.example.DatabaseManagerTest" time="0.416"/>
-  <testcase name="createDatabaseTest()" classname="org.example.DatabaseManagerTest" time="0.669"/>
-  <testcase name="getColumnTest()" classname="org.example.DatabaseManagerTest" time="0.367"/>
+  <testcase name="getRecordTest()" classname="org.example.DatabaseManagerTest" time="0.046"/>
+  <testcase name="createDatabaseTest()" classname="org.example.DatabaseManagerTest" time="0.084"/>
+  <testcase name="getColumnTest()" classname="org.example.DatabaseManagerTest" time="0.036"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[Error processing query.
 State: SQLITE_DONE
