@@ -11,9 +11,9 @@ Role: Password / Credential Management
 GitHub ID: [GITHUB ID]
 
 Team Member C
-Name: [NAME]
+Name: Mike Ly
 Role: Mission Search
-GitHub ID: [GITHUB ID]
+GitHub ID: ductrl
 
 Team Member D
 Name: Vrisag Desinani

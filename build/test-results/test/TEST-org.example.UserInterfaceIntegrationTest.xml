@@ -1,24 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.example.UserInterfaceIntegrationTest" tests="6" skipped="6" failures="0" errors="0" timestamp="2026-10-09T02:45:31.809Z" hostname="Mikes-Macbook.local" time="0.002">
+<testsuite name="org.example.UserInterfaceIntegrationTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-09T18:34:46.303Z" hostname="Mikes-Macbook.local" time="0.017">
   <properties/>
-  <testcase name="selectedMissionDisplaysDatabaseRecord()" classname="org.example.UserInterfaceIntegrationTest" time="0.0">
-    <skipped/>
-  </testcase>
-  <testcase name="multipleDatabaseRequestsCanOccurInOneSession()" classname="org.example.UserInterfaceIntegrationTest" time="0.0">
-    <skipped/>
-  </testcase>
-  <testcase name="successfulLoginOpensMissionInterface()" classname="org.example.UserInterfaceIntegrationTest" time="0.0">
-    <skipped/>
-  </testcase>
-  <testcase name="searchResultsAreDisplayedByUserInterface()" classname="org.example.UserInterfaceIntegrationTest" time="0.0">
-    <skipped/>
-  </testcase>
-  <testcase name="noSearchMatchesCanBeDisplayed()" classname="org.example.UserInterfaceIntegrationTest" time="0.0">
-    <skipped/>
-  </testcase>
-  <testcase name="userInterfaceDisplaysMissionsFromDataLayer()" classname="org.example.UserInterfaceIntegrationTest" time="0.0">
-    <skipped/>
-  </testcase>
+  <testcase name="userInterfaceDisplaysRealSearchResults()" classname="org.example.UserInterfaceIntegrationTest" time="0.007"/>
+  <testcase name="multipleActionsWorkInOneSession()" classname="org.example.UserInterfaceIntegrationTest" time="0.003"/>
+  <testcase name="userInterfaceDisplaysRealNoMatchesMessage()" classname="org.example.UserInterfaceIntegrationTest" time="0.002"/>
+  <testcase name="userInterfaceDisplaysSelectedDatabaseMission()" classname="org.example.UserInterfaceIntegrationTest" time="0.003"/>
+  <testcase name="userInterfaceDisplaysDatabaseMissionList()" classname="org.example.UserInterfaceIntegrationTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

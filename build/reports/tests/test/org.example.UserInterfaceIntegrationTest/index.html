@@ -17,7 +17,7 @@
 <div class="tab-container">
 <ul class="tabLinks">
 <li>
-<a class="skippedGroup" href="#">Gradle Test Run :test</a>
+<a class="successGroup" href="#">Gradle Test Run :test</a>
 </li>
 </ul>
 <div class="tab">
@@ -41,7 +41,7 @@
 <tr>
 <td>
 <div class="infoBox">
-<div class="counter">6</div>
+<div class="counter">5</div>
 <p>tests</p>
 </div>
 </td>
@@ -53,13 +53,13 @@
 </td>
 <td>
 <div class="infoBox">
-<div class="counter">6</div>
+<div class="counter">0</div>
 <p>skipped</p>
 </div>
 </td>
 <td>
 <div class="infoBox duration">
-<div class="counter">0.002s</div>
+<div class="counter">0.017s</div>
 <p>duration</p>
 </div>
 </td>
@@ -68,7 +68,7 @@
 </div>
 </td>
 <td>
-<div class="infoBox skipped successRate">
+<div class="infoBox success successRate">
 <div class="percent">100%</div>
 <p>successful</p>
 </div>
@@ -76,17 +76,6 @@
 </tr>
 </table>
 </div>
-<div class="tab-container">
-<ul class="tabLinks">
-<li>
-<a class="" href="#">Skipped</a>
-</li>
-<li>
-<a class="" href="#">All</a>
-</li>
-</ul>
-<div class="tab">
-<h2>Skipped</h2>
 <table class="test-results sortable">
 <thead>
 <tr>
@@ -101,159 +90,52 @@
 </thead>
 <tbody>
 <tr>
-<td class="skipped">
-<a href="multipleDatabaseRequestsCanOccurInOneSession().html">multipleDatabaseRequestsCanOccurInOneSession()</a>
-</td>
-<td class="path" hidden="">multipleDatabaseRequestsCanOccurInOneSession()</td>
+<td class="success">multipleActionsWorkInOneSession()</td>
+<td class="path" hidden="">multipleActionsWorkInOneSession()</td>
 <td>1</td>
 <td>0</td>
-<td>1</td>
-<td data-sort-value="0">0s</td>
-<td class="skipped" data-sort-value="100">100%</td>
+<td>0</td>
+<td data-sort-value="3">0.003s</td>
+<td class="success" data-sort-value="100">100%</td>
 </tr>
 <tr>
-<td class="skipped">
-<a href="noSearchMatchesCanBeDisplayed().html">noSearchMatchesCanBeDisplayed()</a>
-</td>
-<td class="path" hidden="">noSearchMatchesCanBeDisplayed()</td>
+<td class="success">userInterfaceDisplaysDatabaseMissionList()</td>
+<td class="path" hidden="">userInterfaceDisplaysDatabaseMissionList()</td>
 <td>1</td>
 <td>0</td>
-<td>1</td>
-<td data-sort-value="0">0s</td>
-<td class="skipped" data-sort-value="100">100%</td>
+<td>0</td>
+<td data-sort-value="1">0.001s</td>
+<td class="success" data-sort-value="100">100%</td>
 </tr>
 <tr>
-<td class="skipped">
-<a href="searchResultsAreDisplayedByUserInterface().html">searchResultsAreDisplayedByUserInterface()</a>
-</td>
-<td class="path" hidden="">searchResultsAreDisplayedByUserInterface()</td>
+<td class="success">userInterfaceDisplaysRealNoMatchesMessage()</td>
+<td class="path" hidden="">userInterfaceDisplaysRealNoMatchesMessage()</td>
 <td>1</td>
 <td>0</td>
-<td>1</td>
-<td data-sort-value="0">0s</td>
-<td class="skipped" data-sort-value="100">100%</td>
+<td>0</td>
+<td data-sort-value="2">0.002s</td>
+<td class="success" data-sort-value="100">100%</td>
 </tr>
 <tr>
-<td class="skipped">
-<a href="selectedMissionDisplaysDatabaseRecord().html">selectedMissionDisplaysDatabaseRecord()</a>
-</td>
-<td class="path" hidden="">selectedMissionDisplaysDatabaseRecord()</td>
+<td class="success">userInterfaceDisplaysRealSearchResults()</td>
+<td class="path" hidden="">userInterfaceDisplaysRealSearchResults()</td>
 <td>1</td>
 <td>0</td>
-<td>1</td>
-<td data-sort-value="0">0s</td>
-<td class="skipped" data-sort-value="100">100%</td>
+<td>0</td>
+<td data-sort-value="7">0.007s</td>
+<td class="success" data-sort-value="100">100%</td>
 </tr>
 <tr>
-<td class="skipped">
-<a href="successfulLoginOpensMissionInterface().html">successfulLoginOpensMissionInterface()</a>
-</td>
-<td class="path" hidden="">successfulLoginOpensMissionInterface()</td>
+<td class="success">userInterfaceDisplaysSelectedDatabaseMission()</td>
+<td class="path" hidden="">userInterfaceDisplaysSelectedDatabaseMission()</td>
 <td>1</td>
 <td>0</td>
-<td>1</td>
-<td data-sort-value="0">0s</td>
-<td class="skipped" data-sort-value="100">100%</td>
-</tr>
-<tr>
-<td class="skipped">
-<a href="userInterfaceDisplaysMissionsFromDataLayer().html">userInterfaceDisplaysMissionsFromDataLayer()</a>
-</td>
-<td class="path" hidden="">userInterfaceDisplaysMissionsFromDataLayer()</td>
-<td>1</td>
 <td>0</td>
-<td>1</td>
-<td data-sort-value="0">0s</td>
-<td class="skipped" data-sort-value="100">100%</td>
+<td data-sort-value="3">0.003s</td>
+<td class="success" data-sort-value="100">100%</td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="tab">
-<h2>All</h2>
-<table class="test-results sortable">
-<thead>
-<tr>
-<th>Child</th>
-<th hidden="">Name</th>
-<th data-sort-default="desc">Tests</th>
-<th data-sort-default="desc">Failures</th>
-<th data-sort-default="desc">Skipped</th>
-<th data-sort-default="desc">Duration</th>
-<th>Success rate</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="skipped">
-<a href="multipleDatabaseRequestsCanOccurInOneSession().html">multipleDatabaseRequestsCanOccurInOneSession()</a>
-</td>
-<td class="path" hidden="">multipleDatabaseRequestsCanOccurInOneSession()</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td data-sort-value="0">0s</td>
-<td class="skipped" data-sort-value="100">100%</td>
-</tr>
-<tr>
-<td class="skipped">
-<a href="noSearchMatchesCanBeDisplayed().html">noSearchMatchesCanBeDisplayed()</a>
-</td>
-<td class="path" hidden="">noSearchMatchesCanBeDisplayed()</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td data-sort-value="0">0s</td>
-<td class="skipped" data-sort-value="100">100%</td>
-</tr>
-<tr>
-<td class="skipped">
-<a href="searchResultsAreDisplayedByUserInterface().html">searchResultsAreDisplayedByUserInterface()</a>
-</td>
-<td class="path" hidden="">searchResultsAreDisplayedByUserInterface()</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td data-sort-value="0">0s</td>
-<td class="skipped" data-sort-value="100">100%</td>
-</tr>
-<tr>
-<td class="skipped">
-<a href="selectedMissionDisplaysDatabaseRecord().html">selectedMissionDisplaysDatabaseRecord()</a>
-</td>
-<td class="path" hidden="">selectedMissionDisplaysDatabaseRecord()</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td data-sort-value="0">0s</td>
-<td class="skipped" data-sort-value="100">100%</td>
-</tr>
-<tr>
-<td class="skipped">
-<a href="successfulLoginOpensMissionInterface().html">successfulLoginOpensMissionInterface()</a>
-</td>
-<td class="path" hidden="">successfulLoginOpensMissionInterface()</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td data-sort-value="0">0s</td>
-<td class="skipped" data-sort-value="100">100%</td>
-</tr>
-<tr>
-<td class="skipped">
-<a href="userInterfaceDisplaysMissionsFromDataLayer().html">userInterfaceDisplaysMissionsFromDataLayer()</a>
-</td>
-<td class="path" hidden="">userInterfaceDisplaysMissionsFromDataLayer()</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td data-sort-value="0">0s</td>
-<td class="skipped" data-sort-value="100">100%</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
 </div>
 </div>
 </div>
@@ -266,7 +148,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 9.6.0</a> at Oct 8, 2026, 10:45:31 PM</p>
+<a href="https://www.gradle.org">Gradle 9.6.0</a> at Oct 9, 2026, 2:34:46 PM</p>
 </div>
 </div>
 </body>

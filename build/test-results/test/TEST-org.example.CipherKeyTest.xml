@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.example.CipherKeyTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-09T02:45:31.266Z" hostname="Mikes-Macbook.local" time="0.005">
+<testsuite name="org.example.CipherKeyTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-09T18:34:45.045Z" hostname="Mikes-Macbook.local" time="0.023">
   <properties/>
-  <testcase name="testValidKey()" classname="org.example.CipherKeyTest" time="0.001"/>
-  <testcase name="testArrayModificationDoesNotAffectKey()" classname="org.example.CipherKeyTest" time="0.001"/>
-  <testcase name="testEmptyLinesInvalid()" classname="org.example.CipherKeyTest" time="0.0"/>
-  <testcase name="testTrailingNewline()" classname="org.example.CipherKeyTest" time="0.001"/>
+  <testcase name="testValidKey()" classname="org.example.CipherKeyTest" time="0.012"/>
+  <testcase name="testArrayModificationDoesNotAffectKey()" classname="org.example.CipherKeyTest" time="0.003"/>
+  <testcase name="testEmptyLinesInvalid()" classname="org.example.CipherKeyTest" time="0.001"/>
+  <testcase name="testTrailingNewline()" classname="org.example.CipherKeyTest" time="0.0"/>
   <testcase name="testInvalidKeyMissingLine()" classname="org.example.CipherKeyTest" time="0.0"/>
   <testcase name="testInvalidKeyDuplicateCharacters()" classname="org.example.CipherKeyTest" time="0.001"/>
   <testcase name="testCharacterArrays()" classname="org.example.CipherKeyTest" time="0.0"/>

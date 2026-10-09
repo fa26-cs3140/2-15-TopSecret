@@ -1,53 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.example.UserInterfaceTest" tests="9" skipped="8" failures="0" errors="0" timestamp="2026-10-09T02:45:31.811Z" hostname="Mikes-Macbook.local" time="0.007">
+<testsuite name="org.example.UserInterfaceTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-09T18:34:46.321Z" hostname="Mikes-Macbook.local" time="0.019">
   <properties/>
-  <testcase name="menuReturnsAfterMissionIsDisplayed()" classname="org.example.UserInterfaceTest" time="0.0">
-    <skipped/>
-  </testcase>
-  <testcase name="displaysMenuOptions()" classname="org.example.UserInterfaceTest" time="0.0">
-    <skipped/>
-  </testcase>
-  <testcase name="runInterface()" classname="org.example.UserInterfaceTest" time="0.005"/>
-  <testcase name="displaysNumberedMissionList()" classname="org.example.UserInterfaceTest" time="0.0">
-    <skipped/>
-  </testcase>
-  <testcase name="invalidMissionSelectionIsHandled()" classname="org.example.UserInterfaceTest" time="0.0">
-    <skipped/>
-  </testcase>
-  <testcase name="exitSelectionEndsInterface()" classname="org.example.UserInterfaceTest" time="0.0">
-    <skipped/>
-  </testcase>
-  <testcase name="validMissionSelectionDisplaysMission()" classname="org.example.UserInterfaceTest" time="0.0">
-    <skipped/>
-  </testcase>
-  <testcase name="invalidMenuSelectionIsHandled()" classname="org.example.UserInterfaceTest" time="0.0">
-    <skipped/>
-  </testcase>
-  <testcase name="multipleActionsCanOccurInOneSession()" classname="org.example.UserInterfaceTest" time="0.0">
-    <skipped/>
-  </testcase>
-  <system-out><![CDATA[Choose a file option:
----------------------
-0 mission_briefs.db
-1 mission_briefs.tsv
-2 key.txt
-3 carnivore.txt
-4 cointelpro.cip
-5 carnivore.cip
-6 cointelpro.txt
----------------------
-File Conents: 
----------------------
-
----------------------
-File Conents: 
----------------------
-
----------------------
-File Conents: 
----------------------
-
----------------------
-]]></system-out>
+  <testcase name="missingMissionListIsHandledGracefully()" classname="org.example.UserInterfaceTest" time="0.007"/>
+  <testcase name="displayMissionListShowsNumberedTitles()" classname="org.example.UserInterfaceTest" time="0.001"/>
+  <testcase name="runInterfaceCanListThenExit()" classname="org.example.UserInterfaceTest" time="0.001"/>
+  <testcase name="invalidMenuInputDoesNotEndProgram()" classname="org.example.UserInterfaceTest" time="0.0"/>
+  <testcase name="displayMenuShowsRequiredOptions()" classname="org.example.UserInterfaceTest" time="0.001"/>
+  <testcase name="searchOptionDisplaysMatchingMissions()" classname="org.example.UserInterfaceTest" time="0.001"/>
+  <testcase name="searchOptionDisplaysNoMatchesMessage()" classname="org.example.UserInterfaceTest" time="0.001"/>
+  <testcase name="nullDatabaseManagerIsRejected()" classname="org.example.UserInterfaceTest" time="0.001"/>
+  <testcase name="displayMissionRejectsNumberThatIsTooLarge()" classname="org.example.UserInterfaceTest" time="0.0"/>
+  <testcase name="displayMissionRejectsNumberThatIsTooSmall()" classname="org.example.UserInterfaceTest" time="0.001"/>
+  <testcase name="displayMissionShowsSelectedMission()" classname="org.example.UserInterfaceTest" time="0.001"/>
+  <testcase name="nullOutputIsRejected()" classname="org.example.UserInterfaceTest" time="0.0"/>
+  <testcase name="nullMissionSearchIsRejected()" classname="org.example.UserInterfaceTest" time="0.001"/>
+  <testcase name="searchFailureIsHandledGracefully()" classname="org.example.UserInterfaceTest" time="0.001"/>
+  <testcase name="runInterfaceCanReadMissionThenReturnToMenu()" classname="org.example.UserInterfaceTest" time="0.001"/>
+  <testcase name="invalidMissionInputDoesNotEndProgram()" classname="org.example.UserInterfaceTest" time="0.0"/>
+  <testcase name="nullScannerIsRejected()" classname="org.example.UserInterfaceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
