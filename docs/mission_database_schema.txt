@@ -1,0 +1,2 @@
+Mission database schema:
+CREATE TABLE mission_briefs (Title TEXT, Date DATE, Text TEXT)
