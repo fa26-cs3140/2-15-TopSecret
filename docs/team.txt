@@ -1,0 +1,21 @@
+Homework 4 Team
+
+Team Member A
+Name: [NAME]
+Role: Database / SQLite
+GitHub ID: [GITHUB ID]
+
+Team Member B
+Name: [NAME]
+Role: Password / Credential Management
+GitHub ID: [GITHUB ID]
+
+Team Member C
+Name: [NAME]
+Role: Mission Search
+GitHub ID: [GITHUB ID]
+
+Team Member D
+Name: Vrisag Desinani
+Role: User Interface
+GitHub ID: fae9xd
