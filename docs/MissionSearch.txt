@@ -4,7 +4,7 @@ TODO: Specify how this class interacts with other classes, especially a user gui
 TODO: Write tests
 TODO: Implement class
 TODO: Update final docs
-TODO: Flag Zaid (A) about mismatches in DatabaseManager and DatabaseManager-uml, also discuss about returning List<String> instead of String[] (maybe?)
+TODO: Discuss with Zaid (A) about returning List<String> instead of String[] (maybe?)
 
 The MissionSearch class is the program's search feature. From a given word or phrase, it is responsible for searching the mission database for mission briefs containing that word or phrase and display a list of matches.
 
