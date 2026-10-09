@@ -173,7 +173,6 @@ class DatabaseManagerTest
             assertEquals(out_2[i], expOut_2[i], "2. Arrays are not equivalent.");
         }
         
-        DebugHelper.debugPrintln("Test 3: Text");
         // Get Text column
         String[] out_3 = testManager.getColumn("Text");
         assertTrue(out_3.length == expOut_3.length);
