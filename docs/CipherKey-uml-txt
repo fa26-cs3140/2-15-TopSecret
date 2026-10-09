@@ -3,7 +3,3 @@ CipherKey
 original: char[]
 ciphered: char[]
 --------------------------------------
-CipherKey(key: String)
-validateKey(key: String): boolean
-getOriginal(): char[]
-getCiphered(): char[]
