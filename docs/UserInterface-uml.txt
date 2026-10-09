@@ -1,16 +1,28 @@
 UserInterface
 --------------------------------------
 databaseManager: DatabaseManager
+missionSearch: MissionSearch
 scanner: Scanner
 output: PrintStream
 --------------------------------------
 UserInterface()
-UserInterface(databaseManager: DatabaseManager,
-              scanner: Scanner,
-              output: PrintStream)
+
+UserInterface(
+    databaseManager: DatabaseManager,
+    scanner: Scanner,
+    output: PrintStream
+)
+
+UserInterface(
+    databaseManager: DatabaseManager,
+    missionSearch: MissionSearch,
+    scanner: Scanner,
+    output: PrintStream
+)
 
 runInterface(): void
 runInterface(args: String[]): void
 displayMenu(): void
 displayMissionList(): void
 displayMission(missionNumber: int): void
+displaySearchResults(result: SearchResult): void

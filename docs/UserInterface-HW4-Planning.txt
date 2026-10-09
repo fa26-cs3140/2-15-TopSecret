@@ -1,134 +1,96 @@
-Homework 4 Week 1 Planning - Team Member D
+Homework 4 Planning and Final Changes - Team Member D
 User Interface
 
-TODO - Bugs First
+Bugs First
 
-1. Preserve and verify the existing Homework 3 UserInterface behavior until the Homework 4 replacement is implemented.
-2. Replace the Homework 3 one-command interface with the Homework 4 interactive menu during final-week development.
-3. Remove obsolete mission file and cipher selection behavior from the new Homework 4 mission interface once the replacement is ready.
-4. Update the existing UserInterface unit tests rather than deleting the Homework 3 tests.
+The Homework 3 UserInterface was originally designed as a one-command file-based utility.
 
-Homework 4 User Interface Requirements
+Homework 4 replaces that design with a continuously running mission interface backed by the mission database.
 
-The Homework 4 UserInterface begins after a user has successfully logged in.
+The previous Homework 3 source was retained during planning and then replaced by the Homework 4 implementation after the new tests were defined.
 
-The interface must:
-- Remain active until the user selects Exit.
-- Allow the user to list available mission briefs.
-- Display mission titles with corresponding numbers.
-- Allow a user to enter a mission number and display that mission.
-- Return to the menu after displaying a mission.
-- Provide a Search menu option for Team Member C's search feature.
-- Handle invalid selections without terminating unexpectedly.
+Final Homework 4 User Interface Requirements
 
-Component Responsibilities
+The UserInterface begins after successful authentication.
 
-Team Member A:
-- Owns SQLite database access.
-- Initializes and manages the mission table.
-- Provides mission information to the rest of the system.
-- UserInterface must not directly execute SQL.
+The interface:
+- Remains active until Exit is selected.
+- Lists available mission briefs.
+- Displays mission titles with corresponding numbers.
+- Allows the user to select and read a mission.
+- Displays the mission title, date, and brief.
+- Allows the user to search mission briefs using Team Member C's MissionSearch component.
+- Displays matching search results.
+- Displays the appropriate message when no search matches are found.
+- Returns to the main menu after every operation.
+- Handles invalid menu input without crashing.
+- Handles invalid mission numbers without crashing.
 
-Team Member B:
-- Owns authentication and password management.
-- Authentication occurs before UserInterface begins.
-- UserInterface does not validate usernames or passwords.
+Final Component Connections
 
-Team Member C:
-- Owns mission search.
-- UserInterface provides a Search option and displays the results returned by the search component.
+Team Member A - DatabaseManager:
+- Owns SQLite access.
+- UserInterface does not execute SQL directly.
+- UserInterface requests mission titles and records through DatabaseManager.
 
-Team Member D:
-- Owns UserInterface.
-- Displays menus, mission lists, mission contents, search results, and error messages.
-- Reads the user's menu selections.
-- Maintains the interactive menu loop until Exit is selected.
+Team Member B - Authentication:
+- Handles username and password validation.
+- Authentication occurs before the mission interface begins.
 
-Interface Planning
+Team Member C - MissionSearch:
+- Searches mission brief text.
+- Returns a SearchResult.
+- UserInterface collects the user's search term and displays the result.
 
-Homework 4 requires interfaces between system components where appropriate.
+Team Member D - UserInterface:
+- Owns terminal input and output for mission operations.
+- Maintains the interactive application loop.
+- Displays mission lists, individual missions, search results, and error messages.
 
-The UserInterface should not depend directly on the SQLite implementation.
+Final Menu
 
-A proposed mission-data interface for discussion is:
+1. List available mission briefs
+2. Read a mission brief
+3. Search mission briefs
+4. Exit
 
-MissionAccess
---------------------------------------
-getAllMissions()
-getMission(...)
---------------------------------------
+Unit Testing
 
-The exact return types and method names must be decided with Team Member A.
+UserInterfaceTest uses Mockito.
 
-The interface name MissionAccess is currently a planning name only and should be replaced with the team's final agreed-upon interface name.
+DatabaseManager and MissionSearch are mocked so UserInterface is tested independently from SQLite and the search implementation.
 
-Search Integration
+Unit tests verify:
+- Menu output.
+- Numbered mission lists.
+- Mission display.
+- Search-result display.
+- No-match messages.
+- Invalid menu input.
+- Invalid mission numbers.
+- Repeated actions during one program session.
+- Constructor validation.
 
-UserInterface must include an option that allows the user to begin a search.
+Integration Testing
 
-Team Member C is responsible for performing the search.
+UserInterfaceIntegrationTest uses:
+- A temporary SQLite database.
+- The real DatabaseManager.
+- The real MissionSearch.
 
-UserInterface should:
-1. Receive the user's search word or phrase.
-2. Pass the request to the agreed search component.
-3. Receive the results.
-4. Display the matching mission titles or records.
-5. Display a no-matches message if there are no results.
-6. Return to the main menu.
+Integration tests verify:
+- Database-backed mission lists can be displayed.
+- A selected database mission can be displayed.
+- Real search results can be displayed.
+- No-match search messages are displayed.
+- Multiple actions can occur without restarting the program.
 
-Authentication Integration
+Final Status
 
-Team Member B's authentication component must complete login before the mission menu begins.
-
-Integration testing should confirm that:
-- Valid authentication reaches UserInterface.
-- The mission menu is not entered before successful authentication.
-
-Mission Data Integration
-
-Integration testing should confirm that:
-- Mission titles stored in SQLite can be displayed through UserInterface.
-- A selected mission can be retrieved and displayed.
-- UserInterface does not directly perform database access.
-- More than one mission operation can occur during the same program session.
-
-Unit Test Plan
-
-UserInterface unit tests should cover:
-- Displaying menu options.
-- Displaying numbered mission titles.
-- Displaying a valid selected mission.
-- Handling an invalid mission number.
-- Handling invalid menu input.
-- Redisplaying the menu after reading a mission.
-- Exiting only when the Exit option is selected.
-- Performing multiple actions in a single session.
-
-Integration Test Plan
-
-Integration tests should cover:
-- Authentication to UserInterface.
-- UserInterface to mission database component.
-- UserInterface to search component.
-- Displaying a selected database-backed mission.
-- Displaying search results.
-- Displaying a no-search-results message.
-- Performing multiple operations without restarting the program.
-
-Week 1 Status
-
-Completed/planned for Team Member D:
-- Existing UserInterface documentation reviewed.
-- Homework 4 UserInterface requirements documented.
-- Homework 4 UserInterface UML planned.
-- Existing Homework 3 unit tests preserved.
-- Homework 4 unit test stubs defined.
-- Homework 4 integration test stubs defined.
-
-Final-week work still required:
-- Finalize component interface names with the team.
-- Implement the new interactive UserInterface.
-- Replace planning types/method names with the team's final interfaces.
-- Complete the unit tests.
-- Complete the integration tests.
-- Run all Gradle tests.
+Team Member D implementation completed:
+- UserInterface implementation.
+- UserInterface unit tests.
+- UserInterface integration tests.
+- Search integration.
+- UserInterface documentation.
+- UserInterface UML documentation.

@@ -3,23 +3,26 @@ UserInterface Class Description
 
 The UserInterface class is responsible for the interactive terminal interface shown after authentication has completed.
 
-Homework 4 replaces the Homework 3 file-based command line interface with a menu that remains active until the user selects Exit.
+Homework 4 replaces the Homework 3 file-based command-line interface with an interactive menu. The program remains active until the user explicitly selects Exit.
 
 Responsibilities & Requirements:
-- Display the mission menu.
+- Display the main mission menu.
 - Keep the interface running until Exit is selected.
 - Allow the user to list available mission briefs.
 - Display mission titles with corresponding numbers.
 - Allow the user to select a mission by number.
 - Display the title, date, and brief of the selected mission.
-- Return to the menu after an operation is completed.
-- Handle invalid menu input without terminating unexpectedly.
+- Allow the user to search mission briefs by entering a word or phrase.
+- Display search results returned by MissionSearch.
+- Display an appropriate message if no search results are found.
+- Return to the menu after each operation.
+- Handle invalid menu selections without terminating unexpectedly.
 - Handle invalid mission numbers without terminating unexpectedly.
 - Handle unavailable mission data gracefully.
 - Do not execute SQL or directly access SQLite.
 - Obtain mission information through DatabaseManager.
-- Authentication occurs before UserInterface is started and is handled by Team Member B.
-- Mission searching is Team Member C's responsibility and will be connected to the user interface through the team's final search component.
+- Use MissionSearch for the search functionality implemented by Team Member C.
+- Authentication is handled before UserInterface begins by Team Member B's authentication component.
 
 Class Design:
 
@@ -27,50 +30,70 @@ Attributes:
 
     databaseManager: DatabaseManager
     - Supplies mission records to UserInterface.
-    - UserInterface does not execute SQL itself.
+    - UserInterface does not execute SQL directly.
+
+    missionSearch: MissionSearch
+    - Performs mission-text searches.
+    - UserInterface is only responsible for collecting the search term and displaying the returned SearchResult.
 
     scanner: Scanner
     - Reads terminal input from the user.
 
     output: PrintStream
-    - Displays menus, missions, and messages.
+    - Displays menus, missions, search results, and messages.
     - Can be replaced during testing so output can be verified.
 
 Constructors:
 
     UserInterface()
-    - Creates an interface using the default DatabaseManager,
-      System.in, and System.out.
+    - Creates the normal application interface using the default DatabaseManager, MissionSearch, System.in, and System.out.
 
     UserInterface(DatabaseManager databaseManager,
                   Scanner scanner,
                   PrintStream output)
-    - Allows dependencies to be supplied.
-    - Primarily supports unit and integration testing.
+    - Compatibility/testing constructor.
+    - Creates a MissionSearch using the provided DatabaseManager.
+
+    UserInterface(DatabaseManager databaseManager,
+                  MissionSearch missionSearch,
+                  Scanner scanner,
+                  PrintStream output)
+    - Dependency-injection constructor used by unit and integration tests.
 
 Methods:
 
     runInterface(): void
-    - Starts the interactive menu loop.
+    - Runs the interactive menu loop.
     - Continues until the user selects Exit.
 
     runInterface(String[] args): void
-    - Compatibility method used by the existing TopSecret class.
+    - Compatibility method used by TopSecret.
     - Starts the Homework 4 interactive interface.
 
     displayMenu(): void
-    - Displays the available user-interface options.
+    - Displays List, Read, Search, and Exit options.
 
     displayMissionList(): void
     - Retrieves mission titles through DatabaseManager.
     - Displays each title with a corresponding number.
 
     displayMission(int missionNumber): void
-    - Displays the title, date, and brief for the selected mission.
-    - Handles an invalid mission number without crashing.
+    - Displays the title, date, and brief of a selected mission.
+
+    displaySearchResults(SearchResult result): void
+    - Displays mission records returned by MissionSearch.
+    - Displays the SearchResult message when the search fails or returns no matches.
 
 Testing:
 
-Unit tests use a fake DatabaseManager so UserInterface can be tested without SQLite.
+UserInterfaceTest is the unit-test class.
+- DatabaseManager is mocked with Mockito.
+- MissionSearch is mocked with Mockito.
+- No SQLite database is accessed.
+- Tests verify only UserInterface behavior.
 
-Integration tests use a temporary SQLite database through the real DatabaseManager to verify that the user interface can display database-backed mission information.
+UserInterfaceIntegrationTest is the integration-test class.
+- Uses a real temporary SQLite database.
+- Uses the real DatabaseManager.
+- Uses the real MissionSearch.
+- Verifies the UserInterface, database layer, and search feature work together.

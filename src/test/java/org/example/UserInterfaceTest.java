@@ -1,70 +1,39 @@
 package org.example;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.List;
 import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class UserInterfaceTest {
 
-    /*
-     * Simple fake DatabaseManager used so UserInterface can be
-     * unit tested without accessing SQLite.
-     */
-    static class FakeDatabaseManager extends DatabaseManager {
+    @Mock
+    private DatabaseManager databaseManager;
 
-        private final String[] titles = {
-                "Operation Sandtrap",
-                "The Munich Lead",
-                "Project Bluebird"
-        };
+    @Mock
+    private MissionSearch missionSearch;
 
-        private final String[] records = {
-                "Operation Sandtrap\t1970-11-03\tBug the diplomatic pouch.",
-                "The Munich Lead\t1972-09-15\tIdentify the logistical backbone.",
-                "Project Bluebird\t1973-04-20\tExfiltrate the defector."
-        };
+    private ByteArrayOutputStream output;
 
-        @Override
-        public String[] getColumn(String column) {
-            if ("Title".equals(column)) {
-                return titles;
-            }
-
-            return null;
-        }
-
-        @Override
-        public String[] getRecords(String column, String value) {
-            if (!"Title".equals(column)) {
-                return null;
-            }
-
-            if ("%".equals(value)) {
-                return records;
-            }
-
-            for (String record : records) {
-                String[] fields = record.split("\t", 3);
-
-                if (fields[0].equals(value)) {
-                    return new String[]{record};
-                }
-            }
-
-            return new String[0];
-        }
+    @BeforeEach
+    void setUp() {
+        output = new ByteArrayOutputStream();
     }
 
-    private UserInterface createInterface(
-            String input,
-            ByteArrayOutputStream output
-    ) {
+    private UserInterface createInterface(String input) {
         return new UserInterface(
-                new FakeDatabaseManager(),
+                databaseManager,
+                missionSearch,
                 new Scanner(input),
                 new PrintStream(output)
         );
@@ -72,9 +41,7 @@ class UserInterfaceTest {
 
     @Test
     void displayMenuShowsRequiredOptions() {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-
-        UserInterface ui = createInterface("", output);
+        UserInterface ui = createInterface("");
 
         ui.displayMenu();
 
@@ -82,14 +49,20 @@ class UserInterfaceTest {
 
         assertTrue(text.contains("List available mission briefs"));
         assertTrue(text.contains("Read a mission brief"));
+        assertTrue(text.contains("Search mission briefs"));
         assertTrue(text.contains("Exit"));
     }
 
     @Test
     void displayMissionListShowsNumberedTitles() {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        when(databaseManager.getColumn("Title"))
+                .thenReturn(new String[]{
+                        "Operation Sandtrap",
+                        "The Munich Lead",
+                        "Project Bluebird"
+                });
 
-        UserInterface ui = createInterface("", output);
+        UserInterface ui = createInterface("");
 
         ui.displayMissionList();
 
@@ -98,13 +71,19 @@ class UserInterfaceTest {
         assertTrue(text.contains("1. Operation Sandtrap"));
         assertTrue(text.contains("2. The Munich Lead"));
         assertTrue(text.contains("3. Project Bluebird"));
+
+        verify(databaseManager).getColumn("Title");
     }
 
     @Test
     void displayMissionShowsSelectedMission() {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        when(databaseManager.getRecords("Title", "%"))
+                .thenReturn(new String[]{
+                        "Operation Sandtrap\t1970-11-03\tBug the diplomatic pouch.",
+                        "The Munich Lead\t1972-09-15\tIdentify the logistical backbone."
+                });
 
-        UserInterface ui = createInterface("", output);
+        UserInterface ui = createInterface("");
 
         ui.displayMission(2);
 
@@ -113,28 +92,33 @@ class UserInterfaceTest {
         assertTrue(text.contains("The Munich Lead"));
         assertTrue(text.contains("1972-09-15"));
         assertTrue(text.contains("Identify the logistical backbone."));
+
+        verify(databaseManager).getRecords("Title", "%");
     }
 
     @Test
     void displayMissionRejectsNumberThatIsTooSmall() {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-
-        UserInterface ui = createInterface("", output);
+        UserInterface ui = createInterface("");
 
         ui.displayMission(0);
 
         assertTrue(
                 output.toString().contains("Invalid mission number")
         );
+
+        verifyNoInteractions(databaseManager);
     }
 
     @Test
     void displayMissionRejectsNumberThatIsTooLarge() {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        when(databaseManager.getRecords("Title", "%"))
+                .thenReturn(new String[]{
+                        "Operation Sandtrap\t1970-11-03\tTest mission."
+                });
 
-        UserInterface ui = createInterface("", output);
+        UserInterface ui = createInterface("");
 
-        ui.displayMission(100);
+        ui.displayMission(5);
 
         assertTrue(
                 output.toString().contains("Invalid mission number")
@@ -143,15 +127,14 @@ class UserInterfaceTest {
 
     @Test
     void runInterfaceCanListThenExit() {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        when(databaseManager.getColumn("Title"))
+                .thenReturn(new String[]{
+                        "Operation Sandtrap",
+                        "The Munich Lead"
+                });
 
-        /*
-         * 1 = list missions
-         * 3 = exit
-         */
         UserInterface ui = createInterface(
-                "1\n3\n",
-                output
+                "1\n4\n"
         );
 
         ui.runInterface();
@@ -165,16 +148,18 @@ class UserInterfaceTest {
 
     @Test
     void runInterfaceCanReadMissionThenReturnToMenu() {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        when(databaseManager.getColumn("Title"))
+                .thenReturn(new String[]{
+                        "Operation Sandtrap"
+                });
 
-        /*
-         * 2 = read mission
-         * 1 = mission number
-         * 3 = exit
-         */
+        when(databaseManager.getRecords("Title", "%"))
+                .thenReturn(new String[]{
+                        "Operation Sandtrap\t1970-11-03\tBug the diplomatic pouch."
+                });
+
         UserInterface ui = createInterface(
-                "2\n1\n3\n",
-                output
+                "2\n1\n4\n"
         );
 
         ui.runInterface();
@@ -184,22 +169,93 @@ class UserInterfaceTest {
         assertTrue(text.contains("Operation Sandtrap"));
         assertTrue(text.contains("1970-11-03"));
 
-        /*
-         * The menu should have been displayed once before reading
-         * the mission and again afterward.
-         */
         assertTrue(
-                countOccurrences(text, "List available mission briefs") >= 2
+                countOccurrences(
+                        text,
+                        "List available mission briefs"
+                ) >= 2
+        );
+    }
+
+    @Test
+    void searchOptionDisplaysMatchingMissions() {
+        String record =
+                "Operation Sandtrap\t1970-11-03\tBug the diplomatic pouch.";
+
+        when(missionSearch.search("diplomatic"))
+                .thenReturn(
+                        new SearchResult(
+                                List.of(record),
+                                null
+                        )
+                );
+
+        UserInterface ui = createInterface(
+                "3\ndiplomatic\n4\n"
+        );
+
+        ui.runInterface();
+
+        String text = output.toString();
+
+        assertTrue(text.contains("Search Results"));
+        assertTrue(text.contains("Operation Sandtrap"));
+        assertTrue(text.contains("1970-11-03"));
+        assertTrue(text.contains("Bug the diplomatic pouch."));
+
+        verify(missionSearch).search("diplomatic");
+    }
+
+    @Test
+    void searchOptionDisplaysNoMatchesMessage() {
+        when(missionSearch.search("missing"))
+                .thenReturn(
+                        new SearchResult(
+                                List.of(),
+                                "No matches were found."
+                        )
+                );
+
+        UserInterface ui = createInterface(
+                "3\nmissing\n4\n"
+        );
+
+        ui.runInterface();
+
+        assertTrue(
+                output.toString().contains(
+                        "No matches were found."
+                )
+        );
+
+        verify(missionSearch).search("missing");
+    }
+
+    @Test
+    void searchFailureIsHandledGracefully() {
+        when(missionSearch.search("agent"))
+                .thenReturn(
+                        new SearchResult(
+                                null,
+                                "Search failed."
+                        )
+                );
+
+        UserInterface ui = createInterface(
+                "3\nagent\n4\n"
+        );
+
+        ui.runInterface();
+
+        assertTrue(
+                output.toString().contains("Search failed.")
         );
     }
 
     @Test
     void invalidMenuInputDoesNotEndProgram() {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-
         UserInterface ui = createInterface(
-                "hello\n3\n",
-                output
+                "hello\n4\n"
         );
 
         ui.runInterface();
@@ -212,16 +268,13 @@ class UserInterfaceTest {
 
     @Test
     void invalidMissionInputDoesNotEndProgram() {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        when(databaseManager.getColumn("Title"))
+                .thenReturn(new String[]{
+                        "Operation Sandtrap"
+                });
 
-        /*
-         * 2 = read
-         * hello = invalid mission number
-         * 3 = exit
-         */
         UserInterface ui = createInterface(
-                "2\nhello\n3\n",
-                output
+                "2\nhello\n4\n"
         );
 
         ui.runInterface();
@@ -233,40 +286,83 @@ class UserInterfaceTest {
     }
 
     @Test
-    void missingMissionDataIsHandledGracefully() {
+    void missingMissionListIsHandledGracefully() {
+        when(databaseManager.getColumn("Title"))
+                .thenReturn(null);
 
-        DatabaseManager brokenDatabase = new DatabaseManager() {
-            @Override
-            public String[] getColumn(String column) {
-                return null;
-            }
-
-            @Override
-            public String[] getRecords(String column, String value) {
-                return null;
-            }
-        };
-
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-
-        UserInterface ui = new UserInterface(
-                brokenDatabase,
-                new Scanner(""),
-                new PrintStream(output)
-        );
+        UserInterface ui = createInterface("");
 
         ui.displayMissionList();
 
         assertTrue(
-                output.toString().contains("Unable to load missions")
+                output.toString().contains(
+                        "Unable to load missions"
+                )
         );
     }
 
-    private int countOccurrences(String text, String target) {
+    @Test
+    void nullDatabaseManagerIsRejected() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new UserInterface(
+                        null,
+                        missionSearch,
+                        new Scanner(""),
+                        new PrintStream(output)
+                )
+        );
+    }
+
+    @Test
+    void nullMissionSearchIsRejected() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new UserInterface(
+                        databaseManager,
+                        null,
+                        new Scanner(""),
+                        new PrintStream(output)
+                )
+        );
+    }
+
+    @Test
+    void nullScannerIsRejected() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new UserInterface(
+                        databaseManager,
+                        missionSearch,
+                        null,
+                        new PrintStream(output)
+                )
+        );
+    }
+
+    @Test
+    void nullOutputIsRejected() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new UserInterface(
+                        databaseManager,
+                        missionSearch,
+                        new Scanner(""),
+                        null
+                )
+        );
+    }
+
+    private int countOccurrences(
+            String text,
+            String target
+    ) {
         int count = 0;
         int index = 0;
 
-        while ((index = text.indexOf(target, index)) != -1) {
+        while (
+                (index = text.indexOf(target, index)) != -1
+        ) {
             count++;
             index += target.length();
         }
