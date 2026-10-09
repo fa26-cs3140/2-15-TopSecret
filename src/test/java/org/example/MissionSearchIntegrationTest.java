@@ -52,7 +52,7 @@ public class MissionSearchIntegrationTest {
         assertEquals("No matches found.", result.getMessage());
     }
 
-    Test
+    @Test
     void searchReturnsNoMatchesMessage() {
         SearchResult result = missionSearch.search("mike ly"); // no way my name is in there
 
