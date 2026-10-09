@@ -45,4 +45,6 @@ DatabaseManager:
       the manager will use the URL it was instantiated with.
     + importTSV(path : string, dirOut : string, dbOutName : string) : Boolean
       Creates a database from a preexisting TSV file. Throws IOException.
-
+    + getTableExists(name : string)
+      Returns true if a table exists in the pointed database with the same name
+      passed in the argument.
