@@ -70,11 +70,6 @@ class DatabaseManagerTest
         assertTrue(success, "Table not successfuly made.");
     }
 
-    // TODO: Modifying the original database does not appear to be a part of the current criteria
-    // for the project. As such, I have elected not to include them, not entirely out of
-    // laziness, but also because it may well be a waste of time. Should the need arise, I will
-    // be able to add them in rather easily.
-
     @Test
     void getRecordTest()
     {

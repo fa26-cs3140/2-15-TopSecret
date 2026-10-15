@@ -5,7 +5,6 @@ import java.io.FileReader;
 import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.KeyStore.TrustedCertificateEntry;
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -36,11 +35,16 @@ public class DatabaseManager
         return this.sqlURL;
     }
     
-    // Returns a String[] object containing tab separated values
-    // matching the format of the database record
-    // 
-    // Returns null if the operation fails
-    
+    /**
+     * Returns all matching records matching a given value in a column as a String[]
+     * Points to a database defined in url.
+     * Each item in the string is formatted as a tab separated table
+     *
+     *
+     * @param url pointer to the database 
+     * @param column name of the column to search 
+     * @param value value to match
+     */
     public String[] getRecords(String url, String column, String value)
     {
         String query = "SELECT Title, Date, Text FROM " + main_table + " WHERE " + column + " LIKE ?";
@@ -94,6 +98,11 @@ public class DatabaseManager
         }
     }
 
+    /**
+     * Checks to see if a table by the name 'tableName' exists, returns true if true
+     * 
+     * @param tableName the name of the table
+     */
     public Boolean tableExists(String tableName)
     {
         try (
@@ -114,12 +123,27 @@ public class DatabaseManager
         }
     }
 
-    // Overload to use default URL
+    /**
+     * Returns all matching records matching a given value in a column as a String[]
+     * Points to a database defined in the objects sqlURL field.
+     * Each item in the string is formatted as a tab separated table
+     *
+     *
+     * @param column name of the column to search 
+     * @param value value to match
+     */
     public String[] getRecords(String column, String key)
     {
         return this.getRecords(this.sqlURL, column, key);
     }
 
+    /**
+     * Returns all values stored in a column as String[]
+     * Searches the databse pointed to the url parameter
+     *
+     * @param url pointer to database to search
+     * @param column name of column to pull
+     */
     public String[] getColumn(String url, String column)
     {
         // Get the records which match the search
@@ -156,15 +180,28 @@ public class DatabaseManager
         }
     }
 
+    /**
+     * Returns all values stored in a column as String[]
+     * Searches the databse pointed to by the instance's sqlURL field
+     *
+     * @param column name of column to pull
+     */
     public String[] getColumn(String column)
     {
         return this.getColumn(this.sqlURL, column);
     }
 
-    // Creates a database from an input TSV file
-    // I decided not to use any other dependent methods for this to make
-    // sure that any error could be isolated within this method
-    // NOTE: Do not include trailing '/' at the end of the dirOut path
+    /** 
+     * Creates a database from an input TSV file
+     * I decided not to use any other dependent methods for this to make
+     * sure that any error could be isolated within this method
+     * NOTE: Do not include trailing '/' at the end of the dirOut path
+     *
+     * @param pathToTSV string path to the TSV to import 
+     * @param dirOut string path to the output directory 
+     * @param dbOutName string name of the output databse 
+     * @throws IOException
+     */
     public Boolean importTSV(String pathToTSV, String dirOut, String dbOutName) throws IOException
     {
         // Remove trailing slashes from pathToTSV in an effort to reduce error
