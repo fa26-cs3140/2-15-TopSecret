@@ -1,0 +1,29 @@
+class UserManager // Zaid Al Falah
+implements IDatabaseUser
+
+This is a class responsible for managing User objects and
+managing users.
+
+Responsibilities & Requirements:
+- Manage access levels between users, verify user information
+- Store user information in a persistent, secure format
+- Pull user information and process it exclusively within this class
+  * I.E. all parsing of user data must happen here
+- Provide for the ability to pipe out data for other classes
+
+Fields:
+- sqlURL : string
+  The database which will be used to store user information
+- table : final string
+  The name of the table which will be used to store user information
+- usernmane : final string
+- password : final string
+  Both username and password are dummy values for sql interfacing
+
+---------------
+Methods:
++ UserManager()
++ UserManager(url : string)
++ setURL(url : string) void
++ getURL() : string
++ getRecords(url : string, column : string, value : string) : string[]

@@ -1,0 +1,20 @@
+class UserManager // Zaid Al Falah
+implements IDatabaseUser
+
+Fields:
+- sqlURL : string
+- table : final string
+- usernmane : final string
+- password : final string
+
+---------------
+Methods:
++ UserManager()
++ UserManager(url : string)
++ setURL(url : string) void
++ getURL() : string
++ getRecords(url : string, column : string, value : string) : string[]
+                                                                               + getColumn(url : string, coloumn : string) : string[]
+                                                                                                                             + getUser(primaryKey : int) : User
+                                                                                                                                                           + getUserSet(key : string) : User[]
+
