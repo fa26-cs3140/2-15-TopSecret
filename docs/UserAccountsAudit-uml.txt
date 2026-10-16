@@ -1,0 +1,74 @@
+UserAccount
+--------------------------------------
+username: String
+admin: boolean
+--------------------------------------
+UserAccount(username: String, admin: boolean)
+getUsername(): String
+setUsername(username: String): void
+isAdmin(): boolean
+setAdmin(admin: boolean): void
+
+
+UserAccountManager
+--------------------------------------
+databaseManager: DatabaseManager
+credentialManager: CredentialManager
+--------------------------------------
+UserAccountManager(databaseManager: DatabaseManager, credentialManager: CredentialManager)
+isValidUsername(username: String): boolean
+hasUsers(): boolean
+createUser(username: String): UserAccount
+getUser(username: String): UserAccount
+
+
+AuditLogEntry
+--------------------------------------
+id: int
+username: String
+action: String
+contentType: String
+contentIdentifier: String
+timestamp: LocalDateTime
+--------------------------------------
+AuditLogEntry(id: int, username: String, action: String, contentType: String, contentIdentifier: String, timestamp: LocalDateTime)
+getId(): int
+setId(id: int): void
+getUsername(): String
+setUsername(username: String): void
+getAction(): String
+setAction(action: String): void
+getContentType(): String
+setContentType(contentType: String): void
+getContentIdentifier(): String
+setContentIdentifier(contentIdentifier: String): void
+getTimestamp(): LocalDateTime
+setTimestamp(timestamp: LocalDateTime): void
+
+
+AuditLogManager
+--------------------------------------
+databaseManager: DatabaseManager
+--------------------------------------
+AuditLogManager(databaseManager: DatabaseManager)
+log(username: String, action: String, contentType: String, contentIdentifier: String): void
+getAuditLog(): List<AuditLogEntry>
+
+
+Relationships
+
+UserAccountManager creates and returns UserAccount objects.
+
+UserAccountManager uses DatabaseManager and CredentialManager.
+
+UserAccountManager coordinates account operations with AuditLogManager.
+
+AuditLogManager uses DatabaseManager.
+
+AuditLogManager returns AuditLogEntry objects.
+
+Team A owns admin and standard user promotion rules.
+
+Team D owns account lifecycle and audit logging.
+
+Passwords remain outside SQLite in ciphered credential files.

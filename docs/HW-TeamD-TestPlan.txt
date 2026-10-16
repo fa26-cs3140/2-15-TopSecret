@@ -1,0 +1,110 @@
+Homework 5 - Team Member D Test Plan
+
+Final Requirement
+
+Team D classes must have 100% method coverage in unit tests, including constructors, getters, and setters.
+
+Mockito will be used in manager unit tests so database and credential behavior can be mocked.
+
+Initial Week 1 Tests
+
+UserAccountTest.java
+
+Tests:
+- constructor
+- getUsername()
+- setUsername()
+- isAdmin()
+- setAdmin()
+
+AuditLogEntryTest.java
+
+Tests:
+- constructor
+- getId()
+- setId()
+- getUsername()
+- setUsername()
+- getAction()
+- setAction()
+- getContentType()
+- setContentType()
+- getContentIdentifier()
+- setContentIdentifier()
+- getTimestamp()
+- setTimestamp()
+
+Planned Unit Tests
+
+UserAccountManagerTest.java
+
+Tests:
+- constructor accepts required dependencies
+- valid username with letters
+- valid username with numbers
+- valid username with hyphens
+- valid username with underscores
+- username shorter than three characters is rejected
+- username containing spaces is rejected
+- username containing invalid punctuation is rejected
+- hasUsers() returns false when there are no users
+- hasUsers() returns true when users exist
+- createUser() creates a valid user
+- duplicate usernames are rejected
+- getUser() returns an existing account
+- getUser() handles a missing account
+
+DatabaseManager and credential dependencies will be mocked with Mockito.
+
+AuditLogManagerTest.java
+
+Tests:
+- constructor accepts DatabaseManager
+- READ event is logged
+- CREATE event is logged
+- UPDATE event is logged
+- DELETE event is logged
+- username is recorded correctly
+- content type is recorded correctly
+- content identifier is recorded correctly
+- timestamp is recorded
+- getAuditLog() returns AuditLogEntry objects
+- an empty audit log returns an empty list
+
+DatabaseManager will be mocked using Mockito.
+
+Planned Integration Tests
+
+UserAccountManagerCredentialManagerTest.java
+
+Tests:
+- creating an account creates the required user information
+- first-time password setup works
+- a user can authenticate using their own credentials
+- one user's password cannot authenticate another user
+- passwords remain outside SQLite
+
+AuditLogManagerDatabaseManagerTest.java
+
+Tests:
+- audit table is available on a clean database
+- READ events persist to SQLite
+- CREATE events persist to SQLite
+- UPDATE events persist to SQLite
+- DELETE events persist to SQLite
+- records from different users are stored separately
+- audit records can be retrieved from the database
+
+Cross-Team Integration Tests
+
+Team A + Team D:
+- first account becomes admin
+- later users default to standard users
+- promotion and demotion do not affect password information
+
+Team B + Team D:
+- account functions can be used by the login/user interface
+- audit log can be displayed to authorized users
+
+Team C + Team D:
+- brief, agent, and facility operations supply identifiers that can be recorded in the audit log

@@ -1,0 +1,122 @@
+Homework 5 - Team Member D Week 1 Work Plan
+User Accounts and Audit Log
+
+Scope
+
+Team Member D is responsible for multiple user accounts and the audit log.
+
+Password data will remain outside the database in ciphered credential files. Usernames and audit records will be stored in the database.
+
+Team Member A is responsible for user access levels, including standard and admin users. Because access level belongs to a user account, Team A and Team D will share the user-account structure.
+
+Week 1 Goals
+
+1. Coordinate with Team Member A on the users table and admin field.
+2. Coordinate with Team Member B on the user interface methods needed for login, account creation, and viewing the audit log.
+3. Coordinate with Team Member C on identifiers for briefs, agents, and facilities so audit records can identify what content was accessed.
+4. Document the Team D class and database design.
+5. Define Team D unit and integration tests.
+6. Add initial model classes and tests during Week 1.
+
+Planned Classes
+
+UserAccount
+
+- Represents one user account.
+- Stores the username and whether the user is an admin.
+- Does not store password information.
+- Team Member A owns promotion and demotion rules.
+
+UserAccountManager
+
+- Creates and retrieves user accounts.
+- Validates usernames using the Homework 5 username requirements.
+- Determines whether any users currently exist.
+- Coordinates password setup with the existing credential system.
+- Does not perform user-interface behavior.
+
+AuditLogEntry
+
+- Represents one entry in the audit log.
+- Stores the username, action, content type, content identifier, and timestamp.
+
+AuditLogManager
+
+- Records operations performed by users.
+- Retrieves audit records for display.
+- Does not perform user-interface formatting.
+
+Database Plan
+
+users
+
+- username TEXT PRIMARY KEY
+- is_admin INTEGER NOT NULL DEFAULT 0
+
+Passwords are not stored in SQLite.
+
+The users table is shared by Team Members A and D.
+
+Team Member D owns:
+- account creation
+- account lookup
+- username validation
+
+Team Member A owns:
+- admin and standard access rules
+- promotion and demotion behavior
+
+audit_log
+
+- id INTEGER PRIMARY KEY AUTOINCREMENT
+- username TEXT NOT NULL
+- action TEXT NOT NULL
+- content_type TEXT NOT NULL
+- content_identifier TEXT NOT NULL
+- accessed_at TIMESTAMP NOT NULL
+- FOREIGN KEY(username) REFERENCES users(username)
+
+The content_identifier field is text so the audit system can identify different types of records without depending on one specific table structure.
+
+Testing Plan
+
+Team Member D unit tests:
+
+- UserAccountTest.java
+- AuditLogEntryTest.java
+- UserAccountManagerTest.java
+- AuditLogManagerTest.java
+
+Team Member D integration tests:
+
+- UserAccountManagerCredentialManagerTest.java
+- AuditLogManagerDatabaseManagerTest.java
+
+Unit tests must eventually provide 100% method coverage, including constructors, getters, and setters.
+
+Mockito will be used for manager unit tests so database and credential dependencies can be isolated.
+
+Integration tests will remain separate from unit tests.
+
+Cross-Team Integration
+
+Team Member A:
+- Shares user-account data with Team Member D.
+- Handles admin and standard access levels.
+
+Team Member B:
+- Uses Team D account methods during login and account creation.
+- Uses AuditLogManager when displaying the audit log.
+
+Team Member C:
+- Provides identifiers for briefs, agents, and facilities.
+- These identifiers are recorded in the audit log.
+
+Planned Audit Actions
+
+- READ
+- CREATE
+- UPDATE
+- DELETE
+
+The assignment explicitly requires reading and creating to be logged. UPDATE and DELETE are also included because the final system supports modifying data.
