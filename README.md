@@ -155,7 +155,8 @@ The Java source and the documentation files should be kept in sync when class re
 
 The project documentation identifies the following responsibilities:
 
-- Zaid Al Falah — Database / SQLite
-- Mike Ly — Mission Search
-- Vrisag Desinani — User Interface
+- Zaid Member A
+- Dillon Member B
+- Mike Ly Member C
+- Vrisag Desinani Member D
 - Credential-management ownership is documented as pending assignment in `docs/team.txt`
