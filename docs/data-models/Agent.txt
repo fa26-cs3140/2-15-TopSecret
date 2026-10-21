@@ -1,0 +1,117 @@
+Author: Mike Ly - Teammate C
+
+Agent - Data Model Overview
+
+The Agent class represents an individual agent in the agency. Each agent belongs to exactly one facility and can be assigned to multiple missions.
+
+Responsibilities & Requirements:
+- Each agent is assigned to one and only one facility
+- Based on the given default data:
+    + Date of death and notes are optional
+
+Class design:
+    Attributes:
+        id: private final int
+        - Unique database identifier for the agent
+        - Must be positive
+        - Cannot be changed aft4er construction
+
+        name: private String
+        - Agent's name
+        - Cannot be null or blank
+        - Can be updated
+
+        dateOfBirth: private String
+        - Agent's date of birth
+        - Cannot be null
+        - Format: yyyy-mm-dd
+        - Must represent a valid calendar date
+        - Can be updated
+
+        dateOfDeath: private String
+        - Agent's date of death
+        - May be null (if unknown or not applicable)
+        - If provided, must follow format yyyy-mm-dd
+        - Cannot be earlier than dateOfBirth
+        - Can be updated
+
+        notes: private String
+        - Additional information about the agent
+        - May be null or blank
+        - Can be updated
+
+        facilityId: private int
+        - ID of the Facility assigned to the agent
+        - Must be positive
+        - Can be updated when agent changes facility
+        - References Facility.id in the database
+
+    Constructors:
+        Agent(int id, String name, String dateOfBirth, String dateOfDeath, String notes, int facilityId)
+        - Creates an Agent with the specified attributes
+        - Initializes the final id field
+        - Validates all required attributes
+        - Validates date formats and chronological ordering (Note: Input dates must be converted to yyyy-mm-dd during import)
+        - Throws IllegalArgumentException for invalid values
+
+    Methods:
+        getId(): int
+        - Returns the unique agent ID
+        - Note: no setter method is provided
+
+        getName(): String
+        - Returns agent's name
+
+        setName(String name): void
+        - Updates the agent name
+        - Rejects null or blank values
+
+        getDateOfBirth(): String
+        - Returns the date of birth (yyyy-mm-dd)
+
+        setDateOfBirth(String date): void
+        - Updates the date of birth
+        - Rejects null or incorrectly formatted or invalid dates
+        - Must not result in a date of birth later than dateOfDeath
+
+        getDateOfDeath(): String
+        - Returns the date of death (yyyy-mm-dd)
+        - Returns null if no date of death is recorded
+
+        setDateOfDeath(String date): void
+        - Updates the date of death
+        - Accepts null
+        - Rejects incorrectly formatted or invalid dates
+        - Must not result in a date of death earlier than dateOfBirth
+
+        getNotes(): String
+        - Returns the agent's notes
+
+        setNotes(String notes): void
+        - Updates the agent's notes
+        - Accepts null
+
+        getFacilityId(): int
+        - Returns the ID of the assigned Facility
+
+        setFacilityId(int facilityId): void
+        - Updates the assigned Facility ID
+        - Rejects nonpositive values
+        - IMPORTANT: Does not independently verify the Facility exists
+
+    Internal methods:
+        parseDate(String date): LocalDate
+        - Private helper method used for date validation
+        - Parses a String in ISO yyyy-MM-dd format
+        - Rejects invalid date values
+        - Throws IllegalArgumentException if parsing fails
+        - Not exposed to other classes
+
+Interactions With Other Classes:
+- Each Agent belongs to exactly one Facility
+- Each Agent can participate in multiple Missions
+- DatabaseManager handles inserting, retrieving, updating and deleting Agent records
+- DatabaseManager verifies that referenced Facilities exist
+- UserInterface uses Agent objects to display and modify agent information
+- IMPORTANT: Changing an Agent object does not automatically update its database record
+
