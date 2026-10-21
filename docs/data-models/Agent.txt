@@ -1,6 +1,4 @@
-Author: Mike Ly - Teammate C
-
-Agent - Data Model Overview
+Author: Mike Ly (mch3jy) - Teammate C
 
 The Agent class represents an individual agent in the agency. Each agent belongs to exactly one facility and can be assigned to multiple missions.
 
