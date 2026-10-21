@@ -1,0 +1,94 @@
+Author: Mike Ly (mch3jy) - Teammate C
+
+This document is for ease of use as it provides an overview of the data models used in this application. It includes: relationships, database structure and interactions between the data models and other parts of the application.
+
+The individual classes for the data models are: Agent, Facility, Mission and Brief. For detailed info about each of these classes, refer to their corresponding txt file.
+
+TODO: The assignment doesn't seem to specify who is responsible for connecting these data models to the database manager yet.
+Note: The application uses SQLite for data persistence. Java data model classes are responsible for representing and validating individual records, while DatabaseManager handles database operations and relationships between records.
+
+1. Data Models
+    There are four data model classes:
+    Agent
+    - Represents an individual agent in the secret agency
+    - Stores identifying information, dates, notes, and an assigned Facility ID
+
+    Facility
+    - Represents a facility belonging to the secret agency
+    - Stores the facility's name and abbreviation
+    - May have multiple Agents and Missions
+
+    Mission
+    - Represents an operation conducted by the secret agency
+    - Must be associated with exactly one Facility
+    - Must have one or more assigned Agents
+
+    Brief
+    - Represents an intelligence report
+    - Stores the report's title, date, and text
+    - May be associated with a Mission through a proposed one-to-one relationship
+
+    To visualize how they correlate, refer to the ERD diagram.
+
+2. Date Representation/Format
+    Date attributes are stored as Strings and as TEXT in SQLite. All dates will follow the ISO format of yyyy-mm-dd. I will likely use LocalDate internally to validate and compare dates, but the public methods will use String to avoid unnecessary complexity.
+
+    Model classes will reject:
+    - Invalid date formats (e.g., "November 11, 2002", "2022-7-11", "2022-10-1", "26-05-11")
+    - Nonexistent calendar dates (e.g., "2026-02-29")
+    - Null values for required dates
+    - Agent dates of death earlier than dates of birth
+
+    Dates provided in other formats must be converted before instantiating model objects.
+
+3. Database Relationships
+    Refer to the ERD diagram!
+
+4. Database Structure (PROPOSED)
+    Since the assignment doesn't seem to specify who is responsible for incorporating the data models to the database and how we should do so, here is a proposed database structure for now.
+
+    facilities
+        id              INTEGER PRIMARY KEY
+        name            TEXT NOT NULL
+        abbreviation    TEXT NOT NULL
+
+    agents
+        id              INTEGER PRIMARY KEY
+        name            TEXT NOT NULL
+        date_of_birth   TEXT NOT NULL
+        date_of_death   TEXT
+        notes           TEXT
+        facility_id     INTEGER NOT NULL
+                        FOREIGN KEY -> facilities.id
+
+    missions
+        id              INTEGER PRIMARY KEY
+        facility_id     INTEGER NOT NULL
+                        FOREIGN KEY -> facilities.id
+
+    mission_agents
+        mission_id      INTEGER NOT NULL
+                        FOREIGN KEY -> missions.id
+        agent_id        INTEGER NOT NULL
+                        FOREIGN KEY -> agents.id
+
+        PRIMARY KEY (mission_id, agent_id)
+
+    briefs
+        id              INTEGER PRIMARY KEY
+        title           TEXT NOT NULL
+        date            TEXT NOT NULL
+        text            TEXT NOT NULL
+        mission_id      INTEGER
+                        FOREIGN KEY -> missions.id
+                        UNIQUE
+
+5. Database Integrity
+    DatabaseManager is responsible for ensuring the database never contains orphaned or invalid relationships. This is explicitly stated in the assignment requirements document:
+    - Every Agent must reference an existing Facility
+    - Every Mission must reference an existing Facility
+    - Every Mission must have at least one assigned Agent
+    - Every mission_agents entry must reference valid Mission and Agent IDs
+    - Duplicate Mission-Agent assignments are prohibited
+    - Deleting records must not leave invalid references
+    - SQLite foreign-key enforcement must be enabled on every database connection
