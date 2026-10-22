@@ -42,7 +42,7 @@ public class BriefTest {
     @Test
     void testInvalidTitle() {
         assertThrows(IllegalArgumentException.class, () -> new Brief(1, null, "1970-11-03", "Secret report", 2));
-        assertThrows(IllegalArgumentException.class, () -> new Brief(1, "", "1970-11-03", "Secret report", 2))
+        assertThrows(IllegalArgumentException.class, () -> new Brief(1, "", "1970-11-03", "Secret report", 2));
         assertThrows(IllegalArgumentException.class, () -> new Brief(1, "   ", "1970-11-03", "Secret report", 2));
     }
 
