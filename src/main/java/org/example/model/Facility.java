@@ -6,7 +6,7 @@ public class Facility {
     private String abbreviation;
 
     public Facility(int id, String name, String abbreviation) {
-        if (id < 0) {
+        if (id <= 0) {
             throw new IllegalArgumentException("Facility ID must be positive.");
         }
 
