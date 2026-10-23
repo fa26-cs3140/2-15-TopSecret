@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 import org.model.*;
 
-public class DatabaseManager
+public class DatabaseManager implements AgencyDataService
 {
     private String sqlURL = "jdbc:sqlite:data/mission_briefs.db";
     private String username = "user";
@@ -378,6 +378,11 @@ public class DatabaseManager
         }
     }
 
+    public int setRecord(String url, String table, String column, String key, String newVal)
+    {
+        
+    }
+
     /**
      * Returns table name containing mission briefs
      */
@@ -417,6 +422,7 @@ public class DatabaseManager
     {
         return this.missionsTableName;
     }
+
 
     /**
      * End of public functions
