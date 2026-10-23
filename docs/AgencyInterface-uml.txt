@@ -1,13 +1,13 @@
 AgencyInterface
 --------------------------------------
-dataService: AgencyDataService
+data: AgencyDataService
 auditLog: AuditLogService
 currentUser: UserAccount
 scanner: Scanner
 output: PrintStream
 --------------------------------------
 AgencyInterface(
-    dataService: AgencyDataService,
+    data: AgencyDataService,
     auditLog: AuditLogService,
     currentUser: UserAccount,
     scanner: Scanner,
@@ -42,20 +42,6 @@ addAgent(name: String, dateOfBirth: String, dateOfDeath: String, notes: String, 
 addFacility(name: String, abbreviation: String): Facility
 
 
-SqliteAgencyDataService
---------------------------------------
-url: String
---------------------------------------
-SqliteAgencyDataService(url: String)
-getUrl(): String
-getBriefs(): List<Brief>
-getAgents(): List<Agent>
-getFacilities(): List<Facility>
-addBrief(title: String, date: String, text: String): Brief
-addAgent(name: String, dateOfBirth: String, dateOfDeath: String, notes: String, facilityId: int): Agent
-addFacility(name: String, abbreviation: String): Facility
-
-
 <<interface>>
 AuditLogService
 --------------------------------------
@@ -69,9 +55,9 @@ AgencyInterface uses AgencyDataService, AuditLogService, and UserAccount.
 
 AgencyInterface uses RecordType to select briefs, agents, or facilities.
 
-SqliteAgencyDataService implements AgencyDataService.
+DatabaseManager implements AgencyDataService.
 
-SqliteAgencyDataService creates and returns Brief, Agent, and Facility objects (Team C).
+AgencyDataService returns Brief, Agent, and Facility objects (org.model).
 
 AuditLogManager (Team D) implements AuditLogService.
 

@@ -18,12 +18,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Integration tests for AgencyInterface with Team D's real AuditLogManager
- * and the real SqliteAgencyDataService, sharing one temporary SQLite database.
+ * and the real DatabaseManager, sharing one temporary SQLite database.
  */
 class AgencyInterfaceAuditLogManagerTest {
 
     private Path testDatabasePath;
-    private SqliteAgencyDataService dataService;
+    private DatabaseManager dataService;
     private AuditLogManager auditLogManager;
     private ByteArrayOutputStream output;
 
@@ -35,7 +35,7 @@ class AgencyInterfaceAuditLogManagerTest {
         testDatabasePath = Files.createTempFile("topsecret-audit-ui-test", ".db");
         String url = "jdbc:sqlite:" + testDatabasePath.toAbsolutePath();
 
-        dataService = new SqliteAgencyDataService(url);
+        dataService = new DatabaseManager(url);
         auditLogManager = new AuditLogManager(new DatabaseManager(url));
 
         try (Connection connection = DriverManager.getConnection(url);

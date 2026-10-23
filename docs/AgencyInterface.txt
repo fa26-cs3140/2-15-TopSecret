@@ -12,7 +12,7 @@ Responsibilities & requirements:
 Class design:
 
 Attributes:
-    dataService: AgencyDataService
+    data: AgencyDataService
     - Lists and adds briefs, agents, and facilities.
 
     auditLog: AuditLogService
@@ -25,7 +25,7 @@ Attributes:
     - Terminal input and output.
 
 Methods:
-    AgencyInterface(dataService, auditLog, currentUser, scanner, output)
+    AgencyInterface(data, auditLog, currentUser, scanner, output)
     - Throws an IllegalArgumentException if any argument is null.
 
     run(): void
@@ -42,4 +42,4 @@ Methods:
 
 Supporting classes:
     RecordType - enum of BRIEF, AGENT, FACILITY.
-    SqliteAgencyDataService - stores briefs, agents, and facilities in SQLite.
+    DatabaseManager - implements AgencyDataService; stores briefs, agents, and facilities in SQLite.

@@ -17,16 +17,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 /**
- * Integration tests for AgencyInterface with the real SqliteAgencyDataService.
+ * Integration tests for AgencyInterface with the real DatabaseManager.
  *
  * Uses a temporary SQLite database. The audit log is mocked here;
  * AgencyInterfaceAuditLogManagerTest covers the real audit log.
  */
-class AgencyInterfaceSqliteAgencyDataServiceTest {
+class AgencyInterfaceDatabaseManagerTest {
 
     private Path testDatabasePath;
     private String url;
-    private SqliteAgencyDataService dataService;
+    private DatabaseManager dataService;
     private ByteArrayOutputStream output;
 
     private final UserAccount admin = new UserAccount("pat", true);
@@ -38,7 +38,7 @@ class AgencyInterfaceSqliteAgencyDataServiceTest {
         url = "jdbc:sqlite:" + testDatabasePath.toAbsolutePath();
 
         // The service creates its tables if they are missing.
-        dataService = new SqliteAgencyDataService(url);
+        dataService = new DatabaseManager(url);
 
         try (Connection connection = DriverManager.getConnection(url);
              Statement statement = connection.createStatement()) {
@@ -76,8 +76,8 @@ class AgencyInterfaceSqliteAgencyDataServiceTest {
 
     @Test
     void constructorRejectsBlankUrl() {
-        assertThrows(IllegalArgumentException.class, () -> new SqliteAgencyDataService(null));
-        assertThrows(IllegalArgumentException.class, () -> new SqliteAgencyDataService("  "));
+        assertThrows(IllegalArgumentException.class, () -> new DatabaseManager(null));
+        assertThrows(IllegalArgumentException.class, () -> new DatabaseManager("  "));
     }
 
     @Test
@@ -151,7 +151,7 @@ class AgencyInterfaceSqliteAgencyDataServiceTest {
         Path emptyPath = Files.createTempFile("topsecret-agency-empty", ".db");
         try {
             AgencyDataService emptyService =
-                    new SqliteAgencyDataService("jdbc:sqlite:" + emptyPath.toAbsolutePath());
+                    new DatabaseManager("jdbc:sqlite:" + emptyPath.toAbsolutePath());
 
             new AgencyInterface(emptyService, mock(AuditLogService.class), standard,
                     new Scanner("1\n1\n0\n2\n1\n0\n3\n1\n0\n0\n"), new PrintStream(output)).run();
