@@ -37,7 +37,31 @@ public class DatabaseManager
     {
         return this.sqlURL;
     }
-    
+
+    /**
+     *
+     */
+    public Agent[] getAgents()
+    {
+        return null;
+    }
+
+    public Brief[] getBriefs()
+    {
+        return null;
+    }
+
+    public Facility[] getFacilities()
+    {
+        return null;
+    }
+
+    public Mission[] getMissions()
+    {
+        return null;
+    }
+
+
     /**
      * Returns all matching records matching a given value in a column as a String[]
      * Points to a database defined in url.
