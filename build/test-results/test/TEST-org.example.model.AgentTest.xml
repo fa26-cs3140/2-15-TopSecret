@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.example.model.AgentTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-23T00:34:04.853Z" hostname="Mikes-Macbook.local" time="0.032">
+  <properties/>
+  <testcase name="testInvalidName()" classname="org.example.model.AgentTest" time="0.017"/>
+  <testcase name="testInvalidId()" classname="org.example.model.AgentTest" time="0.003"/>
+  <testcase name="testConstructorRejectsInvalidDates()" classname="org.example.model.AgentTest" time="0.001"/>
+  <testcase name="testConstructorAndGetters()" classname="org.example.model.AgentTest" time="0.001"/>
+  <testcase name="testDateOrdering()" classname="org.example.model.AgentTest" time="0.001"/>
+  <testcase name="testInvalidDateOfBirth()" classname="org.example.model.AgentTest" time="0.0"/>
+  <testcase name="testInvalidDateOfDeath()" classname="org.example.model.AgentTest" time="0.001"/>
+  <testcase name="testSetters()" classname="org.example.model.AgentTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
