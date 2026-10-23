@@ -4,6 +4,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.function.Predicate;
 
 public class UserInterface {
 
@@ -27,6 +28,59 @@ public class UserInterface {
 
     public UserAccount getCurrentUser() {
         return currentUser;
+    }
+
+    // Returns the logged-in user, or null after 3 failed attempts or if input runs out.
+    public static UserAccount login(UserAccountManager accounts, Scanner scanner, PrintStream output) {
+        try {
+            if (!accounts.hasUsers()) {
+                output.println("No accounts exist. Create the first (admin) account.");
+                String username = promptUntilValid(scanner, output, "Username: ", accounts::isValidUsername,
+                        "Usernames need 3+ letters, numbers, hyphens, or underscores.");
+                String password = promptNewPassword(accounts, scanner, output);
+                return accounts.createFirstUser(username, password);
+            }
+
+            for (int attempt = 0; attempt < 3; attempt++) {
+                output.print("Username: ");
+                String username = scanner.nextLine().trim();
+                UserAccount user = accounts.getUser(username);
+
+                if (user != null && !accounts.passwordExists(username)) {
+                    output.println("First login: create your password.");
+                    accounts.setInitialPassword(username, promptNewPassword(accounts, scanner, output));
+                    return user;
+                }
+
+                output.print("Password: ");
+                String password = scanner.nextLine();
+                if (user != null && accounts.verifyLogin(username, password)) {
+                    return user;
+                }
+                output.println("Incorrect username or password.");
+            }
+            output.println("Too many failed attempts.");
+        } catch (NoSuchElementException e) {
+            output.println();
+        }
+        return null;
+    }
+
+    private static String promptNewPassword(UserAccountManager accounts, Scanner scanner, PrintStream output) {
+        return promptUntilValid(scanner, output, "New password: ", accounts::isValidPassword,
+                "Passwords need 5+ characters with uppercase and lowercase letters.");
+    }
+
+    private static String promptUntilValid(Scanner scanner, PrintStream output, String label,
+                                           Predicate<String> isValid, String rules) {
+        while (true) {
+            output.print(label);
+            String value = scanner.nextLine().trim();
+            if (isValid.test(value)) {
+                return value;
+            }
+            output.println(rules);
+        }
     }
 
     public void run() {

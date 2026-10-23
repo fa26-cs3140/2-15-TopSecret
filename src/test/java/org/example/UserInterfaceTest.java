@@ -41,6 +41,9 @@ class UserInterfaceTest {
     @Mock
     private AuditLogService auditLog;
 
+    @Mock
+    private UserAccountManager accounts;
+
     private ByteArrayOutputStream output;
 
     private final UserAccount admin = new UserAccount("pat", true);
@@ -502,5 +505,83 @@ class UserInterfaceTest {
         assertTrue(text().contains("Operation Sandtrap"));
         assertTrue(text().contains("Blackwood Annex"));
         assertTrue(text().contains("Exiting"));
+    }
+
+    // ---------- Login ----------
+
+    private UserAccount login(String input) {
+        return UserInterface.login(accounts, new Scanner(input), new PrintStream(output));
+    }
+
+    @Test
+    void firstRunCreatesAdminAccount() {
+        when(accounts.hasUsers()).thenReturn(false);
+        when(accounts.isValidUsername("pat")).thenReturn(true);
+        when(accounts.isValidPassword("Secret")).thenReturn(true);
+        when(accounts.createFirstUser("pat", "Secret")).thenReturn(admin);
+
+        assertSame(admin, login("pat\nSecret\n"));
+        assertTrue(text().contains("Create the first (admin) account"));
+    }
+
+    @Test
+    void firstRunRepromptsInvalidUsernameAndPassword() {
+        when(accounts.hasUsers()).thenReturn(false);
+        when(accounts.isValidUsername(anyString())).thenAnswer(i -> i.getArgument(0).equals("pat"));
+        when(accounts.isValidPassword(anyString())).thenAnswer(i -> i.getArgument(0).equals("Secret"));
+        when(accounts.createFirstUser("pat", "Secret")).thenReturn(admin);
+
+        assertSame(admin, login("p!\npat\nweak\nSecret\n"));
+        assertTrue(text().contains("Usernames need"));
+        assertTrue(text().contains("Passwords need"));
+    }
+
+    @Test
+    void existingUserLogsInWithCorrectPassword() {
+        when(accounts.hasUsers()).thenReturn(true);
+        when(accounts.getUser("agent_7")).thenReturn(standard);
+        when(accounts.passwordExists("agent_7")).thenReturn(true);
+        when(accounts.verifyLogin("agent_7", "Secret")).thenReturn(true);
+
+        assertSame(standard, login("agent_7\nSecret\n"));
+    }
+
+    @Test
+    void wrongPasswordCanBeRetried() {
+        when(accounts.hasUsers()).thenReturn(true);
+        when(accounts.getUser("agent_7")).thenReturn(standard);
+        when(accounts.passwordExists("agent_7")).thenReturn(true);
+        when(accounts.verifyLogin(eq("agent_7"), anyString()))
+                .thenAnswer(i -> i.getArgument(1).equals("Secret"));
+
+        assertSame(standard, login("agent_7\nwrong\nagent_7\nSecret\n"));
+        assertTrue(text().contains("Incorrect username or password"));
+    }
+
+    @Test
+    void threeFailedAttemptsReturnNull() {
+        when(accounts.hasUsers()).thenReturn(true);
+
+        assertNull(login("nobody\nx\nnobody\nx\nnobody\nx\n"));
+        assertTrue(text().contains("Too many failed attempts"));
+    }
+
+    @Test
+    void newUserSetsPasswordOnFirstLogin() {
+        when(accounts.hasUsers()).thenReturn(true);
+        when(accounts.getUser("agent_7")).thenReturn(standard);
+        when(accounts.passwordExists("agent_7")).thenReturn(false);
+        when(accounts.isValidPassword("Secret")).thenReturn(true);
+
+        assertSame(standard, login("agent_7\nSecret\n"));
+        assertTrue(text().contains("create your password"));
+        verify(accounts).setInitialPassword("agent_7", "Secret");
+    }
+
+    @Test
+    void loginReturnsNullWhenInputEnds() {
+        when(accounts.hasUsers()).thenReturn(true);
+
+        assertNull(login(""));
     }
 }

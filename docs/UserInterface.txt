@@ -3,6 +3,8 @@ In Homework 5 it replaces the Homework 4 mission menu.
 
 Responsibilities & requirements:
 
+* Log the user in before the menu. On first run, create the first (admin) account.
+  A new user with no password is prompted to create one on first login.
 * Let the user choose Briefs, Agents, or Facilities, then List, Read, or Add entries of that type.
 * Prompt for each property when adding an entry; the new entry appears in the list immediately.
 * Record READ and CREATE actions in the audit log.
@@ -40,6 +42,10 @@ Methods:
 
     getCurrentUser(): UserAccount
     - Returns the logged-in user.
+
+    login(accounts: UserAccountManager, scanner, output): UserAccount  (static)
+    - Prompts for username and password using UserAccountManager.
+    - Returns the logged-in user, or null after 3 failed attempts or if input ends.
 
 Supporting classes:
     RecordType - enum of BRIEF, AGENT, FACILITY.
