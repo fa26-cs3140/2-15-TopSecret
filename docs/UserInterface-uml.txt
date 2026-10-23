@@ -18,6 +18,7 @@ run(): void
 displayMainMenu(): void
 displayTypeMenu(type: RecordType): void
 getCurrentUser(): UserAccount
+login(accounts: UserAccountManager, scanner: Scanner, output: PrintStream): UserAccount {static}
 
 
 <<enumeration>>
@@ -52,6 +53,8 @@ getAuditLog(): List<AuditLogEntry>
 Relationships
 
 UserInterface uses AgencyDataService, AuditLogService, and UserAccount.
+
+UserInterface.login() uses UserAccountManager (Team D) to log the user in.
 
 UserInterface uses RecordType to select briefs, agents, or facilities.
 
