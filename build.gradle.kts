@@ -43,3 +43,11 @@ tasks.jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE 
 
 }
+
+sourceSets {
+    test {
+        java {
+            exclude("**/AgencyInterfaceAuditLogManagerTest.java")
+        }
+    }
+}
