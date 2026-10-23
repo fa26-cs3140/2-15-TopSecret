@@ -7,10 +7,6 @@ import java.util.List;
 public class MissionSearch {
     private DatabaseManager databaseManager;
 
-    public MissionSearch() {
-        this.databaseManager = new DatabaseManager();
-    }
-
     public MissionSearch(DatabaseManager databaseManager) {
         // NOTE: Maybe this constructor isn't necessary anymore
         this.databaseManager = databaseManager;
@@ -23,7 +19,7 @@ public class MissionSearch {
         }
 
         String searchKey = "%" + searchTerm + "%";
-        String[] records = databaseManager.getRecords(this.databaseManager.getBriefsTableName(), "Text", searchKey);
+        String[] records = databaseManager.getBriefs().toArray(new String[0]);
 
         // Search operation fails
         if (records == null) {

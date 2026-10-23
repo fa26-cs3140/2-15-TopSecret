@@ -32,7 +32,7 @@ public class DatabaseManager implements AgencyDataService
         createTables();
     }
 
-    public String getUrl() {
+    public String getURL() {
         return url;
     }
 

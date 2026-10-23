@@ -47,7 +47,51 @@ public class ProgramControl {
      * @param ui UserInterface to be passed
      * @param args Arguments to pasesed into ui.runInterface()
      */
-    public void run(UserInterface ui, String[] args) 
+    // public void run(UserInterface ui, String[] args) 
+    // {
+    //     // We are going to now create a table that contains for this
+    //     // TODO: Refactor DatabaseManager for this
+    //     // The database will now just be called "mission_database"
+    //     // and it will contain a table for all mission information
+    //     // Information in the database should be ciphered
+
+    //     // Ensure that the file already exists, if not create it.
+    //     if (!this.getAvailableFiles().contains(databaseFile))
+    //     {
+    //         fileHandler.writeFile(databaseFile, "");
+    //     }
+
+    //     // Then import the data from the relevant .tsv file as a .db
+    //     try
+    //     {
+    //         if (!this.databaseManager.tableExists("briefs"))
+    //         {
+    //             this.databaseManager.importTSV(fileHandler.getDataDirectory() + "/mission_briefs.tsv",
+    //                                            "briefs",
+    //                                            fileHandler.getDataDirectory(), 
+    //                                            databaseFile);
+    //         }
+    //     }
+    //     catch (IOException e)
+    //     {
+    //         DebugHelper.debugPrintln(e.getMessage());
+    //     }
+
+    //     // Check to see if users exist. If not, prompt them.
+
+    //     // I am going to refactor this to allow for args, which
+    //     // going forward must be parsed in this format: -- Zaid
+    //     // 0 - briefs, 1 - facilities, 2 - users
+    //     ui.runInterface(args);
+    // }
+
+    /**
+     * Runs the main program, handles the creation of a database
+     *
+     * @param ui UserInterface to be passed
+     * @param args Arguments to pasesed into ui.runInterface()
+     */
+    public void run(AgencyInterface ui, String[] args) 
     {
         // We are going to now create a table that contains for this
         // TODO: Refactor DatabaseManager for this
@@ -82,8 +126,10 @@ public class ProgramControl {
         // I am going to refactor this to allow for args, which
         // going forward must be parsed in this format: -- Zaid
         // 0 - briefs, 1 - facilities, 2 - users
-        ui.runInterface(args);
+        ui.run();
     }
+
+    // End of run()  
 
     //@return list of available filenames
     public List<String> getAvailableFiles() {
