@@ -17,7 +17,10 @@ public class DatabaseManager
     private String password = "pwd";
 
     private final String userTableName = "users";
-    private final String missionBriefTableName = "mission_briefs";
+    private final String briefsTableName = "mission_briefs";
+    private final String agentsTableName = "agents";
+    private final String facilitiesTableName = "facilities";
+    private final String missionsTableName = "missions";
 
     public DatabaseManager()
     {
@@ -38,27 +41,91 @@ public class DatabaseManager
         return this.sqlURL;
     }
 
+    // TODO: Make getRecords a private auxilary function that then is used
+    // to pull information stored as respective types.
+    // That is: callin getAgents() will use getRecords() to query a database, parse the information
+    // and create a new Agent container to store it, and a new Agent[] array to return all hits.
     /**
+     * Returns all agent records matching a specified key
      *
+     * @param key the key to match records by
      */
-    public Agent[] getAgents()
+    public Agent[] getAgents(String column, String key)
     {
-        return null;
+        String[] matches = this.getRecords(this.agentsTableName, column, key);
+        Agent[] agents = new Agent[matches.length];
+        // Populate array
+        for (int i = 0; i < matches.length; i++)
+        {
+            String[] data = matches[i].split("\t"); // Should match the Agent table schema in docs
+            Agent agent = new Agent(Integer.parseInt(data[0]), data[1], 
+                                    data[2], data[3], 
+                                    data[4], Integer.parseInt(data[5]));
+            agents[i] = agent;
+        }
+        return agents;
     }
 
-    public Brief[] getBriefs()
+    /**
+     * Returns all brief records matching a specified key
+     *
+     * @param key the key to match records by
+     */
+    public Brief[] getBriefs(String column, String key)
     {
-        return null;
+        String[] matches = this.getRecords(this.briefsTableName, column, key);
+        Brief[] briefs = new Brief[matches.length];
+        // Populate array
+        for (int i = 0; i < matches.length; i++)
+        {
+            String[] data = matches[i].split("\t"); // Should match the Brief table schema in docs
+            Brief brief = new Brief(Integer.parseInt(data[0]), data[1], 
+                                    data[2], data[3], 
+                                    Integer.parseInt(data[4]));
+            briefs[i] = brief;
+        }
+        return briefs;
     }
 
-    public Facility[] getFacilities()
+    /**
+     * Returns all facility records matching a specified key
+     *
+     * @param key the key to match records by
+     */
+    public Facility[] getFacilities(String column, String key)
     {
-        return null;
+        String[] matches = this.getRecords(this.facilitiesTableName, column, key);
+        Facility[] facilities = new Facility[matches.length];
+        // Populate array
+        for (int i = 0; i < matches.length; i++)
+        {
+            String[] data = matches[i].split("\t"); // Should match the Facility table schema in docs
+            Facility facility = new Facility(Integer.parseInt(data[0]), data[1], data[2]);
+            facilities[i] = facility;
+        }
+        return facilities;
     }
 
-    public Mission[] getMissions()
+    /**
+     * Returns all mission records matching a specified key
+     * A mission is more complicated since it is composed of
+     * A brief, an agent, and a facility
+     *
+     * @param key the key to match records by
+     */
+    public Mission[] getMissions(String column, String key)
     {
-        return null;
+        String[] matches = this.getRecords(this.missionsTableName, column, key);
+        Mission[] missions = new Mission[matches.length];
+        // Populate array
+        for (int i = 0; i < matches.length; i++)
+        {
+            String[] data = matches[i].split("\t"); // Should match the Mission table schema in docs
+            Mission mission = new Mission(Integer.parseInt(data[0]),
+                                          Integer.parseInt(data[1]));
+            missions[i] = mission;
+        }
+        return missions;
     }
 
 
@@ -316,7 +383,7 @@ public class DatabaseManager
      */
     public String getBriefsTableName()
     {
-        return this.missionBriefTableName;
+        return this.briefsTableName;
     }
 
     /**
@@ -325,6 +392,30 @@ public class DatabaseManager
     public String getUsersTableName()
     {
         return this.userTableName;
+    }
+
+    /**
+     * Returns table name containing agents
+     */
+    public String getAgentsTableName()
+    {
+        return this.agentsTableName;
+    }
+
+    /**
+     * Returns table name containing facilities
+     */
+    public String getFacilitiesTableName()
+    {
+        return this.facilitiesTableName;
+    }
+
+    /**
+     * Returns table name containing missions
+     */
+    public String getMissionsTableName()
+    {
+        return this.missionsTableName;
     }
 
     /**
