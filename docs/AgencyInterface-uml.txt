@@ -1,0 +1,78 @@
+AgencyInterface
+--------------------------------------
+dataService: AgencyDataService
+auditLog: AuditLogService
+currentUser: UserAccount
+scanner: Scanner
+output: PrintStream
+--------------------------------------
+AgencyInterface(
+    dataService: AgencyDataService,
+    auditLog: AuditLogService,
+    currentUser: UserAccount,
+    scanner: Scanner,
+    output: PrintStream
+)
+
+run(): void
+displayMainMenu(): void
+displayTypeMenu(type: RecordType): void
+getCurrentUser(): UserAccount
+
+
+<<enumeration>>
+RecordType
+--------------------------------------
+BRIEF
+AGENT
+FACILITY
+--------------------------------------
+getTitle(): String
+getSingular(): String
+
+
+<<interface>>
+AgencyDataService
+--------------------------------------
+getBriefs(): List<Brief>
+getAgents(): List<Agent>
+getFacilities(): List<Facility>
+addBrief(title: String, date: String, text: String): Brief
+addAgent(name: String, dateOfBirth: String, dateOfDeath: String, notes: String, facilityId: int): Agent
+addFacility(name: String, abbreviation: String): Facility
+
+
+SqliteAgencyDataService
+--------------------------------------
+url: String
+--------------------------------------
+SqliteAgencyDataService(url: String)
+getUrl(): String
+getBriefs(): List<Brief>
+getAgents(): List<Agent>
+getFacilities(): List<Facility>
+addBrief(title: String, date: String, text: String): Brief
+addAgent(name: String, dateOfBirth: String, dateOfDeath: String, notes: String, facilityId: int): Agent
+addFacility(name: String, abbreviation: String): Facility
+
+
+<<interface>>
+AuditLogService
+--------------------------------------
+log(username: String, action: String, contentType: String, contentIdentifier: String): void
+getAuditLog(): List<AuditLogEntry>
+
+
+Relationships
+
+AgencyInterface uses AgencyDataService, AuditLogService, and UserAccount.
+
+AgencyInterface uses RecordType to select briefs, agents, or facilities.
+
+SqliteAgencyDataService implements AgencyDataService.
+
+SqliteAgencyDataService creates and returns Brief, Agent, and Facility objects (Team C).
+
+AuditLogManager (Team D) implements AuditLogService.
+
+AuditLogService returns AuditLogEntry objects.
