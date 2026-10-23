@@ -41,9 +41,9 @@ public class DatabaseManager
         return this.sqlURL;
     }
 
-    // TODO: Make getRecords a private auxilary function that then is used
+    // TODO: Make getRecords() an auxilary function that then is used
     // to pull information stored as respective types.
-    // That is: callin getAgents() will use getRecords() to query a database, parse the information
+    // That is: calling getAgents() will use getRecords() to query a database, parse the information
     // and create a new Agent container to store it, and a new Agent[] array to return all hits.
     /**
      * Returns all agent records matching a specified key
@@ -296,6 +296,7 @@ public class DatabaseManager
      * @param dbOutName string name of the output databse 
      * @throws IOException
      */
+    // TODO: Generalise to use schema at head of TSV file
     public Boolean importTSV(String pathToTSV, String tableName, String dirOut, String dbOutName) throws IOException
     {
         // Remove trailing slashes from pathToTSV in an effort to reduce error
@@ -315,8 +316,6 @@ public class DatabaseManager
             DebugHelper.debugPrintln("JDBC Class not found. Check dependencies.");
             return false;
         }
-
-        // System.out.println("[" + this.getFunctionName() + "]: Creating db...");
 
         // Check if directory and/or tsv exists
         if (!Files.exists(Path.of(dirOut))) return false;
@@ -343,13 +342,14 @@ public class DatabaseManager
             // Once the table has been created, we change the query
             // to insert into the new table
             query = "INSERT INTO " + tableName + " (Title, Date, Text) VALUES (?, ?, ?)";
+
             PreparedStatement statement = conn.prepareStatement(query);
             BufferedReader reader = new BufferedReader(new FileReader(pathToTSV));
             String readText;
 
             // Skip header
             reader.readLine();
-            
+
             // Read out all the information from the TSV
             while ((readText = reader.readLine()) != null)
             {

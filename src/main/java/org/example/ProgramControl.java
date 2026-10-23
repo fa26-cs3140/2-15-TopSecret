@@ -9,6 +9,7 @@ public class ProgramControl {
     private final FileHandler fileHandler;
     private final DatabaseManager databaseManager;
     private final String databaseFile = "mission_database.db";
+    private final UserAccountManager userManager;
 
     //Creates a ProgramControl using the default data directory.
 
@@ -16,6 +17,7 @@ public class ProgramControl {
         String url = "jdbc:sqlite:data/" + databaseFile;
         this.fileHandler = new FileHandler();
         this.databaseManager = new DatabaseManager(url);
+        this.userManager = new UserAccountManager();
     }
 
     //@param fileHandler FileHandler used to access files
@@ -26,6 +28,7 @@ public class ProgramControl {
 
         this.fileHandler = fileHandler;
         this.databaseManager = new DatabaseManager();
+        this.userManager = new UserAccountManager();
     }
 
     public ProgramControl(FileHandler fileHandler, DatabaseManager databaseManager)
@@ -39,6 +42,7 @@ public class ProgramControl {
 
         this.fileHandler = fileHandler;
         this.databaseManager = databaseManager;
+        this.userManager = new UserAccountManager();
     }
 
     /**
@@ -78,6 +82,7 @@ public class ProgramControl {
         }
 
         // Check to see if users exist. If not, prompt them.
+        UserAccountStore
 
         // I am going to refactor this to allow for args, which
         // going forward must be parsed in this format: -- Zaid
