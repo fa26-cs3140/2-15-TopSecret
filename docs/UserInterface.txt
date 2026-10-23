@@ -1,99 +1,46 @@
-Vrisag Desinani - Team Member D
-UserInterface Class Description
+The UserInterface class is responsible for the terminal menu shown after a user logs in.
+In Homework 5 it replaces the Homework 4 mission menu.
 
-The UserInterface class is responsible for the interactive terminal interface shown after authentication has completed.
+Responsibilities & requirements:
 
-Homework 4 replaces the Homework 3 file-based command-line interface with an interactive menu. The program remains active until the user explicitly selects Exit.
+* Let the user choose Briefs, Agents, or Facilities, then List, Read, or Add entries of that type.
+* Prompt for each property when adding an entry; the new entry appears in the list immediately.
+* Record READ and CREATE actions in the audit log.
+* Let admins review the audit log. Add and Review audit log are hidden from standard users.
+* Handle invalid input without crashing.
+* Do not directly access SQLite; use AgencyDataService and AuditLogService.
 
-Responsibilities & Requirements:
-- Display the main mission menu.
-- Keep the interface running until Exit is selected.
-- Allow the user to list available mission briefs.
-- Display mission titles with corresponding numbers.
-- Allow the user to select a mission by number.
-- Display the title, date, and brief of the selected mission.
-- Allow the user to search mission briefs by entering a word or phrase.
-- Display search results returned by MissionSearch.
-- Display an appropriate message if no search results are found.
-- Return to the menu after each operation.
-- Handle invalid menu selections without terminating unexpectedly.
-- Handle invalid mission numbers without terminating unexpectedly.
-- Handle unavailable mission data gracefully.
-- Do not execute SQL or directly access SQLite.
-- Obtain mission information through DatabaseManager.
-- Use MissionSearch for the search functionality implemented by Team Member C.
-- Authentication is handled before UserInterface begins by Team Member B's authentication component.
-
-Class Design:
+Class design:
 
 Attributes:
+    data: AgencyDataService
+    - Lists and adds briefs, agents, and facilities.
 
-    databaseManager: DatabaseManager
-    - Supplies mission records to UserInterface.
-    - UserInterface does not execute SQL directly.
+    auditLog: AuditLogService
+    - Records and returns audit-log entries (implemented by AuditLogManager).
 
-    missionSearch: MissionSearch
-    - Performs mission-text searches.
-    - UserInterface is only responsible for collecting the search term and displaying the returned SearchResult.
+    currentUser: UserAccount
+    - The logged-in user.
 
-    scanner: Scanner
-    - Reads terminal input from the user.
-
-    output: PrintStream
-    - Displays menus, missions, search results, and messages.
-    - Can be replaced during testing so output can be verified.
-
-Constructors:
-
-    UserInterface()
-    - Creates the normal application interface using the default DatabaseManager, MissionSearch, System.in, and System.out.
-
-    UserInterface(DatabaseManager databaseManager,
-                  Scanner scanner,
-                  PrintStream output)
-    - Compatibility/testing constructor.
-    - Creates a MissionSearch using the provided DatabaseManager.
-
-    UserInterface(DatabaseManager databaseManager,
-                  MissionSearch missionSearch,
-                  Scanner scanner,
-                  PrintStream output)
-    - Dependency-injection constructor used by unit and integration tests.
+    scanner: Scanner / output: PrintStream
+    - Terminal input and output.
 
 Methods:
+    UserInterface(data, auditLog, currentUser, scanner, output)
+    - Throws an IllegalArgumentException if any argument is null.
 
-    runInterface(): void
-    - Runs the interactive menu loop.
-    - Continues until the user selects Exit.
+    run(): void
+    - Runs the main menu until Exit is selected.
 
-    runInterface(String[] args): void
-    - Compatibility method used by TopSecret.
-    - Starts the Homework 4 interactive interface.
+    displayMainMenu(): void
+    - Shows Briefs, Agents, Facilities, Review audit log (admin only), and Exit.
 
-    displayMenu(): void
-    - Displays List, Read, Search, and Exit options.
+    displayTypeMenu(type: RecordType): void
+    - Shows List, Read, Add (admin only), and Back.
 
-    displayMissionList(): void
-    - Retrieves mission titles through DatabaseManager.
-    - Displays each title with a corresponding number.
+    getCurrentUser(): UserAccount
+    - Returns the logged-in user.
 
-    displayMission(int missionNumber): void
-    - Displays the title, date, and brief of a selected mission.
-
-    displaySearchResults(SearchResult result): void
-    - Displays mission records returned by MissionSearch.
-    - Displays the SearchResult message when the search fails or returns no matches.
-
-Testing:
-
-UserInterfaceTest is the unit-test class.
-- DatabaseManager is mocked with Mockito.
-- MissionSearch is mocked with Mockito.
-- No SQLite database is accessed.
-- Tests verify only UserInterface behavior.
-
-UserInterfaceIntegrationTest is the integration-test class.
-- Uses a real temporary SQLite database.
-- Uses the real DatabaseManager.
-- Uses the real MissionSearch.
-- Verifies the UserInterface, database layer, and search feature work together.
+Supporting classes:
+    RecordType - enum of BRIEF, AGENT, FACILITY.
+    DatabaseManager - implements AgencyDataService; stores briefs, agents, and facilities in SQLite.
