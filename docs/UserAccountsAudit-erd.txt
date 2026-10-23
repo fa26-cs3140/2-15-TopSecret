@@ -1,6 +1,6 @@
 USERS
 --------------------------------------
-PK username: TEXT
+PK username: TEXT NOT NULL
    is_admin: INTEGER NOT NULL DEFAULT 0
 
 
@@ -11,7 +11,7 @@ FK username: TEXT NOT NULL
    action: TEXT NOT NULL
    content_type: TEXT NOT NULL
    content_identifier: TEXT NOT NULL
-   accessed_at: TIMESTAMP NOT NULL
+   accessed_at: TEXT NOT NULL
 
 
 Relationship:
@@ -19,10 +19,8 @@ Relationship:
 USERS 1 -------- 0..* AUDIT_LOG
 
 One user account can have zero or more audit-log records.
-
 Each audit-log record belongs to exactly one user.
 
-
-Password data is intentionally not stored in either table.
-
-Passwords remain in ciphered credential files.
+Password data is intentionally not stored in SQLite.
+Each user's password is stored in a separate ciphered file named:
+credentials-<lowercase hex of UTF-8 username>.cip

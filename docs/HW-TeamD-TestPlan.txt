@@ -1,16 +1,15 @@
 Homework 5 - Team Member D Test Plan
+User Accounts and Audit Log
 
-Final Requirement
+Requirement
 
-Team D classes must have 100% method coverage in unit tests, including constructors, getters, and setters.
+Team D classes are tested for all public methods, including constructors, getters, and setters.
+Mockito is used for manager-level unit tests so persistence and file/cipher dependencies are isolated.
+Integration tests are stored separately and use real temporary SQLite databases and real ciphered files.
 
-Mockito will be used in manager unit tests so database and credential behavior can be mocked.
-
-Initial Week 1 Tests
+Unit Tests
 
 UserAccountTest.java
-
-Tests:
 - constructor
 - getUsername()
 - setUsername()
@@ -18,93 +17,103 @@ Tests:
 - setAdmin()
 
 AuditLogEntryTest.java
-
-Tests:
 - constructor
-- getId()
-- setId()
-- getUsername()
-- setUsername()
-- getAction()
-- setAction()
-- getContentType()
-- setContentType()
-- getContentIdentifier()
-- setContentIdentifier()
-- getTimestamp()
-- setTimestamp()
+- all getters
+- all setters
 
-Planned Unit Tests
+UserAccountManagerTest.java (Mockito)
+- rejects null dependencies
+- username validation: letters, numbers, hyphens, underscores, minimum length
+- password validation: minimum five characters plus uppercase and lowercase
+- hasUsers()
+- createUser()
+- duplicate/invalid account rejection
+- createFirstUser() automatically creates an admin
+- first-user password encryption/write behavior
+- getUser()
+- getUsers()
+- passwordExists()
+- setInitialPassword()
+- verifyLogin()
+- changePassword()
 
-UserAccountManagerTest.java
+AuditLogManagerTest.java (Mockito)
+- rejects null dependencies
+- log() creates a timestamped AuditLogEntry
+- log() rejects blank required fields
+- getAuditLog() delegates to persistence
 
-Tests:
-- constructor accepts required dependencies
-- valid username with letters
-- valid username with numbers
-- valid username with hyphens
-- valid username with underscores
-- username shorter than three characters is rejected
-- username containing spaces is rejected
-- username containing invalid punctuation is rejected
-- hasUsers() returns false when there are no users
-- hasUsers() returns true when users exist
-- createUser() creates a valid user
-- duplicate usernames are rejected
-- getUser() returns an existing account
-- getUser() handles a missing account
+Persistence Tests
 
-DatabaseManager and credential dependencies will be mocked with Mockito.
+SqliteUserAccountStoreTest.java
+- constructor and getUrl()
+- users table initialization
+- hasUsers()
+- addUser()
+- duplicate handling
+- getUser()
+- getUsers()
+- setAdmin()
 
-AuditLogManagerTest.java
+SqliteAuditLogStoreTest.java
+- constructor and getUrl()
+- users/audit table initialization
+- add()
+- getAll()
+- generated ID and persisted timestamp
 
-Tests:
-- constructor accepts DatabaseManager
-- READ event is logged
-- CREATE event is logged
-- UPDATE event is logged
-- DELETE event is logged
-- username is recorded correctly
-- content type is recorded correctly
-- content identifier is recorded correctly
-- timestamp is recorded
-- getAuditLog() returns AuditLogEntry objects
-- an empty audit log returns an empty list
-
-DatabaseManager will be mocked using Mockito.
-
-Planned Integration Tests
+Integration Tests
 
 UserAccountManagerCredentialManagerTest.java
-
-Tests:
-- creating an account creates the required user information
-- first-time password setup works
-- a user can authenticate using their own credentials
-- one user's password cannot authenticate another user
-- passwords remain outside SQLite
+- real SQLite user persistence
+- real FileHandler
+- real Cipher/CipherKey
+- first user is admin
+- separate ciphered password file for each user
+- new user begins without a password
+- associated user can set an initial password
+- multiple users authenticate independently
 
 AuditLogManagerDatabaseManagerTest.java
+- real DatabaseManager URL
+- real SQLite audit log
+- READ and CREATE operations persist
+- entries remain available through a new AuditLogManager instance
 
-Tests:
-- audit table is available on a clean database
-- READ events persist to SQLite
-- CREATE events persist to SQLite
-- UPDATE events persist to SQLite
-- DELETE events persist to SQLite
-- records from different users are stored separately
-- audit records can be retrieved from the database
+AgencyInterfaceAuditLogManagerTest.java (cross-team integration already present)
+- reading content writes READ audit records
+- creating content writes CREATE audit records
+- failed creation is not logged
+- audit records remain visible across sessions
+- admin can review audit history
 
-Cross-Team Integration Tests
+Cross-Team Boundaries
 
-Team A + Team D:
-- first account becomes admin
-- later users default to standard users
-- promotion and demotion do not affect password information
+Team A:
+- owns promotion/demotion policy and prevents self-demotion
+- can use the shared users table/is_admin field
 
-Team B + Team D:
-- account functions can be used by the login/user interface
-- audit log can be displayed to authorized users
+Team B:
+- prompts for first-user account creation when no users exist
+- prompts a new user to create their own password when passwordExists(username) is false
+- uses verifyLogin() for authentication
+- displays audit entries through AuditLogService for admin users
 
-Team C + Team D:
-- brief, agent, and facility operations supply identifiers that can be recorded in the audit log
+Team C:
+- provides content identifiers for briefs, agents, and facilities
+- AgencyInterface passes those identifiers to AuditLogService
+
+Integration regression additions
+- CredentialManager compatibility and first-admin bootstrap
+- case-distinct usernames retain independent password files on macOS
+- password changes and authentication persist across manager reconstruction
+- ciphered file contents exclude plaintext test passwords
+- users schema and raw database bytes exclude password data
+- shared admin metadata is visible after promotion and demotion
+- foreign-key rejection for audit events by unknown users
+- audit order and all event fields survive store reconstruction
+- database read failures are propagated rather than interpreted as empty stores
+- AccountAuditStoreUnitTest mocks JDBC independently of SQLite integration tests
+
+Coverage is measured by JaCoCo 0.8.15, including constructors/getters/setters.
+See TeamD-Integration-Report.md for measured results and limitations.
