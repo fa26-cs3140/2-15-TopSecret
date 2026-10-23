@@ -1,4 +1,4 @@
-package org.example.model;
+package org.model;
 
 public class Facility {
     private int id;

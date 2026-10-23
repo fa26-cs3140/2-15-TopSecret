@@ -8,6 +8,8 @@ import java.nio.file.Path;
 import java.sql.*;
 import java.util.ArrayList;
 
+import org.model.*;
+
 public class DatabaseManager
 {
     private String sqlURL = "jdbc:sqlite:data/mission_briefs.db";
