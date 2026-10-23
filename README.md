@@ -5,12 +5,15 @@ Top Secret is a Java command-line application for managing and searching classif
 ## Features
 
 - List all available mission briefs.
-- Read an individual mission brief by its displayed number.
-- Search mission brief text using a case-insensitive SQLite `LIKE` query.
-- Import `data/mission_briefs.tsv` into `data/mission_briefs.db` on first launch.
+- Browse and read briefs, agents, and facilities through the interactive menu.
+- Allow administrators to add briefs, agents, and facilities.
+- Restrict record creation and audit-log review to administrator accounts.
+- Record read and create operations in a persistent audit log.
+- Store user account metadata in SQLite and store each user's encrypted password separately.
+- Import tabular mission data into SQLite when the database is initialized.
 - Read and decipher encrypted data files using character mappings from `data/key.txt`.
-- Create, verify, and change encrypted credentials through the credential-management library.
-- Run unit and integration tests with Gradle.
+- Create users, authenticate users, and change passwords through the account-management layer.
+- Run unit tests, integration tests, and JaCoCo coverage reports with Gradle.
 
 ## Technology
 
@@ -27,12 +30,13 @@ Top Secret is a Java command-line application for managing and searching classif
 .
 ├── data/                         Runtime data files
 │   ├── mission_briefs.tsv        Source mission data
-│   ├── mission_briefs.db         Generated SQLite database
+│   ├── mission_briefs.db         SQLite database
 │   ├── key.txt                   Cipher character mappings
 │   ├── *.txt                     Plaintext sample data
-│   └── *.cip                     Encrypted sample data
-├── docs/                         Design notes, schemas, and UML text
-├── src/main/java/org/example/    Application source code
+│   └── *.cip                     Encrypted credential/data files
+├── docs/                         Design notes, schemas, plans, and UML artifacts
+├── src/main/java/org/example/    Application and persistence services
+├── src/main/java/org/model/      Brief, agent, facility, and mission models
 ├── src/test/java/org/example/    Unit and integration tests
 ├── build.gradle.kts              Gradle build configuration
 ├── gradlew                       Gradle wrapper for Unix-like systems
@@ -41,16 +45,21 @@ Top Secret is a Java command-line application for managing and searching classif
 
 ## Architecture
 
-The application starts in `TopSecret`, which creates the main collaborators and delegates startup to `ProgramControl`.
+The application starts in `TopSecret`, initializes persistence and authentication services, and launches `UserInterface` for the authenticated user.
 
 | Component | Responsibility |
 | --- | --- |
-| `TopSecret` | Application entry point and top-level error handling |
-| `ProgramControl` | Initializes required files/database state and starts the UI |
-| `UserInterface` | Interactive terminal menu and user input/output |
-| `MissionSearch` | Validates search terms and formats search outcomes |
-| `SearchResult` | Carries matching records and user-facing status messages |
-| `DatabaseManager` | Imports TSV data and queries the SQLite mission database |
+| `TopSecret` | Application entry point and startup orchestration |
+| `ProgramControl` | Initializes the database, account services, and application flow |
+| `UserInterface` | Authenticated interactive menu for briefs, agents, facilities, and audit logs |
+| `AgencyDataService` | Data-access contract for retrieving and creating agency records |
+| `DatabaseManager` | SQLite persistence for briefs, agents, and facilities |
+| `UserAccountManager` | Validates users, authenticates accounts, and manages encrypted passwords |
+| `UserAccountStore` / `SqliteUserAccountStore` | Persist and retrieve account metadata |
+| `AuditLogManager` | Validates and records content operations |
+| `AuditLogStore` / `SqliteAuditLogStore` | Persist and retrieve audit entries |
+| `MissionSearch` | Provides mission-text search support |
+| `SearchResult` | Carries search matches and status messages |
 | `FileHandler` | Reads, writes, and lists files under the data directory |
 | `CipherKey` | Validates and stores substitution-cipher mappings |
 | `Cipher` | Encrypts and decrypts text using a `CipherKey` |
@@ -60,23 +69,47 @@ The application starts in `TopSecret`, which creates the main collaborators and 
 
 ## Data Model
 
-Mission briefs are stored in the `mission_briefs` SQLite table:
+The SQLite database now supports agency records, user accounts, and audit events:
 
 ```sql
-CREATE TABLE mission_briefs (
-    Title TEXT,
-    Date DATE,
-    Text TEXT
-);
+facilities (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    abbreviation TEXT NOT NULL
+)
+
+agents (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    date_of_birth TEXT NOT NULL,
+    date_of_death TEXT,
+    notes TEXT,
+    facility_id INTEGER NOT NULL REFERENCES facilities(id)
+)
+
+briefs (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    date TEXT NOT NULL,
+    text TEXT NOT NULL,
+    mission_id INTEGER UNIQUE
+)
 ```
 
-The source TSV file is expected to contain a header followed by tab-separated rows in this order:
+The `Agent`, `Brief`, `Facility`, and `Mission` classes in `src/main/java/org/model/` represent database records in the application layer. User passwords are not stored in SQLite; each account uses a separate ciphered credential file.
 
-```text
-Title    Date    Text
-```
+Audit entries record the username, action, content type, content identifier, and timestamp for operations such as reading or creating records.
 
-On startup, `ProgramControl` creates `data/mission_briefs.db` from `data/mission_briefs.tsv` when the database table does not already exist.
+## User Roles and Menu
+
+After authentication, users can:
+
+- List and read briefs, agents, and facilities.
+- Add records when they are administrators.
+- Review the audit log when they are administrators.
+- Exit the application.
+
+The UI uses record IDs when reading or creating records. Agents reference an existing facility, and model validation occurs before records are inserted into SQLite.
 
 ## Requirements
 
@@ -99,13 +132,14 @@ Run the application with:
 ./gradlew run
 ```
 
-The interactive menu provides these options:
+The current interactive menu provides:
 
 ```text
-1. List available mission briefs
-2. Read a mission brief
-3. Search mission briefs
-4. Exit
+1. Briefs
+2. Agents
+3. Facilities
+4. Review audit log       (administrators only)
+0. Exit
 ```
 
 To build the application:
@@ -128,7 +162,21 @@ Run the full test suite with:
 ./gradlew test
 ```
 
-Tests cover cipher and key validation, file handling, credential management, database operations, mission searching, program startup, and UI behavior.
+Run isolated unit tests and persistence/cross-component integration tests separately:
+
+```bash
+./gradlew unitTest
+./gradlew integrationTest
+```
+
+Generate JaCoCo coverage reports with:
+
+```bash
+./gradlew jacocoTestReport
+./gradlew jacocoUnitTestReport
+```
+
+Tests cover cipher and key validation, file handling, account management, audit logging, database operations, model validation, program startup, and UI behavior.
 
 ## Cipher and Credential Files
 
@@ -137,7 +185,7 @@ Tests cover cipher and key validation, file handling, credential management, dat
 1. The original character set.
 2. The corresponding encrypted character set.
 
-Both lines must have the same length, and characters must be unique within each line. `CredentialManagerLibrary` uses the cipher to store credentials in `data/credentials.cip`.
+Both lines must have the same length, and characters must be unique within each line. `CredentialManagerLibrary` uses the cipher for the legacy credential flow, while `UserAccountManager` writes per-user files named from the username's encoded bytes.
 
 These files contain application data for local development and testing. Do not use real passwords or sensitive credentials in the repository.
 
@@ -146,8 +194,11 @@ These files contain application data for local development and testing. Do not u
 The `docs/` directory contains:
 
 - Class design notes and UML text files.
-- Database schema documentation.
-- Planning and team documentation.
+- Database and audit-log schemas.
+- User-account, data-model, and UML artifacts.
+- Homework work plans and test plans.
+
+The project-wide visual UML diagram is available at [`docs/UML Diagram.png`](docs/UML%20Diagram.png). Text UML and ERD descriptions are also available in `docs/`.
 
 The Java source and the documentation files should be kept in sync when class responsibilities or data flows change.
 
