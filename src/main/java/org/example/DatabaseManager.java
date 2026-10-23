@@ -1,206 +1,146 @@
 package org.example;
 
-import java.io.IOException;
-import java.io.FileReader;
+import org.model.Agent;
+import org.model.Brief;
+import org.model.Facility;
+
 import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
-
-import org.model.*;
+import java.util.List;
 
 public class DatabaseManager implements AgencyDataService
 {
-    private String sqlURL = "jdbc:sqlite:data/mission_briefs.db";
-    private String username = "user";
-    private String password = "pwd";
+    private final String url;
 
-    private final String userTableName = "users";
-    private final String briefsTableName = "mission_briefs";
-    private final String agentsTableName = "agents";
-    private final String facilitiesTableName = "facilities";
-    private final String missionsTableName = "missions";
-
-    public DatabaseManager()
-    {
-    }
-
-    public DatabaseManager(String url)
-    {
-        this.setURL(url);
-    }
-
-    public void setURL(String url)
-    {
-        this.sqlURL = url;
-    }
-
-    public String getURL()
-    {
-        return this.sqlURL;
-    }
-
-    // TODO: Make getRecords() an auxilary function that then is used
-    // to pull information stored as respective types.
-    // That is: calling getAgents() will use getRecords() to query a database, parse the information
-    // and create a new Agent container to store it, and a new Agent[] array to return all hits.
-    /**
-     * Returns all agent records matching a specified key
-     *
-     * @param key the key to match records by
-     */
-    public Agent[] getAgents(String column, String key)
-    {
-        String[] matches = this.getRecords(this.agentsTableName, column, key);
-        Agent[] agents = new Agent[matches.length];
-        // Populate array
-        for (int i = 0; i < matches.length; i++)
-        {
-            String[] data = matches[i].split("\t"); // Should match the Agent table schema in docs
-            Agent agent = new Agent(Integer.parseInt(data[0]), data[1], 
-                                    data[2], data[3], 
-                                    data[4], Integer.parseInt(data[5]));
-            agents[i] = agent;
+    public DatabaseManager(String url) {
+        if (url == null || url.isBlank()) {
+            throw new IllegalArgumentException("Database URL cannot be blank.");
         }
-        return agents;
+        this.url = url;
+        createTables();
     }
 
-    /**
-     * Returns all brief records matching a specified key
-     *
-     * @param key the key to match records by
-     */
-    public Brief[] getBriefs(String column, String key)
-    {
-        String[] matches = this.getRecords(this.briefsTableName, column, key);
-        Brief[] briefs = new Brief[matches.length];
-        // Populate array
-        for (int i = 0; i < matches.length; i++)
-        {
-            String[] data = matches[i].split("\t"); // Should match the Brief table schema in docs
-            Brief brief = new Brief(Integer.parseInt(data[0]), data[1], 
-                                    data[2], data[3], 
-                                    Integer.parseInt(data[4]));
-            briefs[i] = brief;
+    public String getUrl() {
+        return url;
+    }
+
+    @Override
+    public List<Brief> getBriefs() {
+        List<Brief> briefs = new ArrayList<>();
+        try (Connection c = connect();
+             ResultSet rs = c.createStatement().executeQuery("SELECT * FROM briefs ORDER BY id")) {
+            while (rs.next()) {
+                briefs.add(new Brief(rs.getInt("id"), rs.getString("title"), rs.getString("date"),
+                        rs.getString("text"), (Integer) rs.getObject("mission_id")));
+            }
+        } catch (SQLException e) {
+            DebugHelper.debugPrintln(e.getMessage());
         }
         return briefs;
     }
 
-    /**
-     * Returns all facility records matching a specified key
-     *
-     * @param key the key to match records by
-     */
-    public Facility[] getFacilities(String column, String key)
-    {
-        String[] matches = this.getRecords(this.facilitiesTableName, column, key);
-        Facility[] facilities = new Facility[matches.length];
-        // Populate array
-        for (int i = 0; i < matches.length; i++)
-        {
-            String[] data = matches[i].split("\t"); // Should match the Facility table schema in docs
-            Facility facility = new Facility(Integer.parseInt(data[0]), data[1], data[2]);
-            facilities[i] = facility;
+    @Override
+    public List<Agent> getAgents() {
+        List<Agent> agents = new ArrayList<>();
+        try (Connection c = connect();
+             ResultSet rs = c.createStatement().executeQuery("SELECT * FROM agents ORDER BY id")) {
+            while (rs.next()) {
+                agents.add(new Agent(rs.getInt("id"), rs.getString("name"), rs.getString("date_of_birth"),
+                        rs.getString("date_of_death"), rs.getString("notes"), rs.getInt("facility_id")));
+            }
+        } catch (SQLException e) {
+            DebugHelper.debugPrintln(e.getMessage());
+        }
+        return agents;
+    }
+
+    @Override
+    public List<Facility> getFacilities() {
+        List<Facility> facilities = new ArrayList<>();
+        try (Connection c = connect();
+             ResultSet rs = c.createStatement().executeQuery("SELECT * FROM facilities ORDER BY id")) {
+            while (rs.next()) {
+                facilities.add(new Facility(rs.getInt("id"), rs.getString("name"), rs.getString("abbreviation")));
+            }
+        } catch (SQLException e) {
+            DebugHelper.debugPrintln(e.getMessage());
         }
         return facilities;
     }
 
-    /**
-     * Returns all mission records matching a specified key
-     * A mission is more complicated since it is composed of
-     * A brief, an agent, and a facility
-     *
-     * @param key the key to match records by
-     */
-    public Mission[] getMissions(String column, String key)
-    {
-        String[] matches = this.getRecords(this.missionsTableName, column, key);
-        Mission[] missions = new Mission[matches.length];
-        // Populate array
-        for (int i = 0; i < matches.length; i++)
-        {
-            String[] data = matches[i].split("\t"); // Should match the Mission table schema in docs
-            Mission mission = new Mission(Integer.parseInt(data[0]),
-                                          Integer.parseInt(data[1]));
-            missions[i] = mission;
-        }
-        return missions;
+    @Override
+    public Brief addBrief(String title, String date, String text) {
+        // Build the model first so invalid data is rejected before it is saved.
+        new Brief(1, title, date, text, null);
+        int id = insert("INSERT INTO briefs (title, date, text) VALUES (?, ?, ?)", title, date, text);
+        return new Brief(id, title, date, text, null);
     }
 
+    @Override
+    public Agent addAgent(String name, String dateOfBirth, String dateOfDeath, String notes, int facilityId) {
+        new Agent(1, name, dateOfBirth, dateOfDeath, notes, facilityId);
+        int id = insert("INSERT INTO agents (name, date_of_birth, date_of_death, notes, facility_id) "
+                + "VALUES (?, ?, ?, ?, ?)", name, dateOfBirth, dateOfDeath, notes, facilityId);
+        return new Agent(id, name, dateOfBirth, dateOfDeath, notes, facilityId);
+    }
 
-    /**
-     * Returns all matching records matching a given value in a column as a String[]
-     * Points to a database defined in url.
-     * Each item in the string is formatted as a tab separated table
-     *
-     *
-     * @param url pointer to the database 
-     * @param column name of the column to search 
-     * @param value value to match
-     */
-    public String[] getRecords(String url, String table, String column, String value)
-    {
-        String query = "SELECT Title, Date, Text FROM " + table + " WHERE " + column + " LIKE ?";
-        // Get a ResultSet containing matching records
-        // ResultSet rs = this.createQuery(url, query);
-        ResultSet rs = null;
-        try (
-                Connection conn = DriverManager.getConnection(url, this.username, this.password);
-            )
-        {
-            PreparedStatement prepStatement = conn.prepareStatement(query);
+    @Override
+    public Facility addFacility(String name, String abbreviation) {
+        new Facility(1, name, abbreviation);
+        int id = insert("INSERT INTO facilities (name, abbreviation) VALUES (?, ?)", name, abbreviation);
+        return new Facility(id, name, abbreviation);
+    }
 
-            // Bind values
-            prepStatement.setString(1, value);
+    private Connection connect() throws SQLException {
+        Connection c = DriverManager.getConnection(url);
+        c.createStatement().execute("PRAGMA foreign_keys = ON");
+        return c;
+    }
 
-            rs = prepStatement.executeQuery();
-
-            if (rs == null) return null;
-            try
-            {
-                // Create an array and then parse out the records
-                // Much time spent here reading the documentation
-                // And perhaps much wasted in an effort to understand
-                // Update: HAHA! IT WORKS! IM A GOD!
-                ArrayList<String> temp = new ArrayList<String>();
-                while (rs.next())
-                {
-                    String record = String.format(
-                            "%s\t%s\t%s",
-                            rs.getString("Title"),
-                            rs.getDate("Date").toString(),
-                            rs.getString("Text")
-                            );
-
-                    temp.add(record);
-                }
-
-                String[] out = temp.toArray(new String[0]);
-                return out;
-            }
-            catch (SQLException e)
-            {
-                this.printSQLDiagonistics(e);
-                return null;
-            }
-        } 
-        catch (SQLException e)
-        {
-            this.printSQLDiagonistics(e);
-            return null;
+    private void createTables() {
+        try (Connection c = connect(); Statement s = c.createStatement()) {
+            s.execute("CREATE TABLE IF NOT EXISTS facilities (id INTEGER PRIMARY KEY, "
+                    + "name TEXT NOT NULL, abbreviation TEXT NOT NULL)");
+            s.execute("CREATE TABLE IF NOT EXISTS agents (id INTEGER PRIMARY KEY, name TEXT NOT NULL, "
+                    + "date_of_birth TEXT NOT NULL, date_of_death TEXT, notes TEXT, "
+                    + "facility_id INTEGER NOT NULL REFERENCES facilities(id))");
+            s.execute("CREATE TABLE IF NOT EXISTS briefs (id INTEGER PRIMARY KEY, title TEXT NOT NULL, "
+                    + "date TEXT NOT NULL, text TEXT NOT NULL, mission_id INTEGER UNIQUE)");
+        } catch (SQLException e) {
+            DebugHelper.debugPrintln(e.getMessage());
         }
     }
 
-    /**
-     * Checks to see if a table by the name 'tableName' exists, returns true if true
-     * 
-     * @param tableName the name of the table
-     */
+    private int insert(String sql, Object... values) {
+        try (Connection c = connect(); PreparedStatement ps = c.prepareStatement(sql)) {
+            for (int i = 0; i < values.length; i++) {
+                ps.setObject(i + 1, values[i]);
+            }
+            ps.executeUpdate();
+            try (ResultSet rs = c.createStatement().executeQuery("SELECT last_insert_rowid()")) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new IllegalArgumentException("The database rejected the record: " + e.getMessage());
+        }
+    } 
+
     public Boolean tableExists(String table)
     {
         try (
-                Connection conn = DriverManager.getConnection(this.sqlURL, this.username, this.password);
+                Connection conn = DriverManager.getConnection(this.url);
             )
         {
             DatabaseMetaData meta = conn.getMetaData();
@@ -212,91 +152,10 @@ public class DatabaseManager implements AgencyDataService
         }
         catch (SQLException e)
         {
-            this.printSQLDiagonistics(e);
             return false;
         }
     }
-
-    /**
-     * Returns all matching records matching a given value in a column as a String[]
-     * Points to a database defined in the objects sqlURL field.
-     * Each item in the string is formatted as a tab separated table
-     *
-     *
-     * @param column name of the column to search 
-     * @param value value to match
-     */
-    public String[] getRecords(String table, String column, String key)
-    {
-        return this.getRecords(this.sqlURL, table, column, key);
-    }
-
-    /**
-     * Returns all values stored in a column as String[]
-     * Searches the databse pointed to the url parameter
-     *
-     * @param url pointer to database to search
-     * @param column name of column to pull
-     */
-    public String[] getColumn(String url, String table, String column)
-    {
-        // Get the records which match the search
-        String query = "SELECT " + column + " FROM " + table;
-
-        // Pipe it into an sql statement
-        try (
-                Connection conn = DriverManager.getConnection(url, this.username, this.password);
-            )
-        {
-            PreparedStatement prepStatement = conn.prepareStatement(query);
-            ResultSet rs = prepStatement.executeQuery();
-
-            // No results, return a null object
-            if (rs == null) return null;
-            
-            ArrayList<String> tempout = new ArrayList<String>();
-            while (rs.next())
-            {
-                int columntype = rs.getMetaData().getColumnType(1);
-                String rs_value;
-                if (columntype == Types.DATE) rs_value = rs.getDate(column).toString();
-                else rs_value = rs.getString(column);
-                tempout.add(rs_value);
-            }
-
-            String[] out = tempout.toArray(new String[0]);
-            return out;
-        }
-        catch (SQLException e)
-        {
-            this.printSQLDiagonistics(e);
-            return null;
-        }
-    }
-
-    /**
-     * Returns all values stored in a column as String[]
-     * Searches the databse pointed to by the instance's sqlURL field
-     *
-     * @param column name of column to pull
-     */
-    public String[] getColumn(String table, String column)
-    {
-        return this.getColumn(this.sqlURL, table, column);
-    }
-
-    /** 
-     * Creates a database from an input TSV file
-     * I decided not to use any other dependent methods for this to make
-     * sure that any error could be isolated within this method
-     * NOTE: Do not include trailing '/' at the end of the dirOut path
-     *
-     * @param pathToTSV string path to the TSV to import 
-     * @param dirOut string path to the output directory 
-     * @param dbOutName string name of the output databse 
-     * @throws IOException
-     */
-    // TODO: Generalise to use schema at head of TSV file
+    
     public Boolean importTSV(String pathToTSV, String tableName, String dirOut, String dbOutName) throws IOException
     {
         // Remove trailing slashes from pathToTSV in an effort to reduce error
@@ -336,7 +195,7 @@ public class DatabaseManager implements AgencyDataService
         this.createQuery(jdbcURL, query);
 
         try (
-                Connection conn = DriverManager.getConnection(jdbcURL, this.username, this.password);
+                Connection conn = DriverManager.getConnection(jdbcURL);
             )
         {
             // Once the table has been created, we change the query
@@ -373,60 +232,9 @@ public class DatabaseManager implements AgencyDataService
         }
         catch (SQLException e)
         {
-            this.printSQLDiagonistics(e);
             return false;
         }
     }
-
-    public int setRecord(String url, String table, String column, String key, String newVal)
-    {
-        
-    }
-
-    /**
-     * Returns table name containing mission briefs
-     */
-    public String getBriefsTableName()
-    {
-        return this.briefsTableName;
-    }
-
-    /**
-     * Returns table name containing users
-     */
-    public String getUsersTableName()
-    {
-        return this.userTableName;
-    }
-
-    /**
-     * Returns table name containing agents
-     */
-    public String getAgentsTableName()
-    {
-        return this.agentsTableName;
-    }
-
-    /**
-     * Returns table name containing facilities
-     */
-    public String getFacilitiesTableName()
-    {
-        return this.facilitiesTableName;
-    }
-
-    /**
-     * Returns table name containing missions
-     */
-    public String getMissionsTableName()
-    {
-        return this.missionsTableName;
-    }
-
-
-    /**
-     * End of public functions
-     */
 
     // Generates a compilable query from an input string in SQLite3 query syntax
     // Returns a ResultSet object containing the retrieved query items
@@ -434,7 +242,7 @@ public class DatabaseManager implements AgencyDataService
     {
         try // Conditions for the try statement
             (
-                Connection conn = DriverManager.getConnection(url, this.username, this.password);
+                Connection conn = DriverManager.getConnection(url);
             )
         {
             Statement statement = conn.createStatement();
@@ -444,17 +252,7 @@ public class DatabaseManager implements AgencyDataService
         }
         catch (SQLException e)
         {
-            this.printSQLDiagonistics(e);
             return null;
         }
-    }
-
-    // General purpose function for printing out all SQLException diagonistics
-    private void printSQLDiagonistics(SQLException e)
-    {
-        System.err.println("Error processing query.");
-        System.err.println("State: " + e.getSQLState());
-        System.err.println("Error: " + e.getErrorCode());
-        System.err.println("Message: " + e.getMessage());
     }
 }

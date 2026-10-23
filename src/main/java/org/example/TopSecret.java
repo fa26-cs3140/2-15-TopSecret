@@ -8,8 +8,11 @@ public class TopSecret
 
         UserInterface uInterface = new UserInterface();
         FileHandler fHandler = new FileHandler();
-        DatabaseManager dbManager = new DatabaseManager();
+        DatabaseManager dbManager = new DatabaseManager("jdbc:sqlite:data/mission_briefs.db");
         ProgramControl pControl = new ProgramControl(fHandler, dbManager);
+
+        AuditLogManager auditLogManager = new AuditLogManager(dbManager);
+
 
         // uInterface can throw many types of errors
         // Catch if anything happens
