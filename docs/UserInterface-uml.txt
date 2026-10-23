@@ -1,28 +1,64 @@
 UserInterface
 --------------------------------------
-databaseManager: DatabaseManager
-missionSearch: MissionSearch
+data: AgencyDataService
+auditLog: AuditLogService
+currentUser: UserAccount
 scanner: Scanner
 output: PrintStream
 --------------------------------------
-UserInterface()
-
 UserInterface(
-    databaseManager: DatabaseManager,
+    data: AgencyDataService,
+    auditLog: AuditLogService,
+    currentUser: UserAccount,
     scanner: Scanner,
     output: PrintStream
 )
 
-UserInterface(
-    databaseManager: DatabaseManager,
-    missionSearch: MissionSearch,
-    scanner: Scanner,
-    output: PrintStream
-)
+run(): void
+displayMainMenu(): void
+displayTypeMenu(type: RecordType): void
+getCurrentUser(): UserAccount
 
-runInterface(): void
-runInterface(args: String[]): void
-displayMenu(): void
-displayMissionList(): void
-displayMission(missionNumber: int): void
-displaySearchResults(result: SearchResult): void
+
+<<enumeration>>
+RecordType
+--------------------------------------
+BRIEF
+AGENT
+FACILITY
+--------------------------------------
+getTitle(): String
+getSingular(): String
+
+
+<<interface>>
+AgencyDataService
+--------------------------------------
+getBriefs(): List<Brief>
+getAgents(): List<Agent>
+getFacilities(): List<Facility>
+addBrief(title: String, date: String, text: String): Brief
+addAgent(name: String, dateOfBirth: String, dateOfDeath: String, notes: String, facilityId: int): Agent
+addFacility(name: String, abbreviation: String): Facility
+
+
+<<interface>>
+AuditLogService
+--------------------------------------
+log(username: String, action: String, contentType: String, contentIdentifier: String): void
+getAuditLog(): List<AuditLogEntry>
+
+
+Relationships
+
+UserInterface uses AgencyDataService, AuditLogService, and UserAccount.
+
+UserInterface uses RecordType to select briefs, agents, or facilities.
+
+DatabaseManager implements AgencyDataService.
+
+AgencyDataService returns Brief, Agent, and Facility objects (org.model).
+
+AuditLogManager (Team D) implements AuditLogService.
+
+AuditLogService returns AuditLogEntry objects.
