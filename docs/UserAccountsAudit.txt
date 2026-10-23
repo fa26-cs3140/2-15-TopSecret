@@ -1,0 +1,104 @@
+Homework 5 - Team D
+User Accounts and Audit Log
+
+User Accounts
+
+UserAccount represents account metadata only: username and admin status.
+Passwords are deliberately not stored in UserAccount or SQLite.
+
+UserAccountManager provides the Homework 5 account rules:
+- usernames must be at least three characters
+- usernames may contain only letters, numbers, hyphens, and underscores
+- passwords must be at least five characters and contain uppercase and lowercase letters
+- the first account can be created as an admin with createFirstUser()
+- later accounts can be created without passwords so the associated user can set their own password on first login
+- passwords are verified and changed independently for each user
+
+Each user password is encrypted through Cipher and stored in a separate file:
+credentials-<lowercase hex of UTF-8 username>.cip
+
+Account metadata is stored through UserAccountStore. SqliteUserAccountStore is the SQLite implementation and creates the users table when necessary.
+
+Team A owns the authorization policy for promoting/demoting users. The shared users table contains is_admin so Team A can manage access levels without storing password data in SQLite.
+
+Audit Log
+
+AuditLogManager implements AuditLogService, which is already used by AgencyInterface.
+It creates an AuditLogEntry containing:
+- username
+- action
+- content type
+- content identifier
+- timestamp
+
+SqliteAuditLogStore stores audit records in the audit_log table. Audit records reference users by username.
+
+AgencyInterface currently records successful READ and CREATE operations through AuditLogService. The AuditLogManager is generic and can also store UPDATE and DELETE operations when those UI/model operations are connected.
+
+Testing
+
+Manager unit tests use Mockito to isolate persistence, file access, and cipher dependencies.
+SQLite/file behavior is covered by separate integration tests using temporary databases/directories.
+
+Integration corrections
+
+UserAccountManager now implements the existing CredentialManager interface.
+credentialsExist() delegates to hasUsers(). createCredentials() bootstraps the
+first admin or initializes an already provisioned user's password; it never
+replaces an existing password or provisions additional users implicitly.
+The legacy CredentialManagerLibrary is preserved and still uses credentials.cip.
+There is no automatic migration of legacy credentials.
+
+Credential filenames encode the username as lowercase UTF-8 hex, so SQLite's
+case-sensitive usernames remain distinct on a case-insensitive filesystem.
+For example, Agent uses credentials-4167656e74.cip and agent uses
+credentials-6167656e74.cip. This intentionally replaces the ZIP filename format;
+existing credentials-<username>.cip files need migration before deployment.
+No such per-user files existed in the inspected repository.
+
+SQLite read failures throw IllegalStateException rather than appearing to be
+an empty account database or empty audit history. Statements are closed.
+
+Callers must authorize account creation, admin flags, and password changes.
+setInitialPassword() requires a trusted first-login flow that identifies the
+associated user. Neither this API nor CredentialManager authenticates the
+caller of changePassword(); the authenticated UI must enforce that boundary.
+
+The supplied Cipher is the existing substitution cipher. Key mappings must
+be reversible for password characters; unmapped characters remain unchanged.
+These changes preserve the assignment cipher rather than introducing modern
+password hashing. Password text is passed only to Cipher/FileHandler, never
+bound to SQL.
+
+Account metadata and password files are not one atomic transaction. If first
+password writing fails, the admin account exists without a password and can
+be recovered with setInitialPassword() after fixing the file directory.
+First-user bootstrap assumes serialized desktop startup; concurrent processes
+must not perform bootstrap without external coordination.
+
+Remaining cross-team wiring
+
+TopSecret/ProgramControl still launch Team B's Homework 4 UserInterface.
+The account login/first-password prompts and launch of AgencyInterface remain
+Team B's responsibility. AgencyInterface already consumes UserAccount and
+AuditLogService and records successful READ and CREATE operations.
+Team A's UserManager is a stub and its User/AccessLevel representation is not
+yet persisted through UserAccountStore. Team A must use shared users.is_admin,
+map Admin/Standard to the boolean flag, and enforce promotion/demotion policy,
+including preventing self-demotion. Existing teammate classes are unchanged.
+UPDATE/DELETE event hooks require those operations to be supplied by the UI/model.
+No original Homework 5 handout was supplied; username/password rules are checked
+against the ZIP specification and tests, not independently against the handout.
+
+Verification commands
+
+./gradlew test                         # complete regression suite
+./gradlew unitTest                     # isolated unit suite
+./gradlew integrationTest              # persistence/cross-component suite
+./gradlew jacocoTestReport             # complete suite coverage
+./gradlew jacocoUnitTestReport         # isolated unit coverage
+./gradlew build
+
+Tests remain in distinct classes in src/test/java to preserve teammate layout.
+Gradle separates suite execution by explicit class patterns; test still runs all.
+AccountAuditStoreUnitTest uses mocked JDBC and does not open a real database.

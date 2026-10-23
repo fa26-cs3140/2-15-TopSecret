@@ -10,16 +10,49 @@ isAdmin(): boolean
 setAdmin(admin: boolean): void
 
 
-UserAccountManager
+UserAccountStore <<interface>>
 --------------------------------------
-databaseManager: DatabaseManager
-credentialManager: CredentialManager
---------------------------------------
-UserAccountManager(databaseManager: DatabaseManager, credentialManager: CredentialManager)
-isValidUsername(username: String): boolean
 hasUsers(): boolean
-createUser(username: String): UserAccount
+addUser(account: UserAccount): boolean
 getUser(username: String): UserAccount
+getUsers(): List<UserAccount>
+setAdmin(username: String, admin: boolean): boolean
+
+
+SqliteUserAccountStore implements UserAccountStore
+--------------------------------------
+url: String
+--------------------------------------
+SqliteUserAccountStore(url: String)
+getUrl(): String
+hasUsers(): boolean
+addUser(account: UserAccount): boolean
+getUser(username: String): UserAccount
+getUsers(): List<UserAccount>
+setAdmin(username: String, admin: boolean): boolean
+
+
+UserAccountManager implements CredentialManager
+--------------------------------------
+accountStore: UserAccountStore
+fileHandler: FileHandler
+cipher: Cipher
+--------------------------------------
+UserAccountManager(accountStore: UserAccountStore, fileHandler: FileHandler, cipher: Cipher)
+UserAccountManager(databaseManager: DatabaseManager, fileHandler: FileHandler, cipher: Cipher)
+isValidUsername(username: String): boolean
+isValidPassword(password: String): boolean
+credentialsExist(): boolean
+createCredentials(username: String, password: String): boolean
+hasUsers(): boolean
+createUser(username: String, admin: boolean): UserAccount
+createFirstUser(username: String, password: String): UserAccount
+getUser(username: String): UserAccount
+getUsers(): List<UserAccount>
+passwordExists(username: String): boolean
+setInitialPassword(username: String, password: String): boolean
+verifyLogin(username: String, password: String): boolean
+changePassword(username: String, newPassword: String): boolean
 
 
 AuditLogEntry
@@ -46,10 +79,33 @@ getTimestamp(): LocalDateTime
 setTimestamp(timestamp: LocalDateTime): void
 
 
-AuditLogManager
+AuditLogService <<interface>>
 --------------------------------------
-databaseManager: DatabaseManager
+log(username: String, action: String, contentType: String, contentIdentifier: String): void
+getAuditLog(): List<AuditLogEntry>
+
+
+AuditLogStore <<interface>>
 --------------------------------------
+add(entry: AuditLogEntry): void
+getAll(): List<AuditLogEntry>
+
+
+SqliteAuditLogStore implements AuditLogStore
+--------------------------------------
+url: String
+--------------------------------------
+SqliteAuditLogStore(url: String)
+getUrl(): String
+add(entry: AuditLogEntry): void
+getAll(): List<AuditLogEntry>
+
+
+AuditLogManager implements AuditLogService
+--------------------------------------
+store: AuditLogStore
+--------------------------------------
+AuditLogManager(store: AuditLogStore)
 AuditLogManager(databaseManager: DatabaseManager)
 log(username: String, action: String, contentType: String, contentIdentifier: String): void
 getAuditLog(): List<AuditLogEntry>
@@ -58,17 +114,11 @@ getAuditLog(): List<AuditLogEntry>
 Relationships
 
 UserAccountManager creates and returns UserAccount objects.
-
-UserAccountManager uses DatabaseManager and CredentialManager.
-
-UserAccountManager coordinates account operations with AuditLogManager.
-
-AuditLogManager uses DatabaseManager.
-
-AuditLogManager returns AuditLogEntry objects.
-
-Team A owns admin and standard user promotion rules.
-
-Team D owns account lifecycle and audit logging.
-
-Passwords remain outside SQLite in ciphered credential files.
+UserAccountManager depends on UserAccountStore, FileHandler, and Cipher.
+SqliteUserAccountStore implements UserAccountStore and stores account metadata in SQLite.
+Passwords are stored separately as ciphered credentials-<lowercase hex of UTF-8 username>.cip files.
+AuditLogManager implements the existing AuditLogService used by AgencyInterface.
+AuditLogManager depends on AuditLogStore.
+SqliteAuditLogStore implements AuditLogStore and stores audit entries in SQLite.
+AUDIT_LOG records reference USERS by username.
+Team A owns promotion/demotion policy; Team D supplies account persistence and account lifecycle operations.
