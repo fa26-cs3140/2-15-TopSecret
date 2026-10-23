@@ -1,8 +1,8 @@
 package org.example;
 
-import org.example.model.Agent;
-import org.example.model.Brief;
-import org.example.model.Facility;
+import org.model.Agent;
+import org.model.Brief;
+import org.model.Facility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
