@@ -17,10 +17,10 @@ import java.util.Scanner;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Integration tests for AgencyInterface with Team D's real AuditLogManager
+ * Integration tests for UserInterface with Team D's real AuditLogManager
  * and the real DatabaseManager, sharing one temporary SQLite database.
  */
-class AgencyInterfaceAuditLogManagerTest {
+class UserInterfaceAuditLogManagerTest {
 
     private Path testDatabasePath;
     private DatabaseManager dataService;
@@ -59,7 +59,7 @@ class AgencyInterfaceAuditLogManagerTest {
     }
 
     private String run(UserAccount user, String input) {
-        new AgencyInterface(
+        new UserInterface(
                 dataService,
                 auditLogManager,
                 user,

@@ -1,5 +1,8 @@
 package org.example;
 
+import org.model.Agent;
+import org.model.Brief;
+import org.model.Facility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,365 +11,496 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for the Homework 5 user interface (Team Member B).
+ *
+ * UserInterface depends on two interfaces so it can be tested
+ * without SQLite:
+ *   AgencyDataService - lists and adds briefs, agents, and facilities
+ *   AuditLogService   - implemented by Team D's AuditLogManager
+ *
+ * Main menu:  1 Briefs, 2 Agents, 3 Facilities,
+ *             4 Review audit log (admin only), 0 Exit
+ * Type menu:  1 List, 2 Read, 3 Add (admin only), 0 Back
+ */
 @ExtendWith(MockitoExtension.class)
 class UserInterfaceTest {
 
     @Mock
-    private DatabaseManager databaseManager;
+    private AgencyDataService dataService;
 
     @Mock
-    private MissionSearch missionSearch;
+    private AuditLogService auditLog;
 
     private ByteArrayOutputStream output;
+
+    private final UserAccount admin = new UserAccount("pat", true);
+    private final UserAccount standard = new UserAccount("agent_7", false);
 
     @BeforeEach
     void setUp() {
         output = new ByteArrayOutputStream();
     }
 
-    private UserInterface createInterface(String input) {
+    private UserInterface createInterface(UserAccount user, String input) {
         return new UserInterface(
-                databaseManager,
-                missionSearch,
+                dataService,
+                auditLog,
+                user,
                 new Scanner(input),
                 new PrintStream(output)
         );
     }
 
+    private String text() {
+        return output.toString();
+    }
+
+    // ---------- Constructor and getters ----------
+
     @Test
-    void displayMenuShowsRequiredOptions() {
-        UserInterface ui = createInterface("");
+    void constructorStoresCurrentUser() {
+        UserInterface ui = createInterface(admin, "");
 
-        ui.displayMenu();
-
-        String text = output.toString();
-
-        assertTrue(text.contains("List available mission briefs"));
-        assertTrue(text.contains("Read a mission brief"));
-        assertTrue(text.contains("Search mission briefs"));
-        assertTrue(text.contains("Exit"));
+        assertSame(admin, ui.getCurrentUser());
     }
 
     @Test
-    void displayMissionListShowsNumberedTitles() {
-        when(databaseManager.getColumn("Title"))
-                .thenReturn(new String[]{
-                        "Operation Sandtrap",
-                        "The Munich Lead",
-                        "Project Bluebird"
+    void constructorRejectsNullDataService() {
+        assertThrows(IllegalArgumentException.class, () -> new UserInterface(
+                null, auditLog, admin, new Scanner(""), new PrintStream(output)));
+    }
+
+    @Test
+    void constructorRejectsNullAuditLog() {
+        assertThrows(IllegalArgumentException.class, () -> new UserInterface(
+                dataService, null, admin, new Scanner(""), new PrintStream(output)));
+    }
+
+    @Test
+    void constructorRejectsNullUser() {
+        assertThrows(IllegalArgumentException.class, () -> new UserInterface(
+                dataService, auditLog, null, new Scanner(""), new PrintStream(output)));
+    }
+
+    @Test
+    void constructorRejectsNullScanner() {
+        assertThrows(IllegalArgumentException.class, () -> new UserInterface(
+                dataService, auditLog, admin, null, new PrintStream(output)));
+    }
+
+    @Test
+    void constructorRejectsNullOutput() {
+        assertThrows(IllegalArgumentException.class, () -> new UserInterface(
+                dataService, auditLog, admin, new Scanner(""), null));
+    }
+
+    // ---------- Main menu ----------
+
+    @Test
+    void mainMenuShowsAllOptionsForAdmin() {
+        createInterface(admin, "").displayMainMenu();
+
+        assertTrue(text().contains("1. Briefs"));
+        assertTrue(text().contains("2. Agents"));
+        assertTrue(text().contains("3. Facilities"));
+        assertTrue(text().contains("4. Review audit log"));
+        assertTrue(text().contains("0. Exit"));
+    }
+
+    @Test
+    void mainMenuHidesAuditLogForStandardUser() {
+        createInterface(standard, "").displayMainMenu();
+
+        assertTrue(text().contains("1. Briefs"));
+        assertFalse(text().contains("audit log"));
+    }
+
+    @Test
+    void exitEndsInterface() {
+        createInterface(admin, "0\n").run();
+
+        assertTrue(text().contains("Exiting"));
+    }
+
+    @Test
+    void runStopsWhenInputEnds() {
+        assertDoesNotThrow(() -> createInterface(admin, "").run());
+    }
+
+    @Test
+    void invalidMainMenuSelectionIsRejected() {
+        createInterface(admin, "banana\n9\n0\n").run();
+
+        assertTrue(text().contains("Invalid selection"));
+    }
+
+    @Test
+    void standardUserCannotSelectAuditLog() {
+        createInterface(standard, "4\n0\n").run();
+
+        assertTrue(text().contains("Invalid selection"));
+        verify(auditLog, never()).getAuditLog();
+    }
+
+    // ---------- Type menu ----------
+
+    @Test
+    void typeMenuShowsAddForAdmin() {
+        createInterface(admin, "").displayTypeMenu(RecordType.AGENT);
+
+        assertTrue(text().contains("Agents"));
+        assertTrue(text().contains("1. List"));
+        assertTrue(text().contains("2. Read"));
+        assertTrue(text().contains("3. Add"));
+        assertTrue(text().contains("0. Back"));
+    }
+
+    @Test
+    void typeMenuHidesAddForStandardUser() {
+        createInterface(standard, "").displayTypeMenu(RecordType.BRIEF);
+
+        assertTrue(text().contains("1. List"));
+        assertFalse(text().contains("3. Add"));
+    }
+
+    @Test
+    void standardUserCannotSelectAdd() {
+        createInterface(standard, "1\n3\n0\n0\n").run();
+
+        assertTrue(text().contains("Invalid selection"));
+        verify(dataService, never()).addBrief(any(), any(), any());
+    }
+
+    @Test
+    void invalidTypeMenuSelectionIsRejected() {
+        createInterface(admin, "3\nx\n0\n0\n").run();
+
+        assertTrue(text().contains("Invalid selection"));
+    }
+
+    // ---------- Briefs ----------
+
+    @Test
+    void listBriefsShowsIdsAndTitles() {
+        when(dataService.getBriefs()).thenReturn(List.of(
+                new Brief(1, "Operation Sandtrap", "1970-11-03", "Bug the pouch.", null),
+                new Brief(2, "The Munich Lead", "1972-09-15", "Identify the cell.", null)));
+
+        createInterface(standard, "1\n1\n0\n0\n").run();
+
+        assertTrue(text().contains("1. Operation Sandtrap"));
+        assertTrue(text().contains("2. The Munich Lead"));
+    }
+
+    @Test
+    void listBriefsShowsMessageWhenEmpty() {
+        when(dataService.getBriefs()).thenReturn(List.of());
+
+        createInterface(standard, "1\n1\n0\n0\n").run();
+
+        assertTrue(text().contains("No briefs"));
+    }
+
+    @Test
+    void readBriefShowsAllPropertiesAndIsAudited() {
+        when(dataService.getBriefs()).thenReturn(List.of(
+                new Brief(2, "The Munich Lead", "1972-09-15", "Identify the cell.", null)));
+
+        createInterface(standard, "1\n2\n2\n0\n0\n").run();
+
+        assertTrue(text().contains("Title: The Munich Lead"));
+        assertTrue(text().contains("Date: 1972-09-15"));
+        assertTrue(text().contains("Text: Identify the cell."));
+        verify(auditLog).log("agent_7", "READ", "BRIEF", "2");
+    }
+
+    @Test
+    void readBriefWithUnknownIdIsRejectedAndNotAudited() {
+        when(dataService.getBriefs()).thenReturn(List.of(
+                new Brief(1, "Operation Sandtrap", "1970-11-03", "Bug the pouch.", null)));
+
+        createInterface(standard, "1\n2\n99\n0\n0\n").run();
+
+        assertTrue(text().contains("No brief found"));
+        verify(auditLog, never()).log(any(), any(), any(), any());
+    }
+
+    @Test
+    void readBriefWithNonNumericIdIsRejected() {
+        createInterface(standard, "1\n2\nabc\n0\n0\n").run();
+
+        assertTrue(text().contains("Invalid ID"));
+        verify(auditLog, never()).log(any(), any(), any(), any());
+    }
+
+    @Test
+    void addBriefPromptsForPropertiesAndIsAudited() {
+        when(dataService.addBrief("Operation Nightfall", "1980-05-15", "New report."))
+                .thenReturn(new Brief(101, "Operation Nightfall", "1980-05-15", "New report.", null));
+
+        createInterface(admin, "1\n3\nOperation Nightfall\n1980-05-15\nNew report.\n0\n0\n").run();
+
+        assertTrue(text().contains("Title:"));
+        assertTrue(text().contains("Date (yyyy-mm-dd):"));
+        assertTrue(text().contains("Text:"));
+        assertTrue(text().contains("Added"));
+        verify(dataService).addBrief("Operation Nightfall", "1980-05-15", "New report.");
+        verify(auditLog).log("pat", "CREATE", "BRIEF", "101");
+    }
+
+    @Test
+    void addedBriefIsImmediatelyVisibleInList() {
+        List<Brief> briefs = new ArrayList<>();
+        briefs.add(new Brief(1, "Operation Sandtrap", "1970-11-03", "Bug the pouch.", null));
+        when(dataService.getBriefs()).thenAnswer(invocation -> List.copyOf(briefs));
+        when(dataService.addBrief("Operation Nightfall", "1980-05-15", "New report."))
+                .thenAnswer(invocation -> {
+                    Brief brief = new Brief(2, "Operation Nightfall", "1980-05-15", "New report.", null);
+                    briefs.add(brief);
+                    return brief;
                 });
 
-        UserInterface ui = createInterface("");
+        createInterface(admin, "1\n3\nOperation Nightfall\n1980-05-15\nNew report.\n1\n0\n0\n").run();
 
-        ui.displayMissionList();
-
-        String text = output.toString();
-
-        assertTrue(text.contains("1. Operation Sandtrap"));
-        assertTrue(text.contains("2. The Munich Lead"));
-        assertTrue(text.contains("3. Project Bluebird"));
-
-        verify(databaseManager).getColumn("Title");
+        assertTrue(text().contains("2. Operation Nightfall"));
     }
 
     @Test
-    void displayMissionShowsSelectedMission() {
-        when(databaseManager.getRecords("Title", "%"))
-                .thenReturn(new String[]{
-                        "Operation Sandtrap\t1970-11-03\tBug the diplomatic pouch.",
-                        "The Munich Lead\t1972-09-15\tIdentify the logistical backbone."
-                });
+    void addBriefWithInvalidDataShowsErrorAndIsNotAudited() {
+        when(dataService.addBrief(any(), eq("November 3"), any()))
+                .thenThrow(new IllegalArgumentException("Invalid date."));
 
-        UserInterface ui = createInterface("");
+        createInterface(admin, "1\n3\nBad Brief\nNovember 3\nText\n0\n0\n").run();
 
-        ui.displayMission(2);
+        assertTrue(text().contains("Unable to add brief"));
+        verify(auditLog, never()).log(any(), any(), any(), any());
+    }
 
-        String text = output.toString();
+    // ---------- Agents ----------
 
-        assertTrue(text.contains("The Munich Lead"));
-        assertTrue(text.contains("1972-09-15"));
-        assertTrue(text.contains("Identify the logistical backbone."));
+    @Test
+    void listAgentsShowsIdsAndNames() {
+        when(dataService.getAgents()).thenReturn(List.of(
+                new Agent(1, "Vanguard", "1985-06-14", null, null, 1),
+                new Agent(2, "Ghost", "1992-11-22", null, null, 2)));
 
-        verify(databaseManager).getRecords("Title", "%");
+        createInterface(standard, "2\n1\n0\n0\n").run();
+
+        assertTrue(text().contains("1. Vanguard"));
+        assertTrue(text().contains("2. Ghost"));
     }
 
     @Test
-    void displayMissionRejectsNumberThatIsTooSmall() {
-        UserInterface ui = createInterface("");
+    void listAgentsShowsMessageWhenEmpty() {
+        when(dataService.getAgents()).thenReturn(List.of());
 
-        ui.displayMission(0);
+        createInterface(standard, "2\n1\n0\n0\n").run();
 
-        assertTrue(
-                output.toString().contains("Invalid mission number")
-        );
-
-        verifyNoInteractions(databaseManager);
+        assertTrue(text().contains("No agents"));
     }
 
     @Test
-    void displayMissionRejectsNumberThatIsTooLarge() {
-        when(databaseManager.getRecords("Title", "%"))
-                .thenReturn(new String[]{
-                        "Operation Sandtrap\t1970-11-03\tTest mission."
-                });
+    void readAgentShowsAllPropertiesAndIsAudited() {
+        when(dataService.getAgents()).thenReturn(List.of(
+                new Agent(5, "Falcon", "1982-01-30", "2020-03-01", "Retired.", 3)));
 
-        UserInterface ui = createInterface("");
+        createInterface(standard, "2\n2\n5\n0\n0\n").run();
 
-        ui.displayMission(5);
-
-        assertTrue(
-                output.toString().contains("Invalid mission number")
-        );
+        assertTrue(text().contains("Name: Falcon"));
+        assertTrue(text().contains("Date of birth: 1982-01-30"));
+        assertTrue(text().contains("Date of death: 2020-03-01"));
+        assertTrue(text().contains("Notes: Retired."));
+        assertTrue(text().contains("Facility ID: 3"));
+        verify(auditLog).log("agent_7", "READ", "AGENT", "5");
     }
 
     @Test
-    void runInterfaceCanListThenExit() {
-        when(databaseManager.getColumn("Title"))
-                .thenReturn(new String[]{
-                        "Operation Sandtrap",
-                        "The Munich Lead"
-                });
+    void readAgentShowsPlaceholderForMissingOptionalFields() {
+        when(dataService.getAgents()).thenReturn(List.of(
+                new Agent(1, "Vanguard", "1985-06-14", null, null, 1)));
 
-        UserInterface ui = createInterface(
-                "1\n4\n"
-        );
+        createInterface(standard, "2\n2\n1\n0\n0\n").run();
 
-        ui.runInterface();
-
-        String text = output.toString();
-
-        assertTrue(text.contains("1. Operation Sandtrap"));
-        assertTrue(text.contains("2. The Munich Lead"));
-        assertTrue(text.contains("Exiting"));
+        assertTrue(text().contains("Date of death: N/A"));
+        assertTrue(text().contains("Notes: N/A"));
     }
 
     @Test
-    void runInterfaceCanReadMissionThenReturnToMenu() {
-        when(databaseManager.getColumn("Title"))
-                .thenReturn(new String[]{
-                        "Operation Sandtrap"
-                });
+    void readAgentWithUnknownIdIsRejected() {
+        when(dataService.getAgents()).thenReturn(List.of());
 
-        when(databaseManager.getRecords("Title", "%"))
-                .thenReturn(new String[]{
-                        "Operation Sandtrap\t1970-11-03\tBug the diplomatic pouch."
-                });
+        createInterface(standard, "2\n2\n4\n0\n0\n").run();
 
-        UserInterface ui = createInterface(
-                "2\n1\n4\n"
-        );
-
-        ui.runInterface();
-
-        String text = output.toString();
-
-        assertTrue(text.contains("Operation Sandtrap"));
-        assertTrue(text.contains("1970-11-03"));
-
-        assertTrue(
-                countOccurrences(
-                        text,
-                        "List available mission briefs"
-                ) >= 2
-        );
+        assertTrue(text().contains("No agent found"));
+        verify(auditLog, never()).log(any(), any(), any(), any());
     }
 
     @Test
-    void searchOptionDisplaysMatchingMissions() {
-        String record =
-                "Operation Sandtrap\t1970-11-03\tBug the diplomatic pouch.";
+    void addAgentPromptsForPropertiesAndIsAudited() {
+        when(dataService.addAgent("Jackal", "1991-02-11", "2024-01-01", "Double agent.", 2))
+                .thenReturn(new Agent(11, "Jackal", "1991-02-11", "2024-01-01", "Double agent.", 2));
 
-        when(missionSearch.search("diplomatic"))
-                .thenReturn(
-                        new SearchResult(
-                                List.of(record),
-                                null
-                        )
-                );
+        createInterface(admin, "2\n3\nJackal\n1991-02-11\n2024-01-01\nDouble agent.\n2\n0\n0\n").run();
 
-        UserInterface ui = createInterface(
-                "3\ndiplomatic\n4\n"
-        );
-
-        ui.runInterface();
-
-        String text = output.toString();
-
-        assertTrue(text.contains("Search Results"));
-        assertTrue(text.contains("Operation Sandtrap"));
-        assertTrue(text.contains("1970-11-03"));
-        assertTrue(text.contains("Bug the diplomatic pouch."));
-
-        verify(missionSearch).search("diplomatic");
+        assertTrue(text().contains("Name:"));
+        assertTrue(text().contains("Date of birth (yyyy-mm-dd):"));
+        assertTrue(text().contains("Date of death"));
+        assertTrue(text().contains("Notes"));
+        assertTrue(text().contains("Facility ID:"));
+        verify(auditLog).log("pat", "CREATE", "AGENT", "11");
     }
 
     @Test
-    void searchOptionDisplaysNoMatchesMessage() {
-        when(missionSearch.search("missing"))
-                .thenReturn(
-                        new SearchResult(
-                                List.of(),
-                                "No matches were found."
-                        )
-                );
+    void addAgentTreatsBlankOptionalFieldsAsNull() {
+        when(dataService.addAgent("Jackal", "1991-02-11", null, null, 2))
+                .thenReturn(new Agent(11, "Jackal", "1991-02-11", null, null, 2));
 
-        UserInterface ui = createInterface(
-                "3\nmissing\n4\n"
-        );
+        createInterface(admin, "2\n3\nJackal\n1991-02-11\n\n\n2\n0\n0\n").run();
 
-        ui.runInterface();
-
-        assertTrue(
-                output.toString().contains(
-                        "No matches were found."
-                )
-        );
-
-        verify(missionSearch).search("missing");
+        verify(dataService).addAgent("Jackal", "1991-02-11", null, null, 2);
     }
 
     @Test
-    void searchFailureIsHandledGracefully() {
-        when(missionSearch.search("agent"))
-                .thenReturn(
-                        new SearchResult(
-                                null,
-                                "Search failed."
-                        )
-                );
+    void addAgentWithNonNumericFacilityIdIsRejected() {
+        createInterface(admin, "2\n3\nJackal\n1991-02-11\n\n\nBA\n0\n0\n").run();
 
-        UserInterface ui = createInterface(
-                "3\nagent\n4\n"
-        );
-
-        ui.runInterface();
-
-        assertTrue(
-                output.toString().contains("Search failed.")
-        );
+        assertTrue(text().contains("Invalid ID"));
+        verify(dataService, never()).addAgent(any(), any(), any(), any(), anyInt());
+        verify(auditLog, never()).log(any(), any(), any(), any());
     }
 
     @Test
-    void invalidMenuInputDoesNotEndProgram() {
-        UserInterface ui = createInterface(
-                "hello\n4\n"
-        );
+    void addAgentRejectedByServiceShowsError() {
+        when(dataService.addAgent(any(), any(), any(), any(), anyInt()))
+                .thenThrow(new IllegalArgumentException("Facility does not exist."));
 
-        ui.runInterface();
+        createInterface(admin, "2\n3\nJackal\n1991-02-11\n\n\n99\n0\n0\n").run();
 
-        String text = output.toString();
+        assertTrue(text().contains("Unable to add agent"));
+        verify(auditLog, never()).log(any(), any(), any(), any());
+    }
 
-        assertTrue(text.contains("Invalid menu selection"));
-        assertTrue(text.contains("Exiting"));
+    // ---------- Facilities ----------
+
+    @Test
+    void listFacilitiesShowsIdsNamesAndAbbreviations() {
+        when(dataService.getFacilities()).thenReturn(List.of(
+                new Facility(1, "Blackwood Annex", "BA"),
+                new Facility(2, "Rose Garden", "RG")));
+
+        createInterface(standard, "3\n1\n0\n0\n").run();
+
+        assertTrue(text().contains("1. Blackwood Annex (BA)"));
+        assertTrue(text().contains("2. Rose Garden (RG)"));
     }
 
     @Test
-    void invalidMissionInputDoesNotEndProgram() {
-        when(databaseManager.getColumn("Title"))
-                .thenReturn(new String[]{
-                        "Operation Sandtrap"
-                });
+    void listFacilitiesShowsMessageWhenEmpty() {
+        when(dataService.getFacilities()).thenReturn(List.of());
 
-        UserInterface ui = createInterface(
-                "2\nhello\n4\n"
-        );
+        createInterface(standard, "3\n1\n0\n0\n").run();
 
-        ui.runInterface();
-
-        String text = output.toString();
-
-        assertTrue(text.contains("Invalid mission number"));
-        assertTrue(text.contains("Exiting"));
+        assertTrue(text().contains("No facilities"));
     }
 
     @Test
-    void missingMissionListIsHandledGracefully() {
-        when(databaseManager.getColumn("Title"))
-                .thenReturn(null);
+    void readFacilityShowsAllPropertiesAndIsAudited() {
+        when(dataService.getFacilities()).thenReturn(List.of(
+                new Facility(3, "Meridian Observatory", "MO")));
 
-        UserInterface ui = createInterface("");
+        createInterface(standard, "3\n2\n3\n0\n0\n").run();
 
-        ui.displayMissionList();
-
-        assertTrue(
-                output.toString().contains(
-                        "Unable to load missions"
-                )
-        );
+        assertTrue(text().contains("Name: Meridian Observatory"));
+        assertTrue(text().contains("Abbreviation: MO"));
+        verify(auditLog).log("agent_7", "READ", "FACILITY", "3");
     }
 
     @Test
-    void nullDatabaseManagerIsRejected() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> new UserInterface(
-                        null,
-                        missionSearch,
-                        new Scanner(""),
-                        new PrintStream(output)
-                )
-        );
+    void readFacilityWithUnknownIdIsRejected() {
+        when(dataService.getFacilities()).thenReturn(List.of());
+
+        createInterface(standard, "3\n2\n8\n0\n0\n").run();
+
+        assertTrue(text().contains("No facility found"));
     }
 
     @Test
-    void nullMissionSearchIsRejected() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> new UserInterface(
-                        databaseManager,
-                        null,
-                        new Scanner(""),
-                        new PrintStream(output)
-                )
-        );
+    void addFacilityPromptsForPropertiesAndIsAudited() {
+        when(dataService.addFacility("Fairbanks Point", "FP"))
+                .thenReturn(new Facility(6, "Fairbanks Point", "FP"));
+
+        createInterface(admin, "3\n3\nFairbanks Point\nFP\n0\n0\n").run();
+
+        assertTrue(text().contains("Name:"));
+        assertTrue(text().contains("Abbreviation:"));
+        verify(auditLog).log("pat", "CREATE", "FACILITY", "6");
     }
 
     @Test
-    void nullScannerIsRejected() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> new UserInterface(
-                        databaseManager,
-                        missionSearch,
-                        null,
-                        new PrintStream(output)
-                )
-        );
+    void addFacilityRejectedByServiceShowsError() {
+        when(dataService.addFacility(any(), any()))
+                .thenThrow(new IllegalArgumentException("Name cannot be blank."));
+
+        createInterface(admin, "3\n3\n\nFP\n0\n0\n").run();
+
+        assertTrue(text().contains("Unable to add facility"));
+        verify(auditLog, never()).log(any(), any(), any(), any());
+    }
+
+    // ---------- Audit log ----------
+
+    @Test
+    void adminCanReviewAuditLog() {
+        when(auditLog.getAuditLog()).thenReturn(List.of(
+                new AuditLogEntry(1, "pat", "READ", "BRIEF", "2",
+                        LocalDateTime.of(2026, 10, 22, 9, 30)),
+                new AuditLogEntry(2, "agent_7", "CREATE", "AGENT", "11",
+                        LocalDateTime.of(2026, 10, 22, 10, 15))));
+
+        createInterface(admin, "4\n0\n").run();
+
+        assertTrue(text().contains("pat"));
+        assertTrue(text().contains("READ"));
+        assertTrue(text().contains("BRIEF"));
+        assertTrue(text().contains("2026-10-22T09:30"));
+        assertTrue(text().contains("agent_7"));
+        assertTrue(text().contains("CREATE"));
+        assertTrue(text().contains("AGENT"));
+        verify(auditLog).getAuditLog();
     }
 
     @Test
-    void nullOutputIsRejected() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> new UserInterface(
-                        databaseManager,
-                        missionSearch,
-                        new Scanner(""),
-                        null
-                )
-        );
+    void emptyAuditLogShowsMessage() {
+        when(auditLog.getAuditLog()).thenReturn(List.of());
+
+        createInterface(admin, "4\n0\n").run();
+
+        assertTrue(text().contains("No audit entries"));
     }
 
-    private int countOccurrences(
-            String text,
-            String target
-    ) {
-        int count = 0;
-        int index = 0;
+    // ---------- Session flow ----------
 
-        while (
-                (index = text.indexOf(target, index)) != -1
-        ) {
-            count++;
-            index += target.length();
-        }
+    @Test
+    void multipleOperationsCanRunInOneSession() {
+        when(dataService.getBriefs()).thenReturn(List.of(
+                new Brief(1, "Operation Sandtrap", "1970-11-03", "Bug the pouch.", null)));
+        when(dataService.getFacilities()).thenReturn(List.of(
+                new Facility(1, "Blackwood Annex", "BA")));
 
-        return count;
+        createInterface(standard, "1\n1\n0\n3\n1\n0\n0\n").run();
+
+        assertTrue(text().contains("Operation Sandtrap"));
+        assertTrue(text().contains("Blackwood Annex"));
+        assertTrue(text().contains("Exiting"));
     }
 }

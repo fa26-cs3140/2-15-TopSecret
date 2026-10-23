@@ -17,12 +17,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 /**
- * Integration tests for AgencyInterface with the real DatabaseManager.
+ * Integration tests for UserInterface with the real DatabaseManager.
  *
  * Uses a temporary SQLite database. The audit log is mocked here;
- * AgencyInterfaceAuditLogManagerTest covers the real audit log.
+ * UserInterfaceAuditLogManagerTest covers the real audit log.
  */
-class AgencyInterfaceDatabaseManagerTest {
+class UserInterfaceDatabaseManagerTest {
 
     private Path testDatabasePath;
     private String url;
@@ -59,7 +59,7 @@ class AgencyInterfaceDatabaseManagerTest {
     }
 
     private String run(UserAccount user, String input) {
-        new AgencyInterface(
+        new UserInterface(
                 dataService,
                 mock(AuditLogService.class),
                 user,
@@ -71,7 +71,7 @@ class AgencyInterfaceDatabaseManagerTest {
 
     @Test
     void constructorStoresUrl() {
-        assertEquals(url, dataService.getUrl());
+        assertEquals(url, dataService.getURL());
     }
 
     @Test
@@ -153,7 +153,7 @@ class AgencyInterfaceDatabaseManagerTest {
             AgencyDataService emptyService =
                     new DatabaseManager("jdbc:sqlite:" + emptyPath.toAbsolutePath());
 
-            new AgencyInterface(emptyService, mock(AuditLogService.class), standard,
+            new UserInterface(emptyService, mock(AuditLogService.class), standard,
                     new Scanner("1\n1\n0\n2\n1\n0\n3\n1\n0\n0\n"), new PrintStream(output)).run();
 
             String text = output.toString();

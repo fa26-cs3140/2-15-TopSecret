@@ -1,529 +1,189 @@
-// package org.example;
-// 
-// import java.io.PrintStream;
-// import java.util.List;
-// import java.util.Scanner;
-// 
-// /**
-//  * Handles the interactive Homework 4 terminal interface.
-//  *
-//  * Mission data is obtained through DatabaseManager.
-//  * Search operations are performed through MissionSearch.
-//  * UserInterface does not directly access SQLite.
-//  */
-// public class UserInterface {
-// 
-//     private final DatabaseManager databaseManager;
-//     private final MissionSearch missionSearch;
-//     private final Scanner scanner;
-//     private final PrintStream output;
-// 
-//     /**
-//      * Creates the normal application UserInterface.
-//      */
-//     public UserInterface() {
-// 
-//         this.databaseManager =
-//                 new DatabaseManager();
-// 
-//         this.missionSearch =
-//                 new MissionSearch(databaseManager);
-// 
-//         this.scanner =
-//                 new Scanner(System.in);
-// 
-//         this.output =
-//                 System.out;
-//     }
-// 
-//     /**
-//      * Creates a UserInterface using the supplied database,
-//      * input, and output.
-//      *
-//      * A MissionSearch is created using the same DatabaseManager.
-//      *
-//      * @param databaseManager database access component
-//      * @param scanner input source
-//      * @param output output destination
-//      */
-//     public UserInterface(
-//             DatabaseManager databaseManager,
-//             Scanner scanner,
-//             PrintStream output
-//     ) {
-//         this(
-//                 databaseManager,
-//                 createMissionSearch(databaseManager),
-//                 scanner,
-//                 output
-//         );
-//     }
-// 
-//     /**
-//      * Creates a UserInterface using supplied dependencies.
-//      *
-//      * This constructor is useful for unit and integration testing.
-//      *
-//      * @param databaseManager database access component
-//      * @param missionSearch mission search component
-//      * @param scanner input source
-//      * @param output output destination
-//      */
-//     public UserInterface(
-//             DatabaseManager databaseManager,
-//             MissionSearch missionSearch,
-//             Scanner scanner,
-//             PrintStream output
-//     ) {
-// 
-//         if (databaseManager == null) {
-//             throw new IllegalArgumentException(
-//                     "DatabaseManager cannot be null."
-//             );
-//         }
-// 
-//         if (missionSearch == null) {
-//             throw new IllegalArgumentException(
-//                     "MissionSearch cannot be null."
-//             );
-//         }
-// 
-//         if (scanner == null) {
-//             throw new IllegalArgumentException(
-//                     "Scanner cannot be null."
-//             );
-//         }
-// 
-//         if (output == null) {
-//             throw new IllegalArgumentException(
-//                     "Output cannot be null."
-//             );
-//         }
-// 
-//         this.databaseManager =
-//                 databaseManager;
-// 
-//         this.missionSearch =
-//                 missionSearch;
-// 
-//         this.scanner =
-//                 scanner;
-// 
-//         this.output =
-//                 output;
-//     }
-// 
-//     /**
-//      * Runs the interactive mission menu until Exit is selected.
-//      */
-//     public void runInterface() {
-// 
-//         boolean running = true;
-// 
-//         while (running) {
-// 
-//             displayMenu();
-// 
-//             if (!scanner.hasNextLine()) {
-//                 return;
-//             }
-// 
-//             String selection =
-//                     scanner.nextLine().trim();
-// 
-//             switch (selection) {
-// 
-//                 case "1":
-//                     displayMissionList();
-//                     break;
-// 
-//                 case "2":
-//                     readMissionSelection();
-//                     break;
-// 
-//                 case "3":
-//                     runSearch();
-//                     break;
-// 
-//                 case "4":
-//                     output.println(
-//                             "Exiting Top Secret."
-//                     );
-// 
-//                     running = false;
-//                     break;
-// 
-//                 default:
-//                     output.println(
-//                             "Invalid menu selection. " +
-//                                     "Please try again."
-//                     );
-//                     break;
-//             }
-//         }
-//     }
-// 
-//     /**
-//      * Compatibility method for the existing TopSecret class.
-//      *
-//      * Homework 4 uses an interactive interface, so command-line
-//      * mission-selection arguments are no longer used here.
-//      *
-//      * @param args command-line arguments
-//      */
-//     public void runInterface(String[] args) {
-//         runInterface();
-//     }
-// 
-//     /**
-//      * Displays the main application menu.
-//      */
-//     public void displayMenu() {
-// 
-//         output.println();
-//         output.println(
-//                 "Top Secret Mission Menu"
-//         );
-// 
-//         output.println(
-//                 "-----------------------"
-//         );
-// 
-//         output.println(
-//                 "1. List available mission briefs"
-//         );
-// 
-//         output.println(
-//                 "2. Read a mission brief"
-//         );
-// 
-//         output.println(
-//                 "3. Search mission briefs"
-//         );
-// 
-//         output.println(
-//                 "4. Exit"
-//         );
-// 
-//         output.print(
-//                 "Select an option: "
-//         );
-//     }
-// 
-//     /**
-//      * Displays all mission titles with corresponding numbers.
-//      */
-//     public void displayMissionList() {
-// 
-//         String[] titles =
-//                 databaseManager.getColumn(this.databaseManager.getBriefsTableName(), "Title");
-// 
-//         if (titles == null) {
-//             output.println(
-//                     "Unable to load missions."
-//             );
-//             return;
-//         }
-// 
-//         if (titles.length == 0) {
-//             output.println(
-//                     "No mission briefs are available."
-//             );
-//             return;
-//         }
-// 
-//         output.println();
-//         output.println(
-//                 "Available Mission Briefs"
-//         );
-// 
-//         output.println(
-//                 "------------------------"
-//         );
-// 
-//         for (
-//                 int i = 0;
-//                 i < titles.length;
-//                 i++
-//         ) {
-//             output.println(
-//                     (i + 1) +
-//                             ". " +
-//                             titles[i]
-//             );
-//         }
-//     }
-// 
-//     /**
-//      * Displays a mission selected using its displayed number.
-//      *
-//      * @param missionNumber one-based mission number
-//      */
-//     public void displayMission(
-//             String missionTable,
-//             int missionNumber
-//     ) {
-// 
-//         if (missionNumber < 1) {
-//             output.println(
-//                     "Invalid mission number."
-//             );
-//             return;
-//         }
-// 
-//         String[] records =
-//                 databaseManager.getRecords(
-//                         missionTable,
-//                         "Title",
-//                         "%"
-//                 );
-// 
-//         if (records == null) {
-//             output.println(
-//                     "Unable to load missions."
-//             );
-//             return;
-//         }
-// 
-//         if (missionNumber > records.length) {
-//             output.println(
-//                     "Invalid mission number."
-//             );
-//             return;
-//         }
-// 
-//         String record =
-//                 records[missionNumber - 1];
-// 
-//         displayRecord(
-//                 record,
-//                 "Mission Brief"
-//         );
-//     }
-// 
-//     /**
-//      * Displays the contents of a SearchResult.
-//      *
-//      * @param result result returned by MissionSearch
-//      */
-//     public void displaySearchResults(
-//             SearchResult result
-//     ) {
-// 
-//         if (result == null) {
-//             output.println(
-//                     "Search failed."
-//             );
-//             return;
-//         }
-// 
-//         String message =
-//                 result.getMessage();
-// 
-//         if (
-//                 message != null &&
-//                         !message.isBlank()
-//         ) {
-//             output.println(message);
-//         }
-// 
-//         List<String> matches =
-//                 result.getMatches();
-// 
-//         if (
-//                 matches == null ||
-//                         matches.isEmpty()
-//         ) {
-//             return;
-//         }
-// 
-//         output.println();
-//         output.println(
-//                 "Search Results"
-//         );
-// 
-//         output.println(
-//                 "--------------"
-//         );
-// 
-//         for (
-//                 int i = 0;
-//                 i < matches.size();
-//                 i++
-//         ) {
-// 
-//             String record =
-//                     matches.get(i);
-// 
-//             String[] fields =
-//                     record.split(
-//                             "\t",
-//                             3
-//                     );
-// 
-//             if (fields.length < 3) {
-//                 output.println(
-//                         (i + 1) +
-//                                 ". " +
-//                                 record
-//                 );
-// 
-//                 continue;
-//             }
-// 
-//             output.println(
-//                     (i + 1) +
-//                             ". " +
-//                             fields[0]
-//             );
-// 
-//             output.println(
-//                     "   Date: " +
-//                             fields[1]
-//             );
-// 
-//             output.println(
-//                     "   Brief: " +
-//                             fields[2]
-//             );
-//         }
-//     }
-// 
-//     /**
-//      * Public Functions End
-//      */
-// 
-//     /**
-//      * Prompts the user for a mission number.
-//      */
-//     private void readMissionSelection() {
-// 
-//         displayMissionList();
-// 
-//         output.print(
-//                 "Enter mission number: "
-//         );
-// 
-//         if (!scanner.hasNextLine()) {
-//             return;
-//         }
-// 
-//         String input =
-//                 scanner.nextLine().trim();
-// 
-//         try {
-// 
-//             int missionNumber =
-//                     Integer.parseInt(input);
-// 
-//             displayMission(
-//                     this.databaseManager.getBriefsTableName(),
-//                     missionNumber
-//             );
-// 
-//         } catch (NumberFormatException e) {
-// 
-//             output.println(
-//                     "Invalid mission number."
-//             );
-//         }
-//     }
-// 
-//     /**
-//      * Prompts for a search word or phrase and displays
-//      * the result returned by MissionSearch.
-//      */
-//     private void runSearch() {
-// 
-//         output.print(
-//                 "Enter search word or phrase: "
-//         );
-// 
-//         if (!scanner.hasNextLine()) {
-//             return;
-//         }
-// 
-//         String searchTerm =
-//                 scanner.nextLine();
-// 
-//         SearchResult result =
-//                 missionSearch.search(
-//                         searchTerm
-//                 );
-// 
-//         displaySearchResults(
-//                 result
-//         );
-//     }
-// 
-//     /**
-//      * Displays a tab-separated mission record.
-//      */
-//     private void displayRecord(
-//             String record,
-//             String heading
-//     ) {
-// 
-//         if (record == null) {
-//             output.println(
-//                     "Unable to display mission."
-//             );
-//             return;
-//         }
-// 
-//         String[] fields =
-//                 record.split(
-//                         "\t",
-//                         3
-//                 );
-// 
-//         if (fields.length < 3) {
-//             output.println(
-//                     "Unable to display mission."
-//             );
-//             return;
-//         }
-// 
-//         output.println();
-//         output.println(heading);
-// 
-//         output.println(
-//                 "-".repeat(
-//                         heading.length()
-//                 )
-//         );
-// 
-//         output.println(
-//                 "Title: " +
-//                         fields[0]
-//         );
-// 
-//         output.println(
-//                 "Date: " +
-//                         fields[1]
-//         );
-// 
-//         output.println(
-//                 "Brief: " +
-//                         fields[2]
-//         );
-//     }
-// 
-//     /**
-//      * Creates MissionSearch for the three-argument constructor.
-//      */
-//     private static MissionSearch createMissionSearch(
-//             DatabaseManager databaseManager
-//     ) {
-// 
-//         if (databaseManager == null) {
-//             throw new IllegalArgumentException(
-//                     "DatabaseManager cannot be null."
-//             );
-//         }
-// 
-//         return new MissionSearch(
-//                 databaseManager
-//         );
-//     }
-// }
+package org.example;
+
+import java.io.PrintStream;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
+
+public class UserInterface {
+
+    private final AgencyDataService data;
+    private final AuditLogService auditLog;
+    private final UserAccount currentUser;
+    private final Scanner scanner;
+    private final PrintStream output;
+
+    public UserInterface(AgencyDataService data, AuditLogService auditLog,
+                         UserAccount currentUser, Scanner scanner, PrintStream output) {
+        if (data == null || auditLog == null || currentUser == null || scanner == null || output == null) {
+            throw new IllegalArgumentException("Arguments cannot be null.");
+        }
+        this.data = data;
+        this.auditLog = auditLog;
+        this.currentUser = currentUser;
+        this.scanner = scanner;
+        this.output = output;
+    }
+
+    public UserAccount getCurrentUser() {
+        return currentUser;
+    }
+
+    public void run() {
+        try {
+            while (true) {
+                displayMainMenu();
+                switch (readLine()) {
+                    case "1" -> runTypeMenu(RecordType.BRIEF);
+                    case "2" -> runTypeMenu(RecordType.AGENT);
+                    case "3" -> runTypeMenu(RecordType.FACILITY);
+                    case "4" -> { if (isAdmin()) displayAuditLog(); else invalidSelection(); }
+                    case "0" -> { output.println("Exiting Top Secret."); return; }
+                    default -> invalidSelection();
+                }
+            }
+        } catch (NoSuchElementException e) {
+            // Input ran out; stop quietly.
+        }
+    }
+
+    public void displayMainMenu() {
+        output.println("\nTop Secret Main Menu\n1. Briefs\n2. Agents\n3. Facilities");
+        if (isAdmin()) {
+            output.println("4. Review audit log");
+        }
+        output.print("0. Exit\nSelect an option: ");
+    }
+
+    public void displayTypeMenu(RecordType type) {
+        output.println("\n" + type.getTitle() + "\n1. List\n2. Read");
+        if (isAdmin()) {
+            output.println("3. Add");
+        }
+        output.print("0. Back\nSelect an option: ");
+    }
+
+    private void runTypeMenu(RecordType type) {
+        while (true) {
+            displayTypeMenu(type);
+            switch (readLine()) {
+                case "1" -> listRecords(type);
+                case "2" -> readRecord(type);
+                case "3" -> { if (isAdmin()) addRecord(type); else invalidSelection(); }
+                case "0" -> { return; }
+                default -> invalidSelection();
+            }
+        }
+    }
+
+    private void listRecords(RecordType type) {
+        List<String> lines = switch (type) {
+            case BRIEF -> data.getBriefs().stream().map(b -> b.getId() + ". " + b.getTitle()).toList();
+            case AGENT -> data.getAgents().stream().map(a -> a.getId() + ". " + a.getName()).toList();
+            case FACILITY -> data.getFacilities().stream()
+                    .map(f -> f.getId() + ". " + f.getName() + " (" + f.getAbbreviation() + ")").toList();
+        };
+        if (lines.isEmpty()) {
+            output.println("No " + type.getTitle().toLowerCase() + " are available.");
+        }
+        lines.forEach(output::println);
+    }
+
+    private void readRecord(RecordType type) {
+        Integer id = readId("Enter " + type.getSingular() + " ID: ");
+        if (id == null) {
+            return;
+        }
+        List<String> details = switch (type) {
+            case BRIEF -> data.getBriefs().stream().filter(b -> b.getId() == id).findFirst()
+                    .map(b -> List.of("Title: " + b.getTitle(), "Date: " + b.getDate(), "Text: " + b.getText()))
+                    .orElse(null);
+            case AGENT -> data.getAgents().stream().filter(a -> a.getId() == id).findFirst()
+                    .map(a -> List.of("Name: " + a.getName(), "Date of birth: " + a.getDateOfBirth(),
+                            "Date of death: " + orNA(a.getDateOfDeath()), "Notes: " + orNA(a.getNotes()),
+                            "Facility ID: " + a.getFacilityId()))
+                    .orElse(null);
+            case FACILITY -> data.getFacilities().stream().filter(f -> f.getId() == id).findFirst()
+                    .map(f -> List.of("Name: " + f.getName(), "Abbreviation: " + f.getAbbreviation()))
+                    .orElse(null);
+        };
+        if (details == null) {
+            output.println("No " + type.getSingular() + " found with ID " + id + ".");
+            return;
+        }
+        details.forEach(output::println);
+        auditLog.log(currentUser.getUsername(), "READ", type.name(), String.valueOf(id));
+    }
+
+    private void addRecord(RecordType type) {
+        try {
+            Integer id = switch (type) {
+                case BRIEF -> data.addBrief(prompt("Title: "), prompt("Date (yyyy-mm-dd): "),
+                        prompt("Text: ")).getId();
+                case AGENT -> addAgent();
+                case FACILITY -> data.addFacility(prompt("Name: "), prompt("Abbreviation: ")).getId();
+            };
+            if (id != null) {
+                auditLog.log(currentUser.getUsername(), "CREATE", type.name(), String.valueOf(id));
+                output.println("Added " + type.getSingular() + " with ID " + id + ".");
+            }
+        } catch (IllegalArgumentException e) {
+            output.println("Unable to add " + type.getSingular() + ": " + e.getMessage());
+        }
+    }
+
+    private Integer addAgent() {
+        String name = prompt("Name: ");
+        String born = prompt("Date of birth (yyyy-mm-dd): ");
+        String died = blankToNull(prompt("Date of death (yyyy-mm-dd, blank if none): "));
+        String notes = blankToNull(prompt("Notes (blank if none): "));
+        Integer facilityId = readId("Facility ID: ");
+        return facilityId == null ? null : data.addAgent(name, born, died, notes, facilityId).getId();
+    }
+
+    private void displayAuditLog() {
+        List<AuditLogEntry> entries = auditLog.getAuditLog();
+        if (entries == null || entries.isEmpty()) {
+            output.println("No audit entries have been recorded.");
+            return;
+        }
+        for (AuditLogEntry e : entries) {
+            output.println(e.getTimestamp() + " | " + e.getUsername() + " | " + e.getAction()
+                    + " | " + e.getContentType() + " " + e.getContentIdentifier());
+        }
+    }
+
+    private boolean isAdmin() {
+        return currentUser.isAdmin();
+    }
+
+    private String readLine() {
+        return scanner.nextLine().trim();
+    }
+
+    private String prompt(String label) {
+        output.print(label);
+        return readLine();
+    }
+
+    private Integer readId(String label) {
+        try {
+            return Integer.parseInt(prompt(label));
+        } catch (NumberFormatException e) {
+            output.println("Invalid ID.");
+            return null;
+        }
+    }
+
+    private void invalidSelection() {
+        output.println("Invalid selection. Please try again.");
+    }
+
+    private static String blankToNull(String value) {
+        return value.isEmpty() ? null : value;
+    }
+
+    private static String orNA(String value) {
+        return value == null ? "N/A" : value;
+    }
+}
