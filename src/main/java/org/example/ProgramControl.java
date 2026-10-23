@@ -91,7 +91,7 @@ public class ProgramControl {
      * @param ui UserInterface to be passed
      * @param args Arguments to pasesed into ui.runInterface()
      */
-    public void run(AgencyInterface ui, String[] args) 
+    public void run(UserInterface ui, String[] args)
     {
         // We are going to now create a table that contains for this
         // TODO: Refactor DatabaseManager for this
