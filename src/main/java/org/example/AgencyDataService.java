@@ -9,11 +9,11 @@ import java.util.List;
 // Add methods throw IllegalArgumentException for invalid data.
 public interface AgencyDataService {
 
-    List<Brief> getBriefs();
+    Brief[] getBriefs();
 
-    List<Agent> getAgents();
+    Agent[] getAgents();
 
-    List<Facility> getFacilities();
+    Facility[] getFacilities();
 
     Brief addBrief(String title, String date, String text);
 
