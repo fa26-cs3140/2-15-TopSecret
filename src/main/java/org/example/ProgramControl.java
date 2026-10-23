@@ -8,12 +8,14 @@ public class ProgramControl {
 
     private final FileHandler fileHandler;
     private final DatabaseManager databaseManager;
+    private final String databaseFile = "mission_database.db";
 
     //Creates a ProgramControl using the default data directory.
 
     public ProgramControl() {
+        String url = "jdbc:sqlite:data/" + databaseFile;
         this.fileHandler = new FileHandler();
-        this.databaseManager = new DatabaseManager();
+        this.databaseManager = new DatabaseManager(url);
     }
 
     //@param fileHandler FileHandler used to access files
@@ -47,25 +49,39 @@ public class ProgramControl {
      */
     public void run(UserInterface ui, String[] args) 
     {
+        // We are going to now create a table that contains for this
+        // TODO: Refactor DatabaseManager for this
+        // The database will now just be called "mission_database"
+        // and it will contain a table for all mission information
+        // Information in the database should be ciphered
+
         // Ensure that the file already exists, if not create it.
-        if (!this.getAvailableFiles().contains("mission_briefs.db"))
+        if (!this.getAvailableFiles().contains(databaseFile))
         {
-            fileHandler.writeFile("mission_briefs.db", "");
+            fileHandler.writeFile(databaseFile, "");
         }
 
         // Then import the data from the relevant .tsv file as a .db
         try
         {
-            if (!this.databaseManager.tableExists("mission_briefs"))
+            if (!this.databaseManager.tableExists(this.databaseManager.getBriefsTableName()))
             {
                 this.databaseManager.importTSV(fileHandler.getDataDirectory() + "/mission_briefs.tsv",
-                        fileHandler.getDataDirectory(), "mission_briefs.db");
+                                               this.databaseManager.getBriefsTableName(),
+                                               fileHandler.getDataDirectory(), 
+                                               databaseFile);
             }
         }
         catch (IOException e)
         {
             DebugHelper.debugPrintln(e.getMessage());
         }
+
+        // Check to see if users exist. If not, prompt them.
+
+        // I am going to refactor this to allow for args, which
+        // going forward must be parsed in this format: -- Zaid
+        // 0 - briefs, 1 - facilities, 2 - users
         ui.runInterface(args);
     }
 

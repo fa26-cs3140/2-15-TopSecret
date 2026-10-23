@@ -23,7 +23,7 @@ public class MissionSearch {
         }
 
         String searchKey = "%" + searchTerm + "%";
-        String[] records = databaseManager.getRecords("Text", searchKey);
+        String[] records = databaseManager.getRecords(this.databaseManager.getBriefsTableName(), "Text", searchKey);
 
         // Search operation fails
         if (records == null) {

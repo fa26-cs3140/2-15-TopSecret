@@ -14,7 +14,8 @@ public class DatabaseManager
     private String username = "user";
     private String password = "pwd";
 
-    private final String main_table = "mission_briefs"; 
+    private final String userTableName = "users";
+    private final String missionBriefTableName = "mission_briefs";
 
     public DatabaseManager()
     {
@@ -45,9 +46,9 @@ public class DatabaseManager
      * @param column name of the column to search 
      * @param value value to match
      */
-    public String[] getRecords(String url, String column, String value)
+    public String[] getRecords(String url, String table, String column, String value)
     {
-        String query = "SELECT Title, Date, Text FROM " + main_table + " WHERE " + column + " LIKE ?";
+        String query = "SELECT Title, Date, Text FROM " + table + " WHERE " + column + " LIKE ?";
         // Get a ResultSet containing matching records
         // ResultSet rs = this.createQuery(url, query);
         ResultSet rs = null;
@@ -103,7 +104,7 @@ public class DatabaseManager
      * 
      * @param tableName the name of the table
      */
-    public Boolean tableExists(String tableName)
+    public Boolean tableExists(String table)
     {
         try (
                 Connection conn = DriverManager.getConnection(this.sqlURL, this.username, this.password);
@@ -111,7 +112,7 @@ public class DatabaseManager
         {
             DatabaseMetaData meta = conn.getMetaData();
 
-            try (ResultSet rs = meta.getTables(null, null, this.main_table, new String [] {"TABLE"})) {
+            try (ResultSet rs = meta.getTables(null, null, table, new String [] {"TABLE"})) {
                 return rs.next();
             }
 
@@ -132,9 +133,9 @@ public class DatabaseManager
      * @param column name of the column to search 
      * @param value value to match
      */
-    public String[] getRecords(String column, String key)
+    public String[] getRecords(String table, String column, String key)
     {
-        return this.getRecords(this.sqlURL, column, key);
+        return this.getRecords(this.sqlURL, table, column, key);
     }
 
     /**
@@ -144,10 +145,10 @@ public class DatabaseManager
      * @param url pointer to database to search
      * @param column name of column to pull
      */
-    public String[] getColumn(String url, String column)
+    public String[] getColumn(String url, String table, String column)
     {
         // Get the records which match the search
-        String query = "SELECT " + column + " FROM " + main_table;
+        String query = "SELECT " + column + " FROM " + table;
 
         // Pipe it into an sql statement
         try (
@@ -186,9 +187,9 @@ public class DatabaseManager
      *
      * @param column name of column to pull
      */
-    public String[] getColumn(String column)
+    public String[] getColumn(String table, String column)
     {
-        return this.getColumn(this.sqlURL, column);
+        return this.getColumn(this.sqlURL, table, column);
     }
 
     /** 
@@ -202,7 +203,7 @@ public class DatabaseManager
      * @param dbOutName string name of the output databse 
      * @throws IOException
      */
-    public Boolean importTSV(String pathToTSV, String dirOut, String dbOutName) throws IOException
+    public Boolean importTSV(String pathToTSV, String tableName, String dirOut, String dbOutName) throws IOException
     {
         // Remove trailing slashes from pathToTSV in an effort to reduce error
         if (pathToTSV.charAt(pathToTSV.length() - 1) == '\\' ||
@@ -239,7 +240,7 @@ public class DatabaseManager
         String query; 
         if (!Files.exists(Path.of(fullOutDBPath))) Files.createFile(Path.of(fullOutDBPath));
         
-        query = "CREATE TABLE IF NOT EXISTS " + main_table + " (Title TEXT, Date DATE, Text TEXT)";
+        query = "CREATE TABLE IF NOT EXISTS " + tableName + " (Title TEXT, Date DATE, Text TEXT)";
         this.createQuery(jdbcURL, query);
 
         try (
@@ -248,7 +249,7 @@ public class DatabaseManager
         {
             // Once the table has been created, we change the query
             // to insert into the new table
-            query = "INSERT INTO " + main_table + " (Title, Date, Text) VALUES (?, ?, ?)";
+            query = "INSERT INTO " + tableName + " (Title, Date, Text) VALUES (?, ?, ?)";
             PreparedStatement statement = conn.prepareStatement(query);
             BufferedReader reader = new BufferedReader(new FileReader(pathToTSV));
             String readText;
@@ -283,6 +284,26 @@ public class DatabaseManager
             return false;
         }
     }
+
+    /**
+     * Returns table name containing mission briefs
+     */
+    public String getBriefsTableName()
+    {
+        return this.missionBriefTableName;
+    }
+
+    /**
+     * Returns table name containing users
+     */
+    public String getUsersTableName()
+    {
+        return this.userTableName;
+    }
+
+    /**
+     * End of public functions
+     */
 
     // Generates a compilable query from an input string in SQLite3 query syntax
     // Returns a ResultSet object containing the retrieved query items

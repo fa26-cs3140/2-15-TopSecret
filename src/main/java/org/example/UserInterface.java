@@ -216,7 +216,7 @@ public class UserInterface {
     public void displayMissionList() {
 
         String[] titles =
-                databaseManager.getColumn("Title");
+                databaseManager.getColumn(this.databaseManager.getBriefsTableName(), "Title");
 
         if (titles == null) {
             output.println(
@@ -260,6 +260,7 @@ public class UserInterface {
      * @param missionNumber one-based mission number
      */
     public void displayMission(
+            String missionTable,
             int missionNumber
     ) {
 
@@ -272,6 +273,7 @@ public class UserInterface {
 
         String[] records =
                 databaseManager.getRecords(
+                        missionTable,
                         "Title",
                         "%"
                 );
@@ -388,6 +390,10 @@ public class UserInterface {
     }
 
     /**
+     * Public Functions End
+     */
+
+    /**
      * Prompts the user for a mission number.
      */
     private void readMissionSelection() {
@@ -411,6 +417,7 @@ public class UserInterface {
                     Integer.parseInt(input);
 
             displayMission(
+                    this.databaseManager.getBriefsTableName(),
                     missionNumber
             );
 

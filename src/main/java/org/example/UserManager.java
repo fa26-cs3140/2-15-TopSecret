@@ -1,10 +1,10 @@
 package org.example;
 
 // TODO: Refactor this to specifically manage Users
-public class UserManager implements IDatabaseUser
+public class UserManager
 {
-    private String sqlURL = "jdbc:sqlite:data/agency_info.db";
-    private final String table = "agents";
+    public String sqlURL = "jdbc:sqlite:data/agency_info.db";
+    public final String table = "agents";
 
     private final String username = "user";
     private final String password = "pwd";
