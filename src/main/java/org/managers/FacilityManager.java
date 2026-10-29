@@ -171,6 +171,9 @@ public class FacilityManager extends IDatabaseManager<Facility>
 
             this.addRecord(name, abbreviation);
         }
+
+        reader.close();
+        return true;
     }
 
 
