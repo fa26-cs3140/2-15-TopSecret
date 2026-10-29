@@ -3,11 +3,15 @@ package org.example;
 import java.io.IOException;
 import java.util.List;
 
+import org.managers.*;
+
 //Controls the main application logic by connecting the UserInterface, FileHandler, and Cipher classes.
 public class ProgramControl {
 
     private final FileHandler fileHandler;
-    private final DatabaseManager databaseManager;
+    private final BriefManager briefManager;
+    private final AgentManager agentManager;
+    private final FacilityManager facilityManager;
     private final String databaseFile = "mission_database.db";
     private final String databaseURL = "jdbc:sqlite:data/" + databaseFile;
 
@@ -15,75 +19,10 @@ public class ProgramControl {
 
     public ProgramControl() {
         this.fileHandler = new FileHandler();
-        this.databaseManager = new DatabaseManager(databaseURL);
+        this.briefManager = new BriefManager(this.databaseURL);
+        this.agentManager = new AgentManager(this.databaseURL);
+        this.facilityManager = new FacilityManager(this.databaseURL);
     }
-
-    //@param fileHandler FileHandler used to access files
-    public ProgramControl(FileHandler fileHandler) {
-        if (fileHandler == null) {
-            throw new IllegalArgumentException("FileHandler cannot be null.");
-        }
-
-        this.fileHandler = fileHandler;
-        this.databaseManager = new DatabaseManager(databaseURL);
-    }
-
-    public ProgramControl(FileHandler fileHandler, DatabaseManager databaseManager)
-    {
-        if (fileHandler == null) {
-            throw new IllegalArgumentException("FileHandler cannot be null.");
-        }
-        if (databaseManager == null) {
-            throw new IllegalArgumentException("DatabaseManager cannot be null.");
-        }
-
-        this.fileHandler = fileHandler;
-        this.databaseManager = databaseManager;
-    }
-
-    /**
-     * Runs the main program, handles the creation of a database
-     *
-     * @param ui UserInterface to be passed
-     * @param args Arguments to pasesed into ui.runInterface()
-     */
-    // public void run(UserInterface ui, String[] args) 
-    // {
-    //     // We are going to now create a table that contains for this
-    //     // TODO: Refactor DatabaseManager for this
-    //     // The database will now just be called "mission_database"
-    //     // and it will contain a table for all mission information
-    //     // Information in the database should be ciphered
-
-    //     // Ensure that the file already exists, if not create it.
-    //     if (!this.getAvailableFiles().contains(databaseFile))
-    //     {
-    //         fileHandler.writeFile(databaseFile, "");
-    //     }
-
-    //     // Then import the data from the relevant .tsv file as a .db
-    //     try
-    //     {
-    //         if (!this.databaseManager.tableExists("briefs"))
-    //         {
-    //             this.databaseManager.importTSV(fileHandler.getDataDirectory() + "/mission_briefs.tsv",
-    //                                            "briefs",
-    //                                            fileHandler.getDataDirectory(), 
-    //                                            databaseFile);
-    //         }
-    //     }
-    //     catch (IOException e)
-    //     {
-    //         DebugHelper.debugPrintln(e.getMessage());
-    //     }
-
-    //     // Check to see if users exist. If not, prompt them.
-
-    //     // I am going to refactor this to allow for args, which
-    //     // going forward must be parsed in this format: -- Zaid
-    //     // 0 - briefs, 1 - facilities, 2 - users
-    //     ui.runInterface(args);
-    // }
 
     /**
      * Runs the main program, handles the creation of a database
@@ -106,26 +45,10 @@ public class ProgramControl {
         }
 
         // Then import the data from the relevant .tsv file as a .db
-        try
-        {
-            if (!this.databaseManager.tableExists("briefs"))
-            {
-                this.databaseManager.importTSV(fileHandler.getDataDirectory() + "/mission_briefs.tsv",
-                                               "briefs",
-                                               fileHandler.getDataDirectory(), 
-                                               databaseFile);
-            }
-        }
-        catch (IOException e)
-        {
-            DebugHelper.debugPrintln(e.getMessage());
-        }
+        this.createModelTables();
 
         // Check to see if users exist. If not, prompt them.
 
-        // I am going to refactor this to allow for args, which
-        // going forward must be parsed in this format: -- Zaid
-        // 0 - briefs, 1 - facilities, 2 - users
         ui.run();
     }
 
@@ -204,5 +127,38 @@ public class ProgramControl {
         Cipher cipher = new Cipher(cipherKey);
 
         return cipher.decipher(cipheredContents);
+    }
+
+    private void createModelTables()
+    {
+
+        try
+        {
+            if (!this.briefManager.tableExists("briefs"))
+            {
+                this.briefManager.importTSV(fileHandler.getDataDirectory() + "/mission_briefs.tsv",
+                                               "briefs",
+                                               fileHandler.getDataDirectory(), 
+                                               databaseFile);
+            }
+            if (!this.facilityManager.tableExists("facilities"))
+            {
+                this.facilityManager.importTSV(fileHandler.getDataDirectory() + "/mission_briefs.tsv",
+                                               "briefs",
+                                               fileHandler.getDataDirectory(), 
+                                               databaseFile);
+            }
+            if (!this.agentManager.tableExists("agents"))
+            {
+                this.agentManager.importTSV(fileHandler.getDataDirectory() + "/mission_briefs.tsv",
+                                               "briefs",
+                                               fileHandler.getDataDirectory(), 
+                                               databaseFile);
+            }
+        }
+        catch (IOException e)
+        {
+            DebugHelper.debugPrintln(e.getMessage());
+        }
     }
 }
