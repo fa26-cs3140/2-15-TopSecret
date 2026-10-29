@@ -1,5 +1,4 @@
-
-package org.example;
+package org.managers;
 
 import org.model.Facility;
 
@@ -57,7 +56,7 @@ public class FacilityManager extends IDatabaseManager<Facility>
     }
 
     /**
-     * Returns an array of Brief objects that match the key in the column.
+     * Returns an array of Facility objects that match the key in the column.
      */
     @Override 
     public Facility[] getRecords(String column, String key)
@@ -83,6 +82,8 @@ public class FacilityManager extends IDatabaseManager<Facility>
 
     /**
      * Adds a record to the databse, taking in a Facility object as its value.
+     *
+     * Returns a copy of the facility object with the correct ID
      */
     @Override
     public Facility addRecord(Facility value)
@@ -98,6 +99,8 @@ public class FacilityManager extends IDatabaseManager<Facility>
 
     /**
      * Adds a record to the database, constructs a facility from input title, date, and text
+     *
+     * Returns a copy of the generated faclity object with the correct ID
      */
     public Facility addRecord(String name, String abbreviation)
     {
@@ -189,7 +192,7 @@ public class FacilityManager extends IDatabaseManager<Facility>
             return true;
         } catch (SQLException e) { e.printStackTrace(); return false; }
     }
-    }
+
 
     /**
      * Private helper functions below

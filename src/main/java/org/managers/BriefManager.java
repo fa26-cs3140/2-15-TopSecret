@@ -1,6 +1,7 @@
-package org.example;
+package org.managers;
 
 import org.model.Brief;
+import org.example.DebugHelper;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -199,86 +200,6 @@ public class BriefManager extends IDatabaseManager<Brief>
         } catch (SQLException e) { e.printStackTrace(); return false; }
     }
 
-    // Rewrite this to generalise to the schema implemented by the database
-    // public Boolean importTSV(String pathToTSV, String tableName, String dirOut, String dbOutName) throws IOException
-    // {
-    //     // Remove trailing slashes from pathToTSV in an effort to reduce error
-    //     if (pathToTSV.charAt(pathToTSV.length() - 1) == '\\' ||
-    //         pathToTSV.charAt(pathToTSV.length() - 1) == '/')
-    //     {
-    //         String tmp = pathToTSV.substring(0, pathToTSV.length() - 2);
-    //         pathToTSV = tmp;
-    //     }
-    //     // Making sure JDBC exists, giving me hell trying to fix
-    //     try 
-    //     {
-    //         Class.forName("org.sqlite.JDBC");
-    //     }
-    //     catch (ClassNotFoundException e)
-    //     {
-    //         DebugHelper.debugPrintln("JDBC Class not found. Check dependencies.");
-    //         return false;
-    //     }
-
-    //     // Check if directory and/or tsv exists
-    //     if (!Files.exists(Path.of(dirOut))) return false;
-
-    //     if (!Files.exists(Path.of(pathToTSV))) return false;
-    //     
-    //     // Helper variable for clairty on where outputs are found
-    //     String fullOutDBPath = dirOut + "/" + dbOutName;
-    //     
-    //     // Create a URL to output the file
-    //     String jdbcURL = "jdbc:sqlite:" + fullOutDBPath;
-
-    //     // Create table to be inserted, following mission table format (Name, Date, Text)
-    //     String query; 
-    //     if (!Files.exists(Path.of(fullOutDBPath))) Files.createFile(Path.of(fullOutDBPath));
-    //     
-    //     query = "CREATE TABLE IF NOT EXISTS " + tableName + " (Title TEXT, Date DATE, Text TEXT)";
-    //     this.createQuery(jdbcURL, query);
-
-    //     try (
-    //             Connection conn = DriverManager.getConnection(jdbcURL);
-    //         )
-    //     {
-    //         // Once the table has been created, we change the query
-    //         // to insert into the new table
-    //         query = "INSERT INTO " + tableName + " (Title, Date, Text) VALUES (?, ?, ?)";
-
-    //         PreparedStatement statement = conn.prepareStatement(query);
-    //         BufferedReader reader = new BufferedReader(new FileReader(pathToTSV));
-    //         String readText;
-
-    //         // Skip header
-    //         reader.readLine();
-
-    //         // Read out all the information from the TSV
-    //         while ((readText = reader.readLine()) != null)
-    //         {
-    //             // Split around the tabs. Title in 0, Date in 1, Text in 2
-    //             String[] fields = readText.split("\t");
-
-    //             statement.setString(1, fields[0]);
-    //             statement.setDate(2, Date.valueOf(fields[1]));
-    //             statement.setString(3, fields[2]);
-
-    //             // Add data to statement queries to an execution.
-    //             statement.addBatch();
-    //         }
-
-    //         // After obtaining all the necessary statements, execute
-    //         statement.executeBatch();
-    //         // System.out.println("[" + this.getFunctionName() + "]: Database made.");
-    //         // Final stuff
-    //         reader.close();
-    //         return true;
-    //     }
-    //     catch (SQLException e)
-    //     {
-    //         return false;
-    //     }
-    // }
 /**
  * Private helper functions defined below
  */
@@ -291,26 +212,6 @@ public class BriefManager extends IDatabaseManager<Brief>
                     .formatted(this.tableName, this.columnNames[0], this.columnNames[1], this.columnNames[2], this.columnNames[3]));
         } catch (SQLException e) {
             DebugHelper.debugPrintln(e.getMessage());
-        }
-    }
-
-    // Generates a compilable query from an input string in SQLite3 query syntax
-    // Returns a ResultSet object containing the retrieved query items
-    private ResultSet createQuery(String url, String query)
-    {
-        try // Conditions for the try statement
-            (
-                Connection conn = DriverManager.getConnection(url);
-            )
-        {
-            Statement statement = conn.createStatement();
-            statement.setQueryTimeout(30);
-            ResultSet rs = statement.executeQuery(query);
-            return rs;
-        }
-        catch (SQLException e)
-        {
-            return null;
         }
     }
 }

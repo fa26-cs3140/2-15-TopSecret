@@ -1,4 +1,4 @@
-package org.example;
+package org.managers;
 
 import java.io.IOException;
 import java.sql.*;
