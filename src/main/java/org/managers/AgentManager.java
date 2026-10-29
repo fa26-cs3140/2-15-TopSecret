@@ -171,45 +171,28 @@ public class AgentManager extends IDatabaseManager<Agent>
         if (!Files.exists(Path.of(fullOutDBPath))) Files.createFile(Path.of(fullOutDBPath));
 
         this.createTable();
+        BufferedReader reader = new BufferedReader(new FileReader(pathToTSV));
+        String readText;
 
-        try (Connection c = connect();)
+        // Skip header
+        reader.readLine();
+
+        while ((readText = reader.readLine()) != null)
         {
-            // Once the table has been created, we change the query
-            // to insert into the new table
-            String query = "INSERT INTO " + tableName + 
-                   " (%s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?)"
-                   .formatted(this.columnNames[0], this.columnNames[1],
-                              this.columnNames[2], this.columnNames[3],
-                              this.columnNames[4], this.columnNames[5]);
+            // Each column should correspond with the requisite value, apart from id
+            String[] data = readText.split("\t");
+            
+            String name = data[0];
+            String dateOfBirth = data[1];
+            String dateOfDeath = data[2];
+            String notes = data[3];
+            int facilityId = Integer.parseInt(data[4]);
 
-            PreparedStatement statement = c.prepareStatement(query);
-            BufferedReader reader = new BufferedReader(new FileReader(pathToTSV));
-            String readText;
+            this.addRecord(name, dateOfBirth, dateOfDeath, notes, facilityId);
+        }
 
-            // Skip header
-            reader.readLine();
-
-            // Read out all the information from the TSV
-            while ((readText = reader.readLine()) != null)
-            {
-                // Split around the tabs. Title in 0, Date in 1, Text in 2
-                String[] fields = readText.split("\t");
-
-                statement.setString(1, fields[0]);
-                statement.setDate(2, Date.valueOf(fields[1]));
-                statement.setString(3, fields[2]);
-
-                // Add data to statement queries to an execution.
-                statement.addBatch();
-            }
-
-            // After obtaining all the necessary statements, execute
-            statement.executeBatch();
-            // System.out.println("[" + this.getFunctionName() + "]: Database made.");
-            // Final stuff
-            reader.close();
-            return true;
-        } catch (SQLException e) { e.printStackTrace(); return false; }
+        reader.close();
+        return true;
     }
 
     /**

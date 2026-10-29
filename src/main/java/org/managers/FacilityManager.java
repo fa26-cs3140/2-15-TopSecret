@@ -1,6 +1,7 @@
 package org.managers;
 
 import org.model.Facility;
+import org.example.DebugHelper;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -154,43 +155,22 @@ public class FacilityManager extends IDatabaseManager<Facility>
         // columnName values:
         // 0 - id, 1 - name, 2 - abbreviation, 3 - mission_id
         this.createTable();
-        try (Connection c = connect();)
+        BufferedReader reader = new BufferedReader(new FileReader(pathToTSV));
+        String readText;
+
+        // Skip header
+        reader.readLine();
+
+        while ((readText = reader.readLine()) != null)
         {
-            // Once the table has been created, we change the query
-            // to insert into the new table
-            String query = "INSERT INTO " + tableName + 
-                   " (%s, %s, %s) VALUES (?, ?, ?)".formatted(this.columnNames[1],
-                                                              this.columnNames[2],
-                                                              this.columnNames[3]);
+            // Each coloumn should correspond with the requisite value, apart from id
+            String[] data = readText.split("\t");
 
-            PreparedStatement statement = c.prepareStatement(query);
-            BufferedReader reader = new BufferedReader(new FileReader(pathToTSV));
-            String readText;
+            String name = data[0];
+            String abbreviation = data[1];
 
-            // Skip header
-            reader.readLine();
-
-            // Read out all the information from the TSV
-            while ((readText = reader.readLine()) != null)
-            {
-                // Split around the tabs. Title in 0, Date in 1, Text in 2
-                String[] fields = readText.split("\t");
-
-                statement.setString(1, fields[0]);
-                statement.setDate(2, Date.valueOf(fields[1]));
-                statement.setString(3, fields[2]);
-
-                // Add data to statement queries to an execution.
-                statement.addBatch();
-            }
-
-            // After obtaining all the necessary statements, execute
-            statement.executeBatch();
-            // System.out.println("[" + this.getFunctionName() + "]: Database made.");
-            // Final stuff
-            reader.close();
-            return true;
-        } catch (SQLException e) { e.printStackTrace(); return false; }
+            this.addRecord(name, abbreviation);
+        }
     }
 
 
