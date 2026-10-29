@@ -57,7 +57,7 @@ public class BriefManager extends IDatabaseManager<Brief>
      * Returns an array of Brief objects that match the key in the column.
      */
     @Override 
-    public Brief[] getRecords(String column, String key) 
+    public List<Brief> getRecords(String column, String key) 
     {
         List<Brief> briefs = new ArrayList<>();
         try (Connection c = connect();
@@ -72,10 +72,8 @@ public class BriefManager extends IDatabaseManager<Brief>
             DebugHelper.debugPrintln(e.getMessage());
         }
 
-        Brief[] briefOut = briefs.toArray(new Brief[0]);
-        return briefOut;
+        return briefs;
     }
-
 
 /**
  * addRecord() + Overloads

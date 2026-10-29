@@ -17,8 +17,8 @@ public class AuditLogManager implements AuditLogService {
         this.store = store;
     }
 
-    public AuditLogManager(DatabaseManager databaseManager) {
-        this(createStore(databaseManager));
+    public AuditLogManager(String url) {
+        this(createStore(url));
     }
 
     @Override
@@ -46,10 +46,7 @@ public class AuditLogManager implements AuditLogService {
         return value == null || value.isBlank();
     }
 
-    private static AuditLogStore createStore(DatabaseManager databaseManager) {
-        if (databaseManager == null) {
-            throw new IllegalArgumentException("DatabaseManager cannot be null.");
-        }
-        return new SqliteAuditLogStore(databaseManager.getURL());
+    private static AuditLogStore createStore(String url) {
+        return new SqliteAuditLogStore(url);
     }
 }

@@ -2,6 +2,7 @@ package org.managers;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.List;
 
 public abstract class IDatabaseManager<T>
 {
@@ -16,7 +17,7 @@ public abstract class IDatabaseManager<T>
     public abstract String[] getColumnNames();
 
     // Funcations that must be included
-    public abstract T[] getRecords(String column, String key);
+    public abstract List<T> getRecords(String column, String key);
 
     public abstract T addRecord(T value);
 

@@ -56,7 +56,7 @@ public class FacilityManager extends IDatabaseManager<Facility>
      * Returns an array of Facility objects that match the key in the column.
      */
     @Override 
-    public Facility[] getRecords(String column, String key)
+    public List<Facility> getRecords(String column, String key)
     {
         List<Facility> facilities = new ArrayList<>();
         try (Connection c = connect();
@@ -73,8 +73,7 @@ public class FacilityManager extends IDatabaseManager<Facility>
             DebugHelper.debugPrintln(e.getMessage());
         }
 
-        Facility[] facilityOut = facilities.toArray(new Facility[0]);
-        return facilityOut;
+        return facilities;
     }
 
     /**

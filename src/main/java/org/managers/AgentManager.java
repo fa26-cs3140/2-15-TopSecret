@@ -58,15 +58,15 @@ public class AgentManager extends IDatabaseManager<Agent>
      * Returns an array of Agent objects that match the key in the column.
      */
     @Override 
-    public Agent[] getRecords(String column, String key)
+    public List<Agent> getRecords(String column, String key)
     {
-        List<Agent> facilities = new ArrayList<>();
+        List<Agent> agents = new ArrayList<>();
         try (Connection c = connect();
              ResultSet rs = c.createStatement().executeQuery("SELECT * FROM " + this.tableName + 
                                                             " WHERE " + column + " = " + key + 
                                                             " ORDER BY " + this.columnNames[0])) {
             while (rs.next()) {
-                facilities.add(new Agent(
+                agents.add(new Agent(
                             rs.getInt(this.columnNames[0]),
                             rs.getString(this.columnNames[1]),
                             rs.getString(this.columnNames[2]),
@@ -79,8 +79,7 @@ public class AgentManager extends IDatabaseManager<Agent>
             DebugHelper.debugPrintln(e.getMessage());
         }
 
-        Agent[] facilityOut = facilities.toArray(new Agent[0]);
-        return facilityOut;
+        return agents;
     }
 
     /**
@@ -106,7 +105,7 @@ public class AgentManager extends IDatabaseManager<Agent>
     }
 
     /**
-     * Adds a record to the database, constructs a facility from input title, date, and text
+     * Adds a record to the database, constructs an agent from input title, date, and text
      *
      * Returns a copy of the generated faclity object with the correct ID
      */
@@ -114,8 +113,8 @@ public class AgentManager extends IDatabaseManager<Agent>
     {
         // Build the model first so invalid data is rejected before it is saved.
         // We can pass a dummy ID into the temporary facility object
-        Agent facility = new Agent(1, name, dateOfBirth, dateOfDeath, notes, facilityId);
-        return this.addRecord(facility);
+        Agent agent = new Agent(1, name, dateOfBirth, dateOfDeath, notes, facilityId);
+        return this.addRecord(agent);
     }
 
     /**

@@ -2,6 +2,7 @@ package org.example;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Scanner;
 
 import org.managers.*;
 
@@ -12,6 +13,7 @@ public class ProgramControl {
     private final BriefManager briefManager;
     private final AgentManager agentManager;
     private final FacilityManager facilityManager;
+    private final AuditLogManager auditLogger;
     private final String databaseFile = "mission_database.db";
     private final String databaseURL = "jdbc:sqlite:data/" + databaseFile;
 
@@ -22,6 +24,7 @@ public class ProgramControl {
         this.briefManager = new BriefManager(this.databaseURL);
         this.agentManager = new AgentManager(this.databaseURL);
         this.facilityManager = new FacilityManager(this.databaseURL);
+        this.auditLogger = new AuditLogManager(this.databaseURL);
     }
 
     /**
@@ -30,7 +33,7 @@ public class ProgramControl {
      * @param ui UserInterface to be passed
      * @param args Arguments to pasesed into ui.runInterface()
      */
-    public void run(AgencyInterface ui, String[] args) 
+    public void run(String[] args) 
     {
         // We are going to now create a table that contains for this
         // TODO: Refactor DatabaseManager for this
@@ -48,6 +51,10 @@ public class ProgramControl {
         this.createModelTables();
 
         // Check to see if users exist. If not, prompt them.
+        // // TODO: Implement proper user management
+        AgencyInterface ui = 
+            new AgencyInterface(this.agentManager, this.facilityManager, this.briefManager, 
+                                this.auditLogger, new UserAccount("test", true), new Scanner(System.in), System.out);
 
         ui.run();
     }

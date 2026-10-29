@@ -5,20 +5,30 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import org.managers.AgentManager;
+import org.managers.BriefManager;
+import org.managers.FacilityManager;
+
 public class AgencyInterface {
 
-    private final AgencyDataService data;
+    // private final AgencyDataService data;
+    private final AgentManager aManager;
+    private final FacilityManager fManager;
+    private final BriefManager bManager;
     private final AuditLogService auditLog;
     private final UserAccount currentUser;
     private final Scanner scanner;
     private final PrintStream output;
 
-    public AgencyInterface(AgencyDataService data, AuditLogService auditLog,
-                           UserAccount currentUser, Scanner scanner, PrintStream output) {
-        if (data == null || auditLog == null || currentUser == null || scanner == null || output == null) {
+    public AgencyInterface(AgentManager aManager, FacilityManager fManager, BriefManager bManager,
+                           AuditLogService auditLog, UserAccount currentUser, Scanner scanner, PrintStream output) {
+        if (aManager == null || fManager == null || bManager == null || auditLog == null || currentUser == null || scanner == null || output == null) {
             throw new IllegalArgumentException("Arguments cannot be null.");
         }
-        this.data = data;
+        // this.data = data;
+        this.aManager = aManager;
+        this.fManager = fManager;
+        this.bManager = bManager;
         this.auditLog = auditLog;
         this.currentUser = currentUser;
         this.scanner = scanner;
@@ -78,9 +88,9 @@ public class AgencyInterface {
 
     private void listRecords(RecordType type) {
         List<String> lines = switch (type) {
-            case BRIEF -> data.getBriefs().stream().map(b -> b.getId() + ". " + b.getTitle()).toList();
-            case AGENT -> data.getAgents().stream().map(a -> a.getId() + ". " + a.getName()).toList();
-            case FACILITY -> data.getFacilities().stream()
+            case BRIEF -> bManager.getRecords("id", "%").stream().map(b -> b.getId() + ". " + b.getTitle()).toList();
+            case AGENT -> aManager.getRecords("id", "%").stream().map(a -> a.getId() + ". " + a.getName()).toList();
+            case FACILITY -> fManager.getRecords("id", "%").stream()
                     .map(f -> f.getId() + ". " + f.getName() + " (" + f.getAbbreviation() + ")").toList();
         };
         if (lines.isEmpty()) {
@@ -95,15 +105,15 @@ public class AgencyInterface {
             return;
         }
         List<String> details = switch (type) {
-            case BRIEF -> data.getBriefs().stream().filter(b -> b.getId() == id).findFirst()
+            case BRIEF -> bManager.getRecords("id", "%").stream().filter(b -> b.getId() == id).findFirst()
                     .map(b -> List.of("Title: " + b.getTitle(), "Date: " + b.getDate(), "Text: " + b.getText()))
                     .orElse(null);
-            case AGENT -> data.getAgents().stream().filter(a -> a.getId() == id).findFirst()
+            case AGENT -> aManager.getRecords("id", "%").stream().filter(a -> a.getId() == id).findFirst()
                     .map(a -> List.of("Name: " + a.getName(), "Date of birth: " + a.getDateOfBirth(),
                             "Date of death: " + orNA(a.getDateOfDeath()), "Notes: " + orNA(a.getNotes()),
                             "Facility ID: " + a.getFacilityId()))
                     .orElse(null);
-            case FACILITY -> data.getFacilities().stream().filter(f -> f.getId() == id).findFirst()
+            case FACILITY -> fManager.getRecords("id", "%").stream().filter(f -> f.getId() == id).findFirst()
                     .map(f -> List.of("Name: " + f.getName(), "Abbreviation: " + f.getAbbreviation()))
                     .orElse(null);
         };
@@ -118,10 +128,10 @@ public class AgencyInterface {
     private void addRecord(RecordType type) {
         try {
             Integer id = switch (type) {
-                case BRIEF -> data.addBrief(prompt("Title: "), prompt("Date (yyyy-mm-dd): "),
+                case BRIEF -> bManager.addRecord(prompt("Title: "), prompt("Date (yyyy-mm-dd): "),
                         prompt("Text: ")).getId();
                 case AGENT -> addAgent();
-                case FACILITY -> data.addFacility(prompt("Name: "), prompt("Abbreviation: ")).getId();
+                case FACILITY -> fManager.addRecord(prompt("Name: "), prompt("Abbreviation: ")).getId();
             };
             if (id != null) {
                 auditLog.log(currentUser.getUsername(), "CREATE", type.name(), String.valueOf(id));
@@ -138,7 +148,7 @@ public class AgencyInterface {
         String died = blankToNull(prompt("Date of death (yyyy-mm-dd, blank if none): "));
         String notes = blankToNull(prompt("Notes (blank if none): "));
         Integer facilityId = readId("Facility ID: ");
-        return facilityId == null ? null : data.addAgent(name, born, died, notes, facilityId).getId();
+        return facilityId == null ? null : aManager.addRecord(name, born, died, notes, facilityId).getId();
     }
 
     private void displayAuditLog() {

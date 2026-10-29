@@ -9,23 +9,13 @@ public class TopSecret
         // Startup to make sure database file exists within the program
 
         // UserInterface uInterface = new UserInterface();
-        FileHandler fHandler = new FileHandler();
-        DatabaseManager dbManager = new DatabaseManager("jdbc:sqlite:data/mission_briefs.db");
-        ProgramControl pControl = new ProgramControl(fHandler, dbManager);
-
-
-        AuditLogManager auditLogger = new AuditLogManager(dbManager);
-        AgencyInterface aInterface = new AgencyInterface(dbManager, auditLogger, 
-                                                         new UserAccount("test", true),
-                                                         new Scanner(System.in),
-                                                         System.out); 
-
+        ProgramControl pControl = new ProgramControl();
 
         // uInterface can throw many types of errors
         // Catch if anything happens
         try
         {
-            pControl.run(aInterface, args);
+            pControl.run(args);
         }
         catch (Exception e)
         {
