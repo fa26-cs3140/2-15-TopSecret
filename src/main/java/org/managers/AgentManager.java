@@ -90,7 +90,7 @@ public class AgentManager extends IDatabaseManager<Agent>
     /**
      * Adds a record to the databse, taking in a Agent object as its value.
      *
-     * Returns a copy of the facility object with the correct ID
+     * Returns a copy of the Agent object with the correct ID
      */
     @Override
     public Agent addRecord(Agent value)
@@ -136,6 +136,80 @@ public class AgentManager extends IDatabaseManager<Agent>
         // Return true if the operation succeeded
         // id will return -1 if the operation failed
         return rowsAffected > 0;
+    }
+
+    
+    /**
+     * Imports a file containing tab separated values into a database.
+     * Does not check to see if file is formatted correctly
+     * NOTE: Assumes the existence of a header to skip
+     *
+     * TODO: Can this be moved into the abstract class?
+     */
+    @Override
+    public Boolean importTSV(String pathToTSV, String tableName, String dirOut, String dbOutName) throws IOException
+    {
+        // Remove trailing slashes from pathToTSV in an effort to reduce error
+        if (pathToTSV.charAt(pathToTSV.length() - 1) == '\\' ||
+                pathToTSV.charAt(pathToTSV.length() - 1) == '/')
+        {
+            String tmp = pathToTSV.substring(0, pathToTSV.length() - 2);
+            pathToTSV = tmp;
+        }
+
+        // Make sure JDBC exists
+        try { Class.forName("org.sqlite.JDBC"); } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        // Check if directory and/or tsv exists
+        if (!Files.exists(Path.of(dirOut))) return false;
+        if (!Files.exists(Path.of(pathToTSV))) return false;
+
+        // Helper variable for clairty on where outputs are found
+        String fullOutDBPath = this.getURL().split(":")[2];
+        if (!Files.exists(Path.of(fullOutDBPath))) Files.createFile(Path.of(fullOutDBPath));
+
+        this.createTable();
+
+        try (Connection c = connect();)
+        {
+            // Once the table has been created, we change the query
+            // to insert into the new table
+            String query = "INSERT INTO " + tableName + 
+                   " (%s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?)"
+                   .formatted(this.columnNames[0], this.columnNames[1],
+                              this.columnNames[2], this.columnNames[3],
+                              this.columnNames[4], this.columnNames[5]);
+
+            PreparedStatement statement = c.prepareStatement(query);
+            BufferedReader reader = new BufferedReader(new FileReader(pathToTSV));
+            String readText;
+
+            // Skip header
+            reader.readLine();
+
+            // Read out all the information from the TSV
+            while ((readText = reader.readLine()) != null)
+            {
+                // Split around the tabs. Title in 0, Date in 1, Text in 2
+                String[] fields = readText.split("\t");
+
+                statement.setString(1, fields[0]);
+                statement.setDate(2, Date.valueOf(fields[1]));
+                statement.setString(3, fields[2]);
+
+                // Add data to statement queries to an execution.
+                statement.addBatch();
+            }
+
+            // After obtaining all the necessary statements, execute
+            statement.executeBatch();
+            // System.out.println("[" + this.getFunctionName() + "]: Database made.");
+            // Final stuff
+            reader.close();
+            return true;
+        } catch (SQLException e) { e.printStackTrace(); return false; }
     }
 
     /**
