@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.managers.AgentManagerTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-30T18:05:05.914Z" hostname="Mikes-Macbook.local" time="0.239">
+  <properties/>
+  <testcase name="testAddInvalidAgent()" classname="org.managers.AgentManagerTest" time="0.196"/>
+  <testcase name="testAddRecordWithAgent()" classname="org.managers.AgentManagerTest" time="0.007"/>
+  <testcase name="testAddRecordWithFields()" classname="org.managers.AgentManagerTest" time="0.002"/>
+  <testcase name="testUpdateRecordNoMatch()" classname="org.managers.AgentManagerTest" time="0.003"/>
+  <testcase name="testGetRecordsNoMatch()" classname="org.managers.AgentManagerTest" time="0.004"/>
+  <testcase name="testGetters()" classname="org.managers.AgentManagerTest" time="0.003"/>
+  <testcase name="testTableSchema()" classname="org.managers.AgentManagerTest" time="0.002"/>
+  <testcase name="testAgentTableCreated()" classname="org.managers.AgentManagerTest" time="0.003"/>
+  <testcase name="testUpdateRecord()" classname="org.managers.AgentManagerTest" time="0.003"/>
+  <testcase name="testGetRecords()" classname="org.managers.AgentManagerTest" time="0.004"/>
+  <testcase name="testInvalidURL()" classname="org.managers.AgentManagerTest" time="0.001"/>
+  <testcase name="testFacilityForeignKey()" classname="org.managers.AgentManagerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

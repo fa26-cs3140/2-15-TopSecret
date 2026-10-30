@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.managers.FacilityManagerTest" tests="20" skipped="0" failures="1" errors="0" timestamp="2026-10-30T18:05:06.191Z" hostname="Mikes-Macbook.local" time="0.045">
+  <properties/>
+  <testcase name="testConstructorPreservesExistingRecords()" classname="org.managers.FacilityManagerTest" time="0.002"/>
+  <testcase name="testUpdateRecordName()" classname="org.managers.FacilityManagerTest" time="0.003"/>
+  <testcase name="testFacilityTableCreated()" classname="org.managers.FacilityManagerTest" time="0.001"/>
+  <testcase name="testUpdateRecordByName()" classname="org.managers.FacilityManagerTest" time="0.002"/>
+  <testcase name="testGetRecordsByAbbreviation()" classname="org.managers.FacilityManagerTest" time="0.002"/>
+  <testcase name="testAddRecordWithFields()" classname="org.managers.FacilityManagerTest" time="0.002"/>
+  <testcase name="testUpdateRecordNoMatch()" classname="org.managers.FacilityManagerTest" time="0.001"/>
+  <testcase name="testGetRecordsNoMatch()" classname="org.managers.FacilityManagerTest" time="0.002"/>
+  <testcase name="testGetRecordsById()" classname="org.managers.FacilityManagerTest" time="0.001"/>
+  <testcase name="testGetters()" classname="org.managers.FacilityManagerTest" time="0.001"/>
+  <testcase name="testTableSchema()" classname="org.managers.FacilityManagerTest" time="0.001"/>
+  <testcase name="testGetRecordsByName()" classname="org.managers.FacilityManagerTest" time="0.002"/>
+  <testcase name="testAddRecordWithFacility()" classname="org.managers.FacilityManagerTest" time="0.001"/>
+  <testcase name="testImportTSV()" classname="org.managers.FacilityManagerTest" time="0.003"/>
+  <testcase name="testAddMultipleRecords()" classname="org.managers.FacilityManagerTest" time="0.003"/>
+  <testcase name="testGetRecordsWithApostrophe()" classname="org.managers.FacilityManagerTest" time="0.008">
+    <failure message="org.opentest4j.AssertionFailedError: expected: &lt;1&gt; but was: &lt;0&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;1&gt; but was: &lt;0&gt;
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:201)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:152)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:147)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:558)
+	at org.managers.FacilityManagerTest.testGetRecordsWithApostrophe(FacilityManagerTest.java:311)
+</failure>
+  </testcase>
+  <testcase name="testUpdateRecordAbbreviation()" classname="org.managers.FacilityManagerTest" time="0.002"/>
+  <testcase name="testInvalidURL()" classname="org.managers.FacilityManagerTest" time="0.001"/>
+  <testcase name="testAddInvalidRecord()" classname="org.managers.FacilityManagerTest" time="0.002"/>
+  <testcase name="testUniqueMissionId()" classname="org.managers.FacilityManagerTest" time="0.002"/>
+  <system-out><![CDATA[[getRecords]: [SQLITE_ERROR] SQL error or missing database (near "s": syntax error)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
