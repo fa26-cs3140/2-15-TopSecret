@@ -174,7 +174,7 @@ public class FacilityManager extends IDatabaseManager<Facility>
     
 
     @Override 
-    protected void createTable() 
+    public void createTable() 
     {
         try (Connection c = connect(); Statement s = c.createStatement()) {
             s.execute(

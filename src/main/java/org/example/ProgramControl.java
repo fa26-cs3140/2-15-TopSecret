@@ -181,7 +181,13 @@ public class ProgramControl {
     // Creates model tables if they do not exist
     private void createModelTables()
     {
+        briefManager.createTable();
+        agentManager.createTable();
+        facilityManager.createTable();
+    }
 
+    private void importTSVFiles()
+    {
         if (!Files.exists(Path.of("data/agents.tsv")) || !Files.exists(Path.of("data/facilities.tsv")) || !Files.exists(Path.of("data/briefs.tsv")))
         {
             DebugHelper.debugPrintln("One or more tsv files not found. Import failed.");

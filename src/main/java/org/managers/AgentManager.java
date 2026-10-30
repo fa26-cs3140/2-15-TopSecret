@@ -191,7 +191,7 @@ public class AgentManager extends IDatabaseManager<Agent>
      * Private helper functions defined below
      */
     @Override
-    protected void createTable()
+    public void createTable()
     {
         try (Connection c = connect(); Statement s = c.createStatement()) {
             s.execute("CREATE TABLE IF NOT EXISTS %s (%s INTEGER PRIMARY KEY, %s TEXT NOT NULL, %s DATE NOT NULL, "

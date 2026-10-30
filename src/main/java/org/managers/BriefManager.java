@@ -177,7 +177,7 @@ public class BriefManager extends IDatabaseManager<Brief>
  * Private helper functions defined below
  */
     @Override 
-    protected void createTable() 
+    public void createTable() 
     {
         try (Connection c = connect(); Statement s = c.createStatement()) {
             s.execute(

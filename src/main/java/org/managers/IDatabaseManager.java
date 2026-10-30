@@ -25,7 +25,7 @@ public abstract class IDatabaseManager<T>
 
     public abstract Boolean importTSV(String pathToTSV, String tableName, String dirOut, String dbOutName) throws IOException;
 
-    protected abstract void createTable();
+    public abstract void createTable();
 
     // General public defined functions
 
