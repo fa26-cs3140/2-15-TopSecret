@@ -23,8 +23,8 @@ public class UserAccountManager implements CredentialManager {
         this.cipher = cipher;
     }
 
-    public UserAccountManager(DatabaseManager databaseManager, FileHandler fileHandler, Cipher cipher) {
-        this(createStore(databaseManager), fileHandler, cipher);
+    public UserAccountManager(String url, FileHandler fileHandler, Cipher cipher) {
+        this(createStore(url), fileHandler, cipher);
     }
 
     public boolean isValidUsername(String username) {
@@ -166,10 +166,10 @@ public class UserAccountManager implements CredentialManager {
         return "PWD:" + password + ":END";
     }
 
-    private static UserAccountStore createStore(DatabaseManager databaseManager) {
-        if (databaseManager == null) {
-            throw new IllegalArgumentException("DatabaseManager cannot be null.");
+    private static UserAccountStore createStore(String url) {
+        if (url == null) {
+            throw new IllegalArgumentException("URL cannot be null.");
         }
-        return new SqliteUserAccountStore(databaseManager.getURL());
+        return new SqliteUserAccountStore(url);
     }
 }
