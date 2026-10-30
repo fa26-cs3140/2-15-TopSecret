@@ -1,6 +1,8 @@
 package org.example;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Scanner;
 
@@ -14,6 +16,8 @@ public class ProgramControl {
     private final AgentManager agentManager;
     private final FacilityManager facilityManager;
     private final AuditLogManager auditLogger;
+    // TODO: Implement userManager into ProgramControl
+    private final UserAccountManager userManager;
     private final String databaseFile = "mission_database.db";
     private final String databaseURL = "jdbc:sqlite:data/" + databaseFile;
 
@@ -25,6 +29,12 @@ public class ProgramControl {
         this.agentManager = new AgentManager(this.databaseURL);
         this.facilityManager = new FacilityManager(this.databaseURL);
         this.auditLogger = new AuditLogManager(this.databaseURL);
+
+        // TODO: Figure out how cipher works
+        String[] stringKeys = fileHandler.readFile("key.txt").split("\n");
+        CipherKey cipKey = new CipherKey(stringKeys[1] + "\n" + stringKeys[0]);
+        Cipher cipher = new Cipher(cipKey);
+        this.userManager = new UserAccountManager(this.databaseURL, fileHandler, cipher);
     }
 
     /**
@@ -36,7 +46,6 @@ public class ProgramControl {
     public void run(String[] args) 
     {
         // We are going to now create a table that contains for this
-        // TODO: Refactor DatabaseManager for this
         // The database will now just be called "mission_database"
         // and it will contain a table for all mission information
         // Information in the database should be ciphered
@@ -51,10 +60,30 @@ public class ProgramControl {
         this.createModelTables();
 
         // Check to see if users exist. If not, prompt them.
+        // Very likely that this can be done within AgencyInterface,
+        // though probably best done here first. Could for instance
+        // be implemented as a function within AgencyInterface separate
+        // from run()
         // // TODO: Implement proper user management
+        UserAccount currentUser;
+        if (!userManager.hasUsers())
+        {
+            // TODO: Prompt creation of an admin user
+            currentUser = userManager.createUser("TestAdmin", true);
+        }
+        else
+        {
+            // TODO: Prompt selection of user or creation of a new account
+            currentUser = userManager.createUser("TestAdmin", true);
+        }
+
         AgencyInterface ui = 
             new AgencyInterface(this.agentManager, this.facilityManager, this.briefManager, 
-                                this.auditLogger, new UserAccount("test", true), new Scanner(System.in), System.out);
+                                this.auditLogger, new UserAccount("Dummy", false), new Scanner(System.in), System.out);
+        if (!userManager.hasUsers())
+        {
+            ui.userCreationPrompt();
+        }
 
         ui.run();
     }
@@ -136,28 +165,34 @@ public class ProgramControl {
         return cipher.decipher(cipheredContents);
     }
 
+    // Creates model tables if they do not exist
     private void createModelTables()
     {
 
+        if (!Files.exists(Path.of("data/agents.tsv")) || !Files.exists(Path.of("data/facilities.tsv")) || !Files.exists(Path.of("data/briefs.tsv")))
+        {
+            DebugHelper.debugPrintln("One or more tsv files not found. Import failed.");
+            return;
+        }
         try
         {
             if (!this.briefManager.tableExists("briefs"))
             {
-                this.briefManager.importTSV(fileHandler.getDataDirectory() + "/mission_briefs.tsv",
+                this.briefManager.importTSV(fileHandler.getDataDirectory() + "/briefs.tsv",
                                                "briefs",
                                                fileHandler.getDataDirectory(), 
                                                databaseFile);
             }
             if (!this.facilityManager.tableExists("facilities"))
             {
-                this.facilityManager.importTSV(fileHandler.getDataDirectory() + "/mission_briefs.tsv",
+                this.facilityManager.importTSV(fileHandler.getDataDirectory() + "/facilities.tsv",
                                                "briefs",
                                                fileHandler.getDataDirectory(), 
                                                databaseFile);
             }
             if (!this.agentManager.tableExists("agents"))
             {
-                this.agentManager.importTSV(fileHandler.getDataDirectory() + "/mission_briefs.tsv",
+                this.agentManager.importTSV(fileHandler.getDataDirectory() + "/agents.tsv",
                                                "briefs",
                                                fileHandler.getDataDirectory(), 
                                                databaseFile);

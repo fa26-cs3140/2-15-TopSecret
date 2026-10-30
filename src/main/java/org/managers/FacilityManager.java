@@ -61,7 +61,7 @@ public class FacilityManager extends IDatabaseManager<Facility>
         List<Facility> facilities = new ArrayList<>();
         try (Connection c = connect();
              ResultSet rs = c.createStatement().executeQuery("SELECT * FROM " + this.tableName + 
-                                                            " WHERE " + column + " = " + key + 
+                                                            " WHERE " + column + " LIKE " + "\'" + key + "\'" + 
                                                             " ORDER BY " + this.columnNames[0])) {
             while (rs.next()) {
                 facilities.add(new Facility(rs.getInt(this.columnNames[0]), 
@@ -87,7 +87,8 @@ public class FacilityManager extends IDatabaseManager<Facility>
         String name = value.getName();
         String abbreviation = value.getAbbreviation();
         int id = this.insert("INSERT INTO " + this.tableName + 
-                             " (%s, %s)".formatted(this.columnNames[1], this.columnNames[2]),
+                             " (%s, %s) ".formatted(this.columnNames[1], this.columnNames[2])
+                             + "VALUES (?, ?)",
                              name, abbreviation
                 );
         return new Facility(id, name, abbreviation);
@@ -125,7 +126,6 @@ public class FacilityManager extends IDatabaseManager<Facility>
     @Override 
     public Boolean importTSV(String pathToTSV, String tableName, String dirOut, String dbOutName) throws IOException
     {
-        // TODO: Write this function
         // Remove trailing slashes from pathToTSV in an effort to reduce error
         if (pathToTSV.charAt(pathToTSV.length() - 1) == '\\' ||
                 pathToTSV.charAt(pathToTSV.length() - 1) == '/')
@@ -142,10 +142,6 @@ public class FacilityManager extends IDatabaseManager<Facility>
         // Check if directory and/or tsv exists
         if (!Files.exists(Path.of(dirOut))) return false;
         if (!Files.exists(Path.of(pathToTSV))) return false;
-
-        // Helper variable for clairty on where outputs are found
-        String fullOutDBPath = this.getURL().split(":")[2];
-        if (!Files.exists(Path.of(fullOutDBPath))) Files.createFile(Path.of(fullOutDBPath));
 
         // columnName values:
         // 0 - id, 1 - name, 2 - abbreviation, 3 - mission_id
@@ -181,9 +177,11 @@ public class FacilityManager extends IDatabaseManager<Facility>
     protected void createTable() 
     {
         try (Connection c = connect(); Statement s = c.createStatement()) {
-            s.execute("CREATE TABLE IF NOT EXISTS %s (%s INTEGER PRIMARY KEY, %s TEXT NOT NULL, "
-                    + "%s TEXT NOT NULL, mission_id INTEGER UNIQUE)"
-                    .formatted(this.tableName, this.columnNames[0], this.columnNames[1], this.columnNames[2]));
+            s.execute(
+                    "CREATE TABLE IF NOT EXISTS %s (%s INTEGER PRIMARY KEY, %s TEXT NOT NULL, "
+                    .formatted(this.tableName, this.columnNames[0], this.columnNames[1])
+                    + "%s TEXT NOT NULL, %s INTEGER UNIQUE)".formatted(this.columnNames[2], this.columnNames[3])
+                    );
         } catch (SQLException e) {
             DebugHelper.debugPrintln(e.getMessage());
         }

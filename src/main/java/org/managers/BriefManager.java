@@ -17,7 +17,6 @@ import java.util.List;
 
 public class BriefManager extends IDatabaseManager<Brief>
 {
-    private final String url;
     /**
      * Table Schema
      * CREATE TABLE briefs (ID INTEGER PRIMARY KEY, Title TEXT, Date DATE, Text TEXT)
@@ -62,7 +61,7 @@ public class BriefManager extends IDatabaseManager<Brief>
         List<Brief> briefs = new ArrayList<>();
         try (Connection c = connect();
              ResultSet rs = c.createStatement().executeQuery("SELECT * FROM " + this.tableName + 
-                                                            " WHERE " + column + " = " + key + 
+                                                            " WHERE " + column + " LIKE " + "\'" + key + "\'" + 
                                                             " ORDER BY id")) {
             while (rs.next()) {
                 briefs.add(new Brief(rs.getInt("id"), rs.getString("title"), rs.getString("date"),
@@ -89,7 +88,9 @@ public class BriefManager extends IDatabaseManager<Brief>
         String date = value.getDate();
         String text = value.getText();
         int id = this.insert("INSERT INTO " + this.tableName +
-                             " (title, date, text) VALUES (?, ?, ?)", 
+                             " (%s, %s, %s) "
+                             .formatted(this.columnNames[1], this.columnNames[2], this.columnNames[3]) +
+                             "VALUES (?, ?, ?)", 
                              title, date, text
                              );
         return new Brief(id, title, date, text, null);
@@ -149,10 +150,6 @@ public class BriefManager extends IDatabaseManager<Brief>
         if (!Files.exists(Path.of(dirOut))) return false;
         if (!Files.exists(Path.of(pathToTSV))) return false;
 
-        // Helper variable for clairty on where outputs are found
-        String fullOutDBPath = this.getURL().split(":")[2];
-        if (!Files.exists(Path.of(fullOutDBPath))) Files.createFile(Path.of(fullOutDBPath));
-
         this.createTable();
         BufferedReader reader = new BufferedReader(new FileReader(pathToTSV));
         String readText;
@@ -183,9 +180,12 @@ public class BriefManager extends IDatabaseManager<Brief>
     protected void createTable() 
     {
         try (Connection c = connect(); Statement s = c.createStatement()) {
-            s.execute("CREATE TABLE IF NOT EXISTS %s (%s INTEGER PRIMARY KEY, %s TEXT NOT NULL, "
-                    + "%s TEXT NOT NULL, %s TEXT NOT NULL, mission_id INTEGER UNIQUE)"
-                    .formatted(this.tableName, this.columnNames[0], this.columnNames[1], this.columnNames[2], this.columnNames[3]));
+            s.execute(
+                    "CREATE TABLE IF NOT EXISTS %s (%s INTEGER PRIMARY KEY, %s TEXT NOT NULL, "
+                    .formatted(this.tableName, this.columnNames[0], this.columnNames[1])
+                    + "%s TEXT NOT NULL, %s TEXT NOT NULL, %s INTEGER UNIQUE)"
+                    .formatted(this.columnNames[2], this.columnNames[3], this.columnNames[4])
+                    );
         } catch (SQLException e) {
             DebugHelper.debugPrintln(e.getMessage());
         }

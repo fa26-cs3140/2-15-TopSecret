@@ -63,7 +63,7 @@ public class AgentManager extends IDatabaseManager<Agent>
         List<Agent> agents = new ArrayList<>();
         try (Connection c = connect();
              ResultSet rs = c.createStatement().executeQuery("SELECT * FROM " + this.tableName + 
-                                                            " WHERE " + column + " = " + key + 
+                                                            " WHERE " + column + " LIKE " + "\'" + key + "\'" + 
                                                             " ORDER BY " + this.columnNames[0])) {
             while (rs.next()) {
                 agents.add(new Agent(
@@ -96,9 +96,10 @@ public class AgentManager extends IDatabaseManager<Agent>
         String notes = value.getNotes();
         int facilityId = value.getFacilityId();
         int id = this.insert("INSERT INTO " + this.tableName + 
-                             " (%s, %s, %s, %s, %s)"
+                             " (%s, %s, %s, %s, %s) "
                              .formatted(this.columnNames[1], this.columnNames[2], this.columnNames[3],
-                                        this.columnNames[4], this.columnNames[5]),
+                                        this.columnNames[4], this.columnNames[5])
+                             + "VALUES (?, ?, ?, ?, ?)",
                              name, dateOfBirth, dateOfDeath, notes, facilityId
                 );
         return new Agent(id, name, dateOfBirth, dateOfDeath, notes, facilityId);
@@ -161,10 +162,6 @@ public class AgentManager extends IDatabaseManager<Agent>
         if (!Files.exists(Path.of(dirOut))) return false;
         if (!Files.exists(Path.of(pathToTSV))) return false;
 
-        // Helper variable for clairty on where outputs are found
-        String fullOutDBPath = this.getURL().split(":")[2];
-        if (!Files.exists(Path.of(fullOutDBPath))) Files.createFile(Path.of(fullOutDBPath));
-
         this.createTable();
         BufferedReader reader = new BufferedReader(new FileReader(pathToTSV));
         String readText;
@@ -197,12 +194,10 @@ public class AgentManager extends IDatabaseManager<Agent>
     protected void createTable()
     {
         try (Connection c = connect(); Statement s = c.createStatement()) {
-            s.execute("CREATE TABLE IF NOT EXISTS %s (%s INTEGER PRIMARY KEY, %s DATE NOT NULL, "
-                    + "%s DATE, %s TEXT NOT NULL, %s INTEGER UNIQUE)"
-                    .formatted(this.tableName, this.columnNames[0], 
-                               this.columnNames[1], this.columnNames[2], 
-                               this.columnNames[3], this.columnNames[4],
-                               this.columnNames[5]));
+            s.execute("CREATE TABLE IF NOT EXISTS %s (%s INTEGER PRIMARY KEY, %s TEXT NOT NULL, %s DATE NOT NULL, "
+                    .formatted(this.tableName, this.columnNames[0], this.columnNames[1], this.columnNames[2])
+                    + "%s DATE, %s TEXT, %s INTEGER UNIQUE)"
+                    .formatted(this.columnNames[3], this.columnNames[4], this.columnNames[5]));
         } catch (SQLException e) {
             DebugHelper.debugPrintln(e.getMessage());
         }

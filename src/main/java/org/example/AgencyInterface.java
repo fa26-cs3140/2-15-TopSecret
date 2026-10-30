@@ -20,6 +20,8 @@ public class AgencyInterface {
     private final Scanner scanner;
     private final PrintStream output;
 
+    private final String SEPARATOR= "-----------------";
+
     public AgencyInterface(AgentManager aManager, FacilityManager fManager, BriefManager bManager,
                            AuditLogService auditLog, UserAccount currentUser, Scanner scanner, PrintStream output) {
         if (aManager == null || fManager == null || bManager == null || auditLog == null || currentUser == null || scanner == null || output == null) {
@@ -73,6 +75,19 @@ public class AgencyInterface {
         output.print("0. Back\nSelect an option: ");
     }
 
+    public void userCreationPrompt()
+    {
+        output.println("User Creation Menu");
+        output.print("Username: ");
+        String username = readLine();
+        output.print("Password: ");
+        String password = readLine();
+        
+
+        
+
+    }
+
     private void runTypeMenu(RecordType type) {
         while (true) {
             displayTypeMenu(type);
@@ -87,6 +102,7 @@ public class AgencyInterface {
     }
 
     private void listRecords(RecordType type) {
+        output.println(this.SEPARATOR);
         List<String> lines = switch (type) {
             case BRIEF -> bManager.getRecords("id", "%").stream().map(b -> b.getId() + ". " + b.getTitle()).toList();
             case AGENT -> aManager.getRecords("id", "%").stream().map(a -> a.getId() + ". " + a.getName()).toList();
@@ -97,9 +113,11 @@ public class AgencyInterface {
             output.println("No " + type.getTitle().toLowerCase() + " are available.");
         }
         lines.forEach(output::println);
+        output.println(this.SEPARATOR);
     }
 
     private void readRecord(RecordType type) {
+        output.println(this.SEPARATOR);
         Integer id = readId("Enter " + type.getSingular() + " ID: ");
         if (id == null) {
             return;
@@ -123,9 +141,11 @@ public class AgencyInterface {
         }
         details.forEach(output::println);
         auditLog.log(currentUser.getUsername(), "READ", type.name(), String.valueOf(id));
+        output.println(this.SEPARATOR);
     }
 
     private void addRecord(RecordType type) {
+        output.println(this.SEPARATOR);
         try {
             Integer id = switch (type) {
                 case BRIEF -> bManager.addRecord(prompt("Title: "), prompt("Date (yyyy-mm-dd): "),
@@ -140,6 +160,7 @@ public class AgencyInterface {
         } catch (IllegalArgumentException e) {
             output.println("Unable to add " + type.getSingular() + ": " + e.getMessage());
         }
+        output.println(this.SEPARATOR);
     }
 
     private Integer addAgent() {
@@ -152,6 +173,7 @@ public class AgencyInterface {
     }
 
     private void displayAuditLog() {
+        output.println(this.SEPARATOR);
         List<AuditLogEntry> entries = auditLog.getAuditLog();
         if (entries == null || entries.isEmpty()) {
             output.println("No audit entries have been recorded.");
@@ -161,6 +183,7 @@ public class AgencyInterface {
             output.println(e.getTimestamp() + " | " + e.getUsername() + " | " + e.getAction()
                     + " | " + e.getContentType() + " " + e.getContentIdentifier());
         }
+        output.println(this.SEPARATOR);
     }
 
     private boolean isAdmin() {
