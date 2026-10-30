@@ -196,8 +196,8 @@ public class AgentManager extends IDatabaseManager<Agent>
         try (Connection c = connect(); Statement s = c.createStatement()) {
             s.execute("CREATE TABLE IF NOT EXISTS %s (%s INTEGER PRIMARY KEY, %s TEXT NOT NULL, %s DATE NOT NULL, "
                     .formatted(this.tableName, this.columnNames[0], this.columnNames[1], this.columnNames[2])
-                    + "%s DATE, %s TEXT, %s INTEGER UNIQUE)"
-                    .formatted(this.columnNames[3], this.columnNames[4], this.columnNames[5]));
+                    + "%s DATE, %s TEXT, %s INTEGER UNIQUE, FOREIGN KEY (%s) REFERENCES facilities (id) )"
+                    .formatted(this.columnNames[3], this.columnNames[4], this.columnNames[5], this.columnNames[5]));
         } catch (SQLException e) {
             DebugHelper.debugPrintln(e.getMessage());
         }

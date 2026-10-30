@@ -96,9 +96,6 @@ public abstract class IDatabaseManager<T>
     protected int update(String sql, Object... values)
     {
         try (Connection c = connect(); PreparedStatement ps = c.prepareStatement(sql)) {
-            for (int i = 0; i < values.length; i++) {
-                ps.setObject(i + 1, values[i]);
-            }
             int rowsAffected = ps.executeUpdate();
             return rowsAffected;
         }
