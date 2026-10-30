@@ -89,3 +89,13 @@ tasks.register<JacocoReport>("jacocoUnitTestReport") {
     sourceSets(sourceSets.main.get())
     reports { xml.required.set(true); html.required.set(true) }
 }
+
+sourceSets {
+    named("test") {
+        java {
+            if (project.hasProperty("managersOnly")) {
+                include("org/managers/**")
+            }
+        }
+    }
+}
