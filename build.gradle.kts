@@ -40,6 +40,8 @@ tasks.jar {
         configurations.runtimeClasspath.get().map {  file -> if (file.isDirectory) file else zipTree(file) }
     })
 
+    archiveFileName.set("TopSecret.jar");
+
     // Prevents Gradle from crashing if multiple libraries contain the same meta-files (e.g. LICENSE files)
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE 
 
