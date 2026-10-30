@@ -183,7 +183,7 @@ public class BriefManager extends IDatabaseManager<Brief>
             s.execute(
                     "CREATE TABLE IF NOT EXISTS %s (%s INTEGER PRIMARY KEY, %s TEXT NOT NULL, "
                     .formatted(this.tableName, this.columnNames[0], this.columnNames[1])
-                    + "%s TEXT NOT NULL, %s TEXT NOT NULL, %s INTEGER UNIQUE)"
+                    + "%s DATE NOT NULL, %s TEXT NOT NULL, %s INTEGER UNIQUE)"
                     .formatted(this.columnNames[2], this.columnNames[3], this.columnNames[4])
                     );
         } catch (SQLException e) {
