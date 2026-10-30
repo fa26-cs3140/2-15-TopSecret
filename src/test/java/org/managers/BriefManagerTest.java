@@ -21,7 +21,7 @@ public class BriefManagerTest {
     private String testUrl;
 
     @BeforeEach
-    void setUp() {
+    void setup() {
         testUrl = "jdbc:sqlite:" + tempDir.resolve("test.db");
     }
 

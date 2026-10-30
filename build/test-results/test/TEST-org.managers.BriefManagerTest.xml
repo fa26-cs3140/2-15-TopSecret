@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.managers.BriefManagerTest" tests="17" skipped="0" failures="12" errors="0" timestamp="2026-10-30T15:30:03.586Z" hostname="Mikes-Macbook.local" time="0.033">
+<testsuite name="org.managers.BriefManagerTest" tests="17" skipped="0" failures="12" errors="0" timestamp="2026-10-30T16:01:18.482Z" hostname="Mikes-Macbook.local" time="0.03">
   <properties/>
   <testcase name="testConstructorPreservesExistingRecords()" classname="org.managers.BriefManagerTest" time="0.002"/>
-  <testcase name="testAddRecordWithBrief()" classname="org.managers.BriefManagerTest" time="0.001">
+  <testcase name="testAddRecordWithBrief()" classname="org.managers.BriefManagerTest" time="0.002">
     <failure message="java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null
 	at org.managers.IDatabaseManager.insert(IDatabaseManager.java:85)
 	at org.managers.BriefManager.addRecord(BriefManager.java:91)
 	at org.managers.BriefManagerTest.testAddRecordWithBrief(BriefManagerTest.java:152)
 </failure>
   </testcase>
-  <testcase name="testUpdateRecordText()" classname="org.managers.BriefManagerTest" time="0.001">
+  <testcase name="testUpdateRecordText()" classname="org.managers.BriefManagerTest" time="0.002">
     <failure message="java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null
 	at org.managers.IDatabaseManager.update(IDatabaseManager.java:107)
 	at org.managers.BriefManager.updateRecord(BriefManager.java:119)
 	at org.managers.BriefManagerTest.testUpdateRecordText(BriefManagerTest.java:324)
 </failure>
   </testcase>
-  <testcase name="testAddRecordWithFields()" classname="org.managers.BriefManagerTest" time="0.001">
+  <testcase name="testAddRecordWithFields()" classname="org.managers.BriefManagerTest" time="0.002">
     <failure message="java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null
 	at org.managers.IDatabaseManager.insert(IDatabaseManager.java:85)
 	at org.managers.BriefManager.addRecord(BriefManager.java:91)
@@ -31,8 +31,8 @@
 	at org.managers.BriefManagerTest.testUpdateRecordNoMatch(BriefManagerTest.java:344)
 </failure>
   </testcase>
-  <testcase name="testGetRecordsNoMatch()" classname="org.managers.BriefManagerTest" time="0.002"/>
-  <testcase name="testGetRecordsById()" classname="org.managers.BriefManagerTest" time="0.002">
+  <testcase name="testGetRecordsNoMatch()" classname="org.managers.BriefManagerTest" time="0.001"/>
+  <testcase name="testGetRecordsById()" classname="org.managers.BriefManagerTest" time="0.003">
     <failure message="org.opentest4j.AssertionFailedError: expected: &lt;1&gt; but was: &lt;0&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;1&gt; but was: &lt;0&gt;
 	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
 	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
@@ -55,7 +55,7 @@
 	at org.managers.BriefManagerTest.testTableSchema(BriefManagerTest.java:130)
 </failure>
   </testcase>
-  <testcase name="testUpdateRecord()" classname="org.managers.BriefManagerTest" time="0.003">
+  <testcase name="testUpdateRecord()" classname="org.managers.BriefManagerTest" time="0.002">
     <failure message="java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null
 	at org.managers.IDatabaseManager.update(IDatabaseManager.java:107)
 	at org.managers.BriefManager.updateRecord(BriefManager.java:119)
@@ -71,7 +71,7 @@
 	at org.managers.BriefManagerTest.testImportTSV(BriefManagerTest.java:370)
 </failure>
   </testcase>
-  <testcase name="testAddMultipleRecords()" classname="org.managers.BriefManagerTest" time="0.002">
+  <testcase name="testAddMultipleRecords()" classname="org.managers.BriefManagerTest" time="0.001">
     <failure message="java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null
 	at org.managers.IDatabaseManager.insert(IDatabaseManager.java:85)
 	at org.managers.BriefManager.addRecord(BriefManager.java:91)

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.managers.AgentManagerTest" tests="12" skipped="0" failures="8" errors="0" timestamp="2026-10-30T15:30:03.274Z" hostname="Mikes-Macbook.local" time="0.311">
+<testsuite name="org.managers.AgentManagerTest" tests="12" skipped="0" failures="8" errors="0" timestamp="2026-10-30T16:01:18.014Z" hostname="Mikes-Macbook.local" time="0.467">
   <properties/>
-  <testcase name="testAddInvalidAgent()" classname="org.managers.AgentManagerTest" time="0.258"/>
-  <testcase name="testAddRecordWithAgent()" classname="org.managers.AgentManagerTest" time="0.01">
+  <testcase name="testAddInvalidAgent()" classname="org.managers.AgentManagerTest" time="0.414"/>
+  <testcase name="testAddRecordWithAgent()" classname="org.managers.AgentManagerTest" time="0.012">
     <failure message="java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (incomplete input)" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (incomplete input)
 	at org.managers.IDatabaseManager.insert(IDatabaseManager.java:85)
 	at org.managers.AgentManager.addRecord(AgentManager.java:98)
 	at org.managers.AgentManagerTest.testAddRecordWithAgent(AgentManagerTest.java:131)
 </failure>
   </testcase>
-  <testcase name="testAddRecordWithFields()" classname="org.managers.AgentManagerTest" time="0.003">
+  <testcase name="testAddRecordWithFields()" classname="org.managers.AgentManagerTest" time="0.004">
     <failure message="java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (incomplete input)" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (incomplete input)
 	at org.managers.IDatabaseManager.insert(IDatabaseManager.java:85)
 	at org.managers.AgentManager.addRecord(AgentManager.java:98)
@@ -17,7 +17,7 @@
 	at org.managers.AgentManagerTest.testAddRecordWithFields(AgentManagerTest.java:161)
 </failure>
   </testcase>
-  <testcase name="testUpdateRecordNoMatch()" classname="org.managers.AgentManagerTest" time="0.004">
+  <testcase name="testUpdateRecordNoMatch()" classname="org.managers.AgentManagerTest" time="0.005">
     <failure message="java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (near &quot;Doe&quot;: syntax error)" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (near &quot;Doe&quot;: syntax error)
 	at org.managers.IDatabaseManager.update(IDatabaseManager.java:107)
 	at org.managers.AgentManager.updateRecord(AgentManager.java:130)
@@ -25,8 +25,8 @@
 </failure>
   </testcase>
   <testcase name="testGetRecordsNoMatch()" classname="org.managers.AgentManagerTest" time="0.003"/>
-  <testcase name="testGetters()" classname="org.managers.AgentManagerTest" time="0.003"/>
-  <testcase name="testTableSchema()" classname="org.managers.AgentManagerTest" time="0.005">
+  <testcase name="testGetters()" classname="org.managers.AgentManagerTest" time="0.004"/>
+  <testcase name="testTableSchema()" classname="org.managers.AgentManagerTest" time="0.004">
     <failure message="org.opentest4j.AssertionFailedError: expected: &lt;[id, name, dateOfBirth, dateOfDeath, notes, facilityId]&gt; but was: &lt;[]&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;[id, name, dateOfBirth, dateOfDeath, notes, facilityId]&gt; but was: &lt;[]&gt;
 	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
 	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
@@ -37,7 +37,7 @@
 	at org.managers.AgentManagerTest.testTableSchema(AgentManagerTest.java:103)
 </failure>
   </testcase>
-  <testcase name="testAgentTableCreated()" classname="org.managers.AgentManagerTest" time="0.004">
+  <testcase name="testAgentTableCreated()" classname="org.managers.AgentManagerTest" time="0.003">
     <failure message="org.opentest4j.AssertionFailedError: expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;true&gt; but was: &lt;false&gt;
 	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
 	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
@@ -55,7 +55,7 @@
 	at org.managers.AgentManagerTest.testUpdateRecord(AgentManagerTest.java:217)
 </failure>
   </testcase>
-  <testcase name="testGetRecords()" classname="org.managers.AgentManagerTest" time="0.006">
+  <testcase name="testGetRecords()" classname="org.managers.AgentManagerTest" time="0.003">
     <failure message="org.opentest4j.AssertionFailedError: expected: &lt;2&gt; but was: &lt;0&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;2&gt; but was: &lt;0&gt;
 	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
 	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)

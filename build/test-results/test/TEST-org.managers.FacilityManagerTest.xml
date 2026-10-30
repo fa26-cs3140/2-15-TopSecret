@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.managers.FacilityManagerTest" tests="20" skipped="0" failures="14" errors="0" timestamp="2026-10-30T16:01:18.512Z" hostname="Mikes-Macbook.local" time="0.039">
+  <properties/>
+  <testcase name="testConstructorPreservesExistingRecords()" classname="org.managers.FacilityManagerTest" time="0.002"/>
+  <testcase name="testUpdateRecordName()" classname="org.managers.FacilityManagerTest" time="0.003">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (near &quot;Headquarters&quot;: syntax error)" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (near &quot;Headquarters&quot;: syntax error)
+	at org.managers.IDatabaseManager.update(IDatabaseManager.java:107)
+	at org.managers.FacilityManager.updateRecord(FacilityManager.java:119)
+	at org.managers.FacilityManagerTest.testUpdateRecordName(FacilityManagerTest.java:323)
+</failure>
+  </testcase>
+  <testcase name="testFacilityTableCreated()" classname="org.managers.FacilityManagerTest" time="0.002">
+    <failure message="org.opentest4j.AssertionFailedError: facilities table should exist ==&gt; expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: facilities table should exist ==&gt; expected: &lt;true&gt; but was: &lt;false&gt;
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:69)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:41)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:228)
+	at org.managers.FacilityManagerTest.testFacilityTableCreated(FacilityManagerTest.java:97)
+</failure>
+  </testcase>
+  <testcase name="testUpdateRecordByName()" classname="org.managers.FacilityManagerTest" time="0.002">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (no such column: MAIN)" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (no such column: MAIN)
+	at org.managers.IDatabaseManager.update(IDatabaseManager.java:107)
+	at org.managers.FacilityManager.updateRecord(FacilityManager.java:119)
+	at org.managers.FacilityManagerTest.testUpdateRecordByName(FacilityManagerTest.java:388)
+</failure>
+  </testcase>
+  <testcase name="testGetRecordsByAbbreviation()" classname="org.managers.FacilityManagerTest" time="0.002">
+    <failure message="org.opentest4j.AssertionFailedError: expected: &lt;1&gt; but was: &lt;0&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;1&gt; but was: &lt;0&gt;
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:201)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:152)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:147)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:558)
+	at org.managers.FacilityManagerTest.testGetRecordsByAbbreviation(FacilityManagerTest.java:286)
+</failure>
+  </testcase>
+  <testcase name="testAddRecordWithFields()" classname="org.managers.FacilityManagerTest" time="0.003">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (incomplete input)" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (incomplete input)
+	at org.managers.IDatabaseManager.insert(IDatabaseManager.java:85)
+	at org.managers.FacilityManager.addRecord(FacilityManager.java:89)
+	at org.managers.FacilityManager.addRecord(FacilityManager.java:106)
+	at org.managers.FacilityManagerTest.testAddRecordWithFields(FacilityManagerTest.java:200)
+</failure>
+  </testcase>
+  <testcase name="testUpdateRecordNoMatch()" classname="org.managers.FacilityManagerTest" time="0.002">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (near &quot;Headquarters&quot;: syntax error)" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (near &quot;Headquarters&quot;: syntax error)
+	at org.managers.IDatabaseManager.update(IDatabaseManager.java:107)
+	at org.managers.FacilityManager.updateRecord(FacilityManager.java:119)
+	at org.managers.FacilityManagerTest.testUpdateRecordNoMatch(FacilityManagerTest.java:368)
+</failure>
+  </testcase>
+  <testcase name="testGetRecordsNoMatch()" classname="org.managers.FacilityManagerTest" time="0.002"/>
+  <testcase name="testGetRecordsById()" classname="org.managers.FacilityManagerTest" time="0.003"/>
+  <testcase name="testGetters()" classname="org.managers.FacilityManagerTest" time="0.001"/>
+  <testcase name="testTableSchema()" classname="org.managers.FacilityManagerTest" time="0.001">
+    <failure message="org.opentest4j.AssertionFailedError: expected: &lt;[id, name, abbreviation, mission_id]&gt; but was: &lt;[]&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;[id, name, abbreviation, mission_id]&gt; but was: &lt;[]&gt;
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:201)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:184)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:179)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1188)
+	at org.managers.FacilityManagerTest.testTableSchema(FacilityManagerTest.java:128)
+</failure>
+  </testcase>
+  <testcase name="testGetRecordsByName()" classname="org.managers.FacilityManagerTest" time="0.002">
+    <failure message="org.opentest4j.AssertionFailedError: expected: &lt;2&gt; but was: &lt;0&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;2&gt; but was: &lt;0&gt;
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:201)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:152)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:147)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:558)
+	at org.managers.FacilityManagerTest.testGetRecordsByName(FacilityManagerTest.java:268)
+</failure>
+  </testcase>
+  <testcase name="testAddRecordWithFacility()" classname="org.managers.FacilityManagerTest" time="0.001">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (incomplete input)" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (incomplete input)
+	at org.managers.IDatabaseManager.insert(IDatabaseManager.java:85)
+	at org.managers.FacilityManager.addRecord(FacilityManager.java:89)
+	at org.managers.FacilityManagerTest.testAddRecordWithFacility(FacilityManagerTest.java:173)
+</failure>
+  </testcase>
+  <testcase name="testImportTSV()" classname="org.managers.FacilityManagerTest" time="0.002">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (incomplete input)" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (incomplete input)
+	at org.managers.IDatabaseManager.insert(IDatabaseManager.java:85)
+	at org.managers.FacilityManager.addRecord(FacilityManager.java:89)
+	at org.managers.FacilityManager.addRecord(FacilityManager.java:106)
+	at org.managers.FacilityManager.importTSV(FacilityManager.java:167)
+	at org.managers.FacilityManagerTest.testImportTSV(FacilityManagerTest.java:413)
+</failure>
+  </testcase>
+  <testcase name="testAddMultipleRecords()" classname="org.managers.FacilityManagerTest" time="0.002">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (incomplete input)" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (incomplete input)
+	at org.managers.IDatabaseManager.insert(IDatabaseManager.java:85)
+	at org.managers.FacilityManager.addRecord(FacilityManager.java:89)
+	at org.managers.FacilityManager.addRecord(FacilityManager.java:106)
+	at org.managers.FacilityManagerTest.testAddMultipleRecords(FacilityManagerTest.java:212)
+</failure>
+  </testcase>
+  <testcase name="testGetRecordsWithApostrophe()" classname="org.managers.FacilityManagerTest" time="0.002">
+    <failure message="org.opentest4j.AssertionFailedError: expected: &lt;1&gt; but was: &lt;0&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;1&gt; but was: &lt;0&gt;
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:201)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:152)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:147)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:558)
+	at org.managers.FacilityManagerTest.testGetRecordsWithApostrophe(FacilityManagerTest.java:311)
+</failure>
+  </testcase>
+  <testcase name="testUpdateRecordAbbreviation()" classname="org.managers.FacilityManagerTest" time="0.002">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (no such column: MAIN)" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: [SQLITE_ERROR] SQL error or missing database (no such column: MAIN)
+	at org.managers.IDatabaseManager.update(IDatabaseManager.java:107)
+	at org.managers.FacilityManager.updateRecord(FacilityManager.java:119)
+	at org.managers.FacilityManagerTest.testUpdateRecordAbbreviation(FacilityManagerTest.java:349)
+</failure>
+  </testcase>
+  <testcase name="testInvalidURL()" classname="org.managers.FacilityManagerTest" time="0.001"/>
+  <testcase name="testAddInvalidRecord()" classname="org.managers.FacilityManagerTest" time="0.001"/>
+  <testcase name="testUniqueMissionId()" classname="org.managers.FacilityManagerTest" time="0.0">
+    <failure message="org.sqlite.SQLiteException: [SQLITE_ERROR] SQL error or missing database (no such table: facilities)" type="org.sqlite.SQLiteException">org.sqlite.SQLiteException: [SQLITE_ERROR] SQL error or missing database (no such table: facilities)
+	at org.sqlite.core.DB.newSQLException(DB.java:1182)
+	at org.sqlite.core.DB.newSQLException(DB.java:1193)
+	at org.sqlite.core.DB.throwex(DB.java:1153)
+	at org.sqlite.core.NativeDB.prepare_utf8(Native Method)
+	at org.sqlite.core.NativeDB.prepare(NativeDB.java:135)
+	at org.sqlite.core.DB.prepare(DB.java:265)
+	at org.sqlite.jdbc3.JDBC3Statement.lambda$execute$0(JDBC3Statement.java:55)
+	at org.sqlite.jdbc3.JDBC3Statement.withConnectionTimeout(JDBC3Statement.java:464)
+	at org.sqlite.jdbc3.JDBC3Statement.execute(JDBC3Statement.java:44)
+	at org.managers.FacilityManagerTest.testUniqueMissionId(FacilityManagerTest.java:139)
+</failure>
+  </testcase>
+  <system-out><![CDATA[[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[getRecords]: [SQLITE_ERROR] SQL error or missing database (no such column: RC)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[getRecords]: [SQLITE_ERROR] SQL error or missing database (no such column: Headquarters)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[getRecords]: [SQLITE_ERROR] SQL error or missing database (unrecognized token: "'s Office ORDER BY id")
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+[createTable]: [SQLITE_ERROR] SQL error or missing database (near "%": syntax error)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
