@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.managers.BriefManagerTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-30T18:05:06.154Z" hostname="Mikes-Macbook.local" time="0.036">
+  <properties/>
+  <testcase name="testConstructorPreservesExistingRecords()" classname="org.managers.BriefManagerTest" time="0.002"/>
+  <testcase name="testAddRecordWithBrief()" classname="org.managers.BriefManagerTest" time="0.004"/>
+  <testcase name="testUpdateRecordText()" classname="org.managers.BriefManagerTest" time="0.002"/>
+  <testcase name="testAddRecordWithFields()" classname="org.managers.BriefManagerTest" time="0.002"/>
+  <testcase name="testUpdateRecordNoMatch()" classname="org.managers.BriefManagerTest" time="0.002"/>
+  <testcase name="testGetRecordsNoMatch()" classname="org.managers.BriefManagerTest" time="0.002"/>
+  <testcase name="testGetRecordsById()" classname="org.managers.BriefManagerTest" time="0.002"/>
+  <testcase name="testGetters()" classname="org.managers.BriefManagerTest" time="0.002"/>
+  <testcase name="testTableSchema()" classname="org.managers.BriefManagerTest" time="0.001"/>
+  <testcase name="testUpdateRecord()" classname="org.managers.BriefManagerTest" time="0.002"/>
+  <testcase name="testImportTSV()" classname="org.managers.BriefManagerTest" time="0.003"/>
+  <testcase name="testAddMultipleRecords()" classname="org.managers.BriefManagerTest" time="0.003"/>
+  <testcase name="testInvalidURL()" classname="org.managers.BriefManagerTest" time="0.001"/>
+  <testcase name="testBriefTableCreated()" classname="org.managers.BriefManagerTest" time="0.001"/>
+  <testcase name="testGetRecordsByTitle()" classname="org.managers.BriefManagerTest" time="0.002"/>
+  <testcase name="testAddInvalidRecord()" classname="org.managers.BriefManagerTest" time="0.003"/>
+  <testcase name="testGetRecordsByMissionId()" classname="org.managers.BriefManagerTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
