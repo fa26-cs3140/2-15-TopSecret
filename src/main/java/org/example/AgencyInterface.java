@@ -23,7 +23,7 @@ public class AgencyInterface {
 
     private final String SEPARATOR= "-----------------";
 
-    public AgencyInterface(AgentManager aManager, FacilityManager fManager, BriefManager bManager, UserAccountManager uManager,
+    public AgencyInterface(AgentManager aManager, FacilityManager fManager, BriefManager bManager, UserAccountManager uManager, 
                            AuditLogService auditLog, UserAccount currentUser, Scanner scanner, PrintStream output) {
         if (aManager == null || fManager == null || bManager == null || auditLog == null || currentUser == null || scanner == null || output == null) {
             throw new IllegalArgumentException("Arguments cannot be null.");
@@ -51,7 +51,9 @@ public class AgencyInterface {
                     case "1" -> runTypeMenu(RecordType.BRIEF);
                     case "2" -> runTypeMenu(RecordType.AGENT);
                     case "3" -> runTypeMenu(RecordType.FACILITY);
-                    case "4" -> { if (isAdmin()) displayAuditLog(); else invalidSelection(); }
+                    case "4" -> userCreationMenu();
+                    case "5" -> { if (isAdmin()) displayAuditLog(); else invalidSelection(); }
+                    case "6" -> { if (isAdmin()) userPromotionMenu(); else invalidSelection(); } // TODO: Promote/Demote admin *cannot demote self
                     case "0" -> { output.println("Exiting Top Secret."); return; }
                     default -> invalidSelection();
                 }
@@ -67,9 +69,10 @@ public class AgencyInterface {
     }
 
     public void displayMainMenu() {
-        output.println("\nTop Secret Main Menu\n1. Briefs\n2. Agents\n3. Facilities");
+        output.println("\nTop Secret Main Menu\n1. Briefs\n2. Agents\n3. Facilities\n4. Create User");
         if (isAdmin()) {
-            output.println("4. Review audit log");
+            output.println("5. Review audit log");
+            output.println("6. Manage User Permissions");
         }
         output.print("0. Exit\nSelect an option: ");
     }
@@ -96,31 +99,124 @@ public class AgencyInterface {
 
     }
 
-    public int userSelectionPrompt(List<UserAccount> users)
+    private void userCreationMenu()
     {
         output.println(this.SEPARATOR);
+        output.println("Create new user account");
+        String[] data = this.userCreationPrompt();
+        uManager.createUser(data[0], false);
+        uManager.createCredentials(data[0], data[1]);
+        auditLog.log(currentUser.getUsername(), "CREATE", "USER", data[0]);
+        output.println(this.SEPARATOR);
+    }
+
+    private void userPromotionMenu()
+    {
+        output.println(this.SEPARATOR);
+        output.println("Grant or revoke administrative privelages");
+        output.println(this.SEPARATOR);
+        List<UserAccount> users = uManager.getUsers();
         int i = 0;
         for (UserAccount user : users)
         {
             i++;
-            output.println("%i. %s".formatted(i, user.getUsername()));
+            output.println("%d. %s".formatted(i, user.getUsername()));
         }
-        output.println();
-        Boolean finished = false;
-        int selection = 0;       
-        try
+        Boolean inMenu = true;
+        UserAccount selectedUser = null;
+        while (inMenu)
         {
-            output.print("Select user ID: ");
-            String input = readLine();
-            selection = Integer.parseInt(input);
-            if (selection > users.size() || selection <= 0) throw new NumberFormatException();
+            output.println(this.SEPARATOR);
+            output.print("Select username: ");
+            String username = readLine();
+            selectedUser = uManager.getUser(username);
+            // If cannot find the user
+            if (selectedUser == null)
+            {
+                output.println("User not found.");
+            }
+            // If user tries to promote/demote themselves
+            else if (selectedUser.getUsername().equals(currentUser.getUsername()))
+            {
+                output.println("User cannot be yourself.");
+            }
+            else
+            {
+                // Username is valid, we can go on
+                inMenu = false;
+            }
         }
-        catch (NumberFormatException e)
+        output.println(this.SEPARATOR);
+        output.println("1. Promote to Admin\n2. Demote to Standard User");
+        inMenu = true;
+        int option = 0;
+        while (inMenu)
         {
-            output.println("Invalid selection. Try again");
-            return userSelectionPrompt(users);
+            try
+            {
+                output.print("Select option: ");
+                option = Integer.parseInt(readLine());
+                if (option != 1 && option != 2) throw new NumberFormatException();
+                // If everything works, we can leave
+                inMenu = false;
+
+            } catch (NumberFormatException e)
+            {
+                output.println("Invalid selection. Try again");
+            }
         }
-        return selection;
+        output.println(this.SEPARATOR);
+        if (option == 1) // Grant admin 
+        {
+            if (!selectedUser.isAdmin())
+            {
+                output.println("Promoted %s to admin".formatted(selectedUser.getUsername()));
+                selectedUser.setAdmin(true);
+                uManager.setUserAdmin(selectedUser.getUsername(), true);
+            }
+            else
+            {
+                output.println("User %s is already an admin".formatted(selectedUser.getUsername()));
+                return;
+            }
+        }
+        else if (option == 2) // Revoke admin
+        {
+            if (!selectedUser.isAdmin())
+            {
+                output.println("User %s is already not an admin".formatted(selectedUser.getUsername()));
+                return;
+            }
+            else
+            {
+                output.println("Demoted %s from admin".formatted(selectedUser.getUsername()));
+                selectedUser.setAdmin(false);
+                uManager.setUserAdmin(selectedUser.getUsername(), false);
+            }
+        }
+        // Log the event
+        String contentType = selectedUser.isAdmin() ? "PROMOTION" : "DEMOTION";
+        auditLog.log(currentUser.getUsername(), "ACCOUNT", contentType, selectedUser.getUsername());
+    }
+
+    public String[] userSelectionPrompt()
+    {
+        output.println(this.SEPARATOR);
+        output.println("Login Menu");
+        output.print("Username: ");
+        String username = readLine();
+        // Return null if no username to signal ending the program
+        if (username.isBlank()) return null;
+        output.print("Password: ");
+        String password = readLine();
+        output.println(this.SEPARATOR);
+
+        return new String[] { username, password  };
+    }
+
+    public void message(String message)
+    {
+        output.println(message);
     }
 
     private void runTypeMenu(RecordType type) {
@@ -197,6 +293,7 @@ public class AgencyInterface {
         }
         output.println(this.SEPARATOR);
     }
+
 
     private Integer addAgent() {
         String name = prompt("Name: ");

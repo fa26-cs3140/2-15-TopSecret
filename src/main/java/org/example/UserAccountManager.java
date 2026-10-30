@@ -93,6 +93,17 @@ public class UserAccountManager implements CredentialManager {
     }
 
     /**
+     * Sets an existing user's admin permissions. Returns true if the operation succeeds, false otherwise
+     */
+    public boolean setUserAdmin(String username, boolean admin)
+    {
+        if (!isValidUsername(username)) {
+            throw new IllegalArgumentException("Invalid username.");
+        }
+        return accountStore.setAdmin(username, admin);
+    }
+
+    /**
      * Creates the first account as an admin and sets that user's initial password.
      */
     public UserAccount createFirstUser(String username, String password) {

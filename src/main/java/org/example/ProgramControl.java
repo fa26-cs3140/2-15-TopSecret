@@ -40,7 +40,6 @@ public class ProgramControl {
     /**
      * Runs the main program, handles the creation of a database
      *
-     * @param ui UserInterface to be passed
      * @param args Arguments to pasesed into ui.runInterface()
      */
     public void run(String[] args) 
@@ -59,30 +58,10 @@ public class ProgramControl {
         // Then import the data from the relevant .tsv file as a .db
         this.createModelTables();
 
-        // Check to see if users exist. If not, prompt them.
-        // Very likely that this can be done within AgencyInterface,
-        // though probably best done here first. Could for instance
-        // be implemented as a function within AgencyInterface separate
-        // from run()
-        //
-        // Right now, AuditLogManager will not work if the current user is not
-        // on record. It will throw an error.
-        // TODO: Implement proper user management
-        UserAccount currentUser;
-        // if (!userManager.hasUsers())
-        // {
-        //     // TODO: Prompt creation of an admin user
-        //     currentUser = userManager.createUser("TestAdmin", true);
-        // }
-        // else
-        // {
-        //     // TODO: Prompt selection of user or creation of a new account
-        //     currentUser = userManager.createUser("TestAdmin", true);
-        // }
-
         AgencyInterface ui = 
-            new AgencyInterface(this.agentManager, this.facilityManager, this.briefManager, this.userManager, 
+            new AgencyInterface(this.agentManager, this.facilityManager, this.briefManager, this.userManager,
                                 this.auditLogger, new UserAccount("__DUMMY__", false), new Scanner(System.in), System.out);
+
         if (!userManager.hasUsers())
         {
             // Prompt the user to create an account that will automatically be
@@ -93,13 +72,33 @@ public class ProgramControl {
         }
         else
         {
+            boolean loggedIn = false;
             // Prompt the user to select an account OR to create a new account
-            int selection = ui.userSelectionPrompt(userManager.getUsers());
+            while (!loggedIn)
+            {
+                String[] data = ui.userSelectionPrompt();
+                if (data == null) return;
+                String username = data[0];
+                String password = data[1];
 
+                if (userManager.verifyLogin(username, password))
+                {
+                    UserAccount user = userManager.getUser(username);
+                    ui.setUser(user);
+                    // Log the login event
+                    auditLogger.log(user.getUsername(), "LOGIN", "LOGIN", "x");
+                    loggedIn = true;
+                }
+                else
+                {
+                    ui.message("Invalid account information.");
+                    ui.message("Try again or enter empty username to exit.");
+                }
+            }
         }
 
         ui.run();
-    }
+}
 
     // End of run()  
 
