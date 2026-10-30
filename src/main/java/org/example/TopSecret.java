@@ -19,7 +19,7 @@ public class TopSecret
         }
         catch (Exception e)
         {
-            System.out.println("Error... Aborting program...");
+            e.printStackTrace();
         }
     }
 }
