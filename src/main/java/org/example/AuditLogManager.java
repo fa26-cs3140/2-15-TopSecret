@@ -24,19 +24,19 @@ public class AuditLogManager implements AuditLogService {
     @Override
     public void log(String username, String action, String contentType, String contentIdentifier) {
         // TODO: Remove this after testing
-        // return;
-        if (isBlank(username) || isBlank(action) || isBlank(contentType) || isBlank(contentIdentifier)) {
-            throw new IllegalArgumentException("Audit fields cannot be blank.");
-        }
+        return;
+        // if (isBlank(username) || isBlank(action) || isBlank(contentType) || isBlank(contentIdentifier)) {
+        //     throw new IllegalArgumentException("Audit fields cannot be blank.");
+        // }
 
-        store.add(new AuditLogEntry(
-                0,
-                username,
-                action,
-                contentType,
-                contentIdentifier,
-                LocalDateTime.now()
-        ));
+        // store.add(new AuditLogEntry(
+        //         0,
+        //         username,
+        //         action,
+        //         contentType,
+        //         contentIdentifier,
+        //         LocalDateTime.now()
+        // ));
     }
 
     @Override

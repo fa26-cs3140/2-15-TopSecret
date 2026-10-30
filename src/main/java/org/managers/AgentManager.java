@@ -126,8 +126,8 @@ public class AgentManager extends IDatabaseManager<Agent>
     public Boolean updateRecord(String checkColumn, String key, String changeColumn, String value)
     {
         String query = "UPDATE " + this.tableName + 
-                      " SET " + changeColumn + " = " + value +
-                      " WHERE " + checkColumn + " = " + key; 
+                      " SET " + changeColumn + " = " + "\'" + value +"\'" +
+                      " WHERE " + checkColumn + " LIKE " + "\'" + key + "\'"; 
         int rowsAffected = this.update(query, checkColumn, key, changeColumn, value);
         // Return true if the operation succeeded
         // id will return -1 if the operation failed

@@ -15,14 +15,15 @@ public class AgencyInterface {
     private final AgentManager aManager;
     private final FacilityManager fManager;
     private final BriefManager bManager;
+    private final UserAccountManager uManager;
     private final AuditLogService auditLog;
-    private final UserAccount currentUser;
+    private UserAccount currentUser;
     private final Scanner scanner;
     private final PrintStream output;
 
     private final String SEPARATOR= "-----------------";
 
-    public AgencyInterface(AgentManager aManager, FacilityManager fManager, BriefManager bManager,
+    public AgencyInterface(AgentManager aManager, FacilityManager fManager, BriefManager bManager, UserAccountManager uManager,
                            AuditLogService auditLog, UserAccount currentUser, Scanner scanner, PrintStream output) {
         if (aManager == null || fManager == null || bManager == null || auditLog == null || currentUser == null || scanner == null || output == null) {
             throw new IllegalArgumentException("Arguments cannot be null.");
@@ -31,6 +32,7 @@ public class AgencyInterface {
         this.aManager = aManager;
         this.fManager = fManager;
         this.bManager = bManager;
+        this.uManager = uManager;
         this.auditLog = auditLog;
         this.currentUser = currentUser;
         this.scanner = scanner;
@@ -59,6 +61,11 @@ public class AgencyInterface {
         }
     }
 
+    public void setUser(UserAccount user)
+    {
+        this.currentUser = user;
+    }
+
     public void displayMainMenu() {
         output.println("\nTop Secret Main Menu\n1. Briefs\n2. Agents\n3. Facilities");
         if (isAdmin()) {
@@ -75,17 +82,45 @@ public class AgencyInterface {
         output.print("0. Back\nSelect an option: ");
     }
 
-    public void userCreationPrompt()
+    public String[] userCreationPrompt()
     {
+        output.println(this.SEPARATOR);
         output.println("User Creation Menu");
         output.print("Username: ");
         String username = readLine();
         output.print("Password: ");
         String password = readLine();
+        output.println(this.SEPARATOR);
         
+        return new String[] { username, password };
 
-        
+    }
 
+    public int userSelectionPrompt(List<UserAccount> users)
+    {
+        output.println(this.SEPARATOR);
+        int i = 0;
+        for (UserAccount user : users)
+        {
+            i++;
+            output.println("%i. %s".formatted(i, user.getUsername()));
+        }
+        output.println();
+        Boolean finished = false;
+        int selection = 0;       
+        try
+        {
+            output.print("Select user ID: ");
+            String input = readLine();
+            selection = Integer.parseInt(input);
+            if (selection > users.size() || selection <= 0) throw new NumberFormatException();
+        }
+        catch (NumberFormatException e)
+        {
+            output.println("Invalid selection. Try again");
+            return userSelectionPrompt(users);
+        }
+        return selection;
     }
 
     private void runTypeMenu(RecordType type) {

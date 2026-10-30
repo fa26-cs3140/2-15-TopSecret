@@ -64,25 +64,38 @@ public class ProgramControl {
         // though probably best done here first. Could for instance
         // be implemented as a function within AgencyInterface separate
         // from run()
-        // // TODO: Implement proper user management
+        //
+        // Right now, AuditLogManager will not work if the current user is not
+        // on record. It will throw an error.
+        // TODO: Implement proper user management
         UserAccount currentUser;
+        // if (!userManager.hasUsers())
+        // {
+        //     // TODO: Prompt creation of an admin user
+        //     currentUser = userManager.createUser("TestAdmin", true);
+        // }
+        // else
+        // {
+        //     // TODO: Prompt selection of user or creation of a new account
+        //     currentUser = userManager.createUser("TestAdmin", true);
+        // }
+
+        AgencyInterface ui = 
+            new AgencyInterface(this.agentManager, this.facilityManager, this.briefManager, this.userManager, 
+                                this.auditLogger, new UserAccount("__DUMMY__", false), new Scanner(System.in), System.out);
         if (!userManager.hasUsers())
         {
-            // TODO: Prompt creation of an admin user
-            currentUser = userManager.createUser("TestAdmin", true);
+            // Prompt the user to create an account that will automatically be
+            // an admin
+            String[] data = ui.userCreationPrompt();
+            UserAccount user = userManager.createFirstUser(data[0], data[1]);
+            ui.setUser(user);
         }
         else
         {
-            // TODO: Prompt selection of user or creation of a new account
-            currentUser = userManager.createUser("TestAdmin", true);
-        }
+            // Prompt the user to select an account OR to create a new account
+            int selection = ui.userSelectionPrompt(userManager.getUsers());
 
-        AgencyInterface ui = 
-            new AgencyInterface(this.agentManager, this.facilityManager, this.briefManager, 
-                                this.auditLogger, new UserAccount("Dummy", false), new Scanner(System.in), System.out);
-        if (!userManager.hasUsers())
-        {
-            ui.userCreationPrompt();
         }
 
         ui.run();
