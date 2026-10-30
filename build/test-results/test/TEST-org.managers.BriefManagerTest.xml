@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.managers.BriefManagerTest" tests="17" skipped="0" failures="12" errors="0" timestamp="2026-10-30T15:30:03.586Z" hostname="Mikes-Macbook.local" time="0.033">
+  <properties/>
+  <testcase name="testConstructorPreservesExistingRecords()" classname="org.managers.BriefManagerTest" time="0.002"/>
+  <testcase name="testAddRecordWithBrief()" classname="org.managers.BriefManagerTest" time="0.001">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null
+	at org.managers.IDatabaseManager.insert(IDatabaseManager.java:85)
+	at org.managers.BriefManager.addRecord(BriefManager.java:91)
+	at org.managers.BriefManagerTest.testAddRecordWithBrief(BriefManagerTest.java:152)
+</failure>
+  </testcase>
+  <testcase name="testUpdateRecordText()" classname="org.managers.BriefManagerTest" time="0.001">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null
+	at org.managers.IDatabaseManager.update(IDatabaseManager.java:107)
+	at org.managers.BriefManager.updateRecord(BriefManager.java:119)
+	at org.managers.BriefManagerTest.testUpdateRecordText(BriefManagerTest.java:324)
+</failure>
+  </testcase>
+  <testcase name="testAddRecordWithFields()" classname="org.managers.BriefManagerTest" time="0.001">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null
+	at org.managers.IDatabaseManager.insert(IDatabaseManager.java:85)
+	at org.managers.BriefManager.addRecord(BriefManager.java:91)
+	at org.managers.BriefManager.addRecord(BriefManager.java:106)
+	at org.managers.BriefManagerTest.testAddRecordWithFields(BriefManagerTest.java:184)
+</failure>
+  </testcase>
+  <testcase name="testUpdateRecordNoMatch()" classname="org.managers.BriefManagerTest" time="0.002">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null
+	at org.managers.IDatabaseManager.update(IDatabaseManager.java:107)
+	at org.managers.BriefManager.updateRecord(BriefManager.java:119)
+	at org.managers.BriefManagerTest.testUpdateRecordNoMatch(BriefManagerTest.java:344)
+</failure>
+  </testcase>
+  <testcase name="testGetRecordsNoMatch()" classname="org.managers.BriefManagerTest" time="0.002"/>
+  <testcase name="testGetRecordsById()" classname="org.managers.BriefManagerTest" time="0.002">
+    <failure message="org.opentest4j.AssertionFailedError: expected: &lt;1&gt; but was: &lt;0&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;1&gt; but was: &lt;0&gt;
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:201)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:152)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:147)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:558)
+	at org.managers.BriefManagerTest.testGetRecordsById(BriefManagerTest.java:237)
+</failure>
+  </testcase>
+  <testcase name="testGetters()" classname="org.managers.BriefManagerTest" time="0.0"/>
+  <testcase name="testTableSchema()" classname="org.managers.BriefManagerTest" time="0.001">
+    <failure message="org.opentest4j.AssertionFailedError: expected: &lt;[id, title, date, text, mission_id]&gt; but was: &lt;[]&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;[id, title, date, text, mission_id]&gt; but was: &lt;[]&gt;
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:201)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:184)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:179)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1188)
+	at org.managers.BriefManagerTest.testTableSchema(BriefManagerTest.java:130)
+</failure>
+  </testcase>
+  <testcase name="testUpdateRecord()" classname="org.managers.BriefManagerTest" time="0.003">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null
+	at org.managers.IDatabaseManager.update(IDatabaseManager.java:107)
+	at org.managers.BriefManager.updateRecord(BriefManager.java:119)
+	at org.managers.BriefManagerTest.testUpdateRecord(BriefManagerTest.java:298)
+</failure>
+  </testcase>
+  <testcase name="testImportTSV()" classname="org.managers.BriefManagerTest" time="0.002">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null
+	at org.managers.IDatabaseManager.insert(IDatabaseManager.java:85)
+	at org.managers.BriefManager.addRecord(BriefManager.java:91)
+	at org.managers.BriefManager.addRecord(BriefManager.java:106)
+	at org.managers.BriefManager.importTSV(BriefManager.java:172)
+	at org.managers.BriefManagerTest.testImportTSV(BriefManagerTest.java:370)
+</failure>
+  </testcase>
+  <testcase name="testAddMultipleRecords()" classname="org.managers.BriefManagerTest" time="0.002">
+    <failure message="java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null" type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: The database rejected the record: The url cannot be null
+	at org.managers.IDatabaseManager.insert(IDatabaseManager.java:85)
+	at org.managers.BriefManager.addRecord(BriefManager.java:91)
+	at org.managers.BriefManager.addRecord(BriefManager.java:106)
+	at org.managers.BriefManagerTest.testAddMultipleRecords(BriefManagerTest.java:198)
+</failure>
+  </testcase>
+  <testcase name="testInvalidURL()" classname="org.managers.BriefManagerTest" time="0.001"/>
+  <testcase name="testBriefTableCreated()" classname="org.managers.BriefManagerTest" time="0.001">
+    <failure message="org.opentest4j.AssertionFailedError: briefs table should exist ==&gt; expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: briefs table should exist ==&gt; expected: &lt;true&gt; but was: &lt;false&gt;
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:69)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:41)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:228)
+	at org.managers.BriefManagerTest.testBriefTableCreated(BriefManagerTest.java:91)
+</failure>
+  </testcase>
+  <testcase name="testGetRecordsByTitle()" classname="org.managers.BriefManagerTest" time="0.003">
+    <failure message="org.opentest4j.AssertionFailedError: expected: &lt;2&gt; but was: &lt;0&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;2&gt; but was: &lt;0&gt;
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:201)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:152)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:147)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:558)
+	at org.managers.BriefManagerTest.testGetRecordsByTitle(BriefManagerTest.java:258)
+</failure>
+  </testcase>
+  <testcase name="testAddInvalidRecord()" classname="org.managers.BriefManagerTest" time="0.002"/>
+  <testcase name="testGetRecordsByMissionId()" classname="org.managers.BriefManagerTest" time="0.002">
+    <failure message="org.opentest4j.AssertionFailedError: expected: &lt;1&gt; but was: &lt;0&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: expected: &lt;1&gt; but was: &lt;0&gt;
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:201)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:152)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:147)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:558)
+	at org.managers.BriefManagerTest.testGetRecordsByMissionId(BriefManagerTest.java:273)
+</failure>
+  </testcase>
+  <system-out><![CDATA[[createTable]: The url cannot be null
+[createTable]: The url cannot be null
+[createTable]: The url cannot be null
+[createTable]: The url cannot be null
+[createTable]: The url cannot be null
+[createTable]: The url cannot be null
+[createTable]: The url cannot be null
+[getRecords]: The url cannot be null
+[createTable]: The url cannot be null
+[getRecords]: The url cannot be null
+[createTable]: The url cannot be null
+[createTable]: The url cannot be null
+[createTable]: The url cannot be null
+[createTable]: The url cannot be null
+[createTable]: The url cannot be null
+[createTable]: The url cannot be null
+[createTable]: The url cannot be null
+[createTable]: The url cannot be null
+[getRecords]: The url cannot be null
+[createTable]: The url cannot be null
+[createTable]: The url cannot be null
+[getRecords]: The url cannot be null
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
