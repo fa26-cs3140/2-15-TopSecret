@@ -1,6 +1,8 @@
 package org.example;
 
+import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -81,6 +83,7 @@ public class AgencyInterface {
         output.println("\n" + type.getTitle() + "\n1. List\n2. Read");
         if (isAdmin()) {
             output.println("3. Add");
+            output.println("4. Import");
         }
         output.print("0. Back\nSelect an option: ");
     }
@@ -226,6 +229,7 @@ public class AgencyInterface {
                 case "1" -> listRecords(type);
                 case "2" -> readRecord(type);
                 case "3" -> { if (isAdmin()) addRecord(type); else invalidSelection(); }
+                case "4" -> { if (isAdmin()) importRecords(type); else invalidSelection(); }
                 case "0" -> { return; }
                 default -> invalidSelection();
             }
@@ -292,6 +296,37 @@ public class AgencyInterface {
             output.println("Unable to add " + type.getSingular() + ": " + e.getMessage());
         }
         output.println(this.SEPARATOR);
+    }
+
+    private Boolean importRecords(RecordType type)
+    {
+        // TODO: Log imports. Rewrite aManager to allow for dynamic parameters (only first two are
+        // guarenteed not null)
+        output.println(this.SEPARATOR);
+        output.print("Input path to file: ");
+        String pathToTSV = readLine();
+        int recordsAdded = 0;
+        try {
+            recordsAdded = switch (type) {
+                case BRIEF -> bManager.importTSV(pathToTSV, bManager.getTableName(), "data", "mission_database.db");
+                case AGENT -> aManager.importTSV(pathToTSV, aManager.getTableName(), "data", "mission_database.db");
+                case FACILITY -> fManager.importTSV(pathToTSV, fManager.getTableName(), "data", "mission_database.db");
+            };
+        } catch (IllegalArgumentException e) {
+            output.println("Unable to import TSV file.");
+        } catch (IOException e) {
+            output.println("Unable to find " + pathToTSV);
+        } catch (Exception e) {
+            output.println("Something went wrong.");
+        }
+
+        if (recordsAdded == 0) { output.println("Unable to import TSV file."); }
+        else { output.println("TSV Successfully imported!"); }
+
+        auditLog.log(currentUser.getUsername(), "IMPORT", type.getTitle(), "%d".formatted(recordsAdded));
+
+        return recordsAdded > 0;
+
     }
 
 
