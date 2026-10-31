@@ -138,12 +138,16 @@ public class AgentManager extends IDatabaseManager<Agent>
     /**
      * Imports a file containing tab separated values into a database.
      * Does not check to see if file is formatted correctly
+     * Returns the nuumber of records added to the database
      * NOTE: Assumes the existence of a header to skip
      *
-     * TODO: Can this be moved into the abstract class?
+     * NOTE: This function is unique in that only the first two parameters are necessary,
+     * so make sure to check that the length of the data array actually contains the necessary
+     * data to import if necessary (i.e. date of death and notes). FacilityID must always be
+     * included
      */
     @Override
-    public Boolean importTSV(String pathToTSV, String tableName, String dirOut, String dbOutName) throws IOException
+    public int importTSV(String pathToTSV, String tableName, String dirOut, String dbOutName) throws IOException
     {
         // Remove trailing slashes from pathToTSV in an effort to reduce error
         if (pathToTSV.charAt(pathToTSV.length() - 1) == '\\' ||
@@ -159,8 +163,8 @@ public class AgentManager extends IDatabaseManager<Agent>
         }
 
         // Check if directory and/or tsv exists
-        if (!Files.exists(Path.of(dirOut))) return false;
-        if (!Files.exists(Path.of(pathToTSV))) return false;
+        if (!Files.exists(Path.of(dirOut))) return 0;
+        if (!Files.exists(Path.of(pathToTSV))) return 0;
 
         this.createTable();
         BufferedReader reader = new BufferedReader(new FileReader(pathToTSV));
@@ -169,6 +173,7 @@ public class AgentManager extends IDatabaseManager<Agent>
         // Skip header
         reader.readLine();
 
+        int numRecords = 0;
         while ((readText = reader.readLine()) != null)
         {
             // Each column should correspond with the requisite value, apart from id
@@ -180,11 +185,12 @@ public class AgentManager extends IDatabaseManager<Agent>
             String notes = data[3];
             int facilityId = Integer.parseInt(data[4]);
 
-            this.addRecord(name, dateOfBirth, dateOfDeath, notes, facilityId);
+            this.addRecord(name, dateOfBirth, dateOfDeath, notes, facilityId) ;
+            numRecords++;
         }
 
         reader.close();
-        return true;
+        return numRecords;
     }
 
     /**

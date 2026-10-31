@@ -126,12 +126,11 @@ public class BriefManager extends IDatabaseManager<Brief>
     /**
      * Imports a file containing tab separated values into a database.
      * Does not check to see if file is formatted correctly
+     * Returns the number of records added to the database
      * NOTE: Assumes the existence of a header to skip
-     *
-     * TODO: Can this be moved into the abstract class?
      */
     @Override
-    public Boolean importTSV(String pathToTSV, String tableName, String dirOut, String dbOutName) throws IOException
+    public int importTSV(String pathToTSV, String tableName, String dirOut, String dbOutName) throws IOException
     {
         // Remove trailing slashes from pathToTSV in an effort to reduce error
         if (pathToTSV.charAt(pathToTSV.length() - 1) == '\\' ||
@@ -147,8 +146,8 @@ public class BriefManager extends IDatabaseManager<Brief>
         }
 
         // Check if directory and/or tsv exists
-        if (!Files.exists(Path.of(dirOut))) return false;
-        if (!Files.exists(Path.of(pathToTSV))) return false;
+        if (!Files.exists(Path.of(dirOut))) return 0;
+        if (!Files.exists(Path.of(pathToTSV))) return 0;
 
         this.createTable();
         BufferedReader reader = new BufferedReader(new FileReader(pathToTSV));
@@ -157,6 +156,7 @@ public class BriefManager extends IDatabaseManager<Brief>
         // Skip header
         reader.readLine();
 
+        int numRecords = 0;
         while ((readText = reader.readLine()) != null)
         {
             // Each column should correspond with the requisite value, apart from id and mission_id
@@ -167,10 +167,11 @@ public class BriefManager extends IDatabaseManager<Brief>
             String text = data[2];
 
             this.addRecord(title, date, text);
+            numRecords++;
         }
 
         reader.close();
-        return true;
+        return numRecords;
     }
 
 /**

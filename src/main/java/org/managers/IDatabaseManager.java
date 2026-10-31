@@ -23,7 +23,7 @@ public abstract class IDatabaseManager<T>
 
     public abstract Boolean updateRecord(String checkColumn, String key, String changeColumn, String newVal);
 
-    public abstract Boolean importTSV(String pathToTSV, String tableName, String dirOut, String dbOutName) throws IOException;
+    public abstract int importTSV(String pathToTSV, String tableName, String dirOut, String dbOutName) throws IOException;
 
     public abstract void createTable();
 
