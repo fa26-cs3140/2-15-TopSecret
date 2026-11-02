@@ -1,0 +1,122 @@
+Homework 6 - Team Member B (Controller)
+Work Plan
+
+Branch: member-b-web (merged into main through a pull request at the end of each week)
+
+
+Goal
+
+Add a web view to Top Secret while keeping the terminal as the default interface.
+Terminal and web navigation share one controller so the control logic is written once.
+
+
+Requirements (Team Member B)
+
+1. Running with no arguments starts the terminal interface, as it does now.
+2. Running with -web starts an HTTP server on port 3002 instead.
+3. http://localhost:3002/ shows a login form (username and password).
+4. Valid credentials: the server sends a session cookie and shows the main menu page.
+   The cookie has no Expires or Max-Age, so it is deleted when the browser closes.
+5. Invalid credentials: the login form is shown again with an error message.
+6. Every page except the login page requires a valid session cookie.
+   Requests without one are redirected to the login page.
+7. The web server does not start if no user accounts exist. The program prints a message
+   telling the user to create the first account in the terminal.
+8. Terminal and web navigation work the same way and share control logic.
+
+
+Design
+
+Package: org.example.controller (moves with the rest of the controller layer when the
+team completes the model/view/controller package split).
+
+LaunchOptions
+- isWebMode(args): true when the arguments contain -web.
+
+AppController (shared by terminal and web)
+- listRecords(type): text listing of briefs, agents, or facilities.
+- readRecord(type, id, user): text details of one record; records a READ audit entry.
+- auditLog(user): text audit log for admins; an access-denied message otherwise.
+- Returns plain text. The terminal prints it; the web view (Team C) wraps it in HTML.
+
+SessionManager
+- createSession(user): creates a random token (SecureRandom) and remembers its user.
+- getUser(token): user for a token, or null.
+- endSession(token): forgets a token (logout).
+- Sessions are kept in memory only. Restarting the server logs everyone out.
+- No database table is added, so the ERD is unchanged by Team Member B.
+
+WebServer
+- Uses the JDK's built-in com.sun.net.httpserver.HttpServer (no web frameworks).
+- start(): refuses to start (IllegalStateException) when no user accounts exist.
+- stop(), getPort(). The port is a constructor argument so tests can use another port.
+
+LoginHandler
+- GET /        login form (or a redirect to /menu when the session is valid)
+- POST /login  checks credentials with UserAccountManager.verifyLogin()
+               valid: Set-Cookie: session=<token>; HttpOnly; Path=/   then redirect to /menu
+               invalid: login form with an error message, no cookie
+- The password is sent in the POST body, never in the URL.
+- Users that exist but have no password yet are told to set it in the terminal first.
+
+PageHandler
+- Checks the session cookie, then maps the URL to an AppController call.
+
+
+Navigation (terminal menu -> web URL)
+
+Main menu                     /menu
+1 Briefs -> 1 List            /briefs
+1 Briefs -> 2 Read -> id      /briefs/{id}
+2 Agents                      /agents, /agents/{id}
+3 Facilities                  /facilities, /facilities/{id}
+4 Review audit log (admin)    /audit
+Missions (Team A, new)        /missions, /missions/{id}
+Logout                        /logout
+
+Creating, editing, password changes, and messages stay terminal-only for this release.
+
+
+Coordination
+
+Team A (model): mission and agent-assignment methods on AgencyDataService; RecordType.MISSION.
+Team C (view): HTML page template that wraps controller text; wireframes use the URLs above.
+Team D (messages): menu entry in the terminal main menu.
+All: package names for the model/view/controller split, done as one agreed refactor commit.
+All: creating accounts after the first admin (needed for Team D's "ghost" workflow).
+
+
+Known issues to fix (controller)
+
+- ProgramControl imports mission_briefs.tsv into mission_database.db, but the application
+  reads mission_briefs.db, so test data never appears. Must be fixed so test data is present.
+- ProgramControl(FileHandler) creates data/mission_database.db during tests.
+
+
+Testing
+
+Unit tests (Mockito):
+- LaunchOptionsTest: -web detection.
+- SessionManagerTest: tokens, lookup, logout, cookie header and cookie parsing.
+- AppControllerTest: listing, reading, audit logging, admin-only audit log.
+
+Integration tests (real server on a test port, java.net.http.HttpClient):
+- WebServerIntegrationTest: login form, valid and invalid login, session cookie,
+  redirect without a cookie, refusal to start without accounts.
+
+Week 1 tests are drafted and @Disabled until the stubs are implemented in week 2.
+
+
+Schedule
+
+Week 1
+- Work plan (this document)
+- Class diagram: docs/HW6-TeamB-Controller-uml.txt
+- Stubs: LaunchOptions, AppController, SessionManager, WebServer, LoginHandler, PageHandler
+- Draft tests
+
+Week 2
+- Implement the stubs and enable the tests
+- Wire -web into TopSecret; move the terminal menu onto AppController
+- Fix test data import
+- Build the JAR, create a user, and log in through the terminal and http://localhost:3002/
