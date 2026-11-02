@@ -50,7 +50,7 @@ AuditLogEntry
 - timestamp
 
 AuditLogManager
-- implements the existing AuditLogService used by AgencyInterface
+- implements the existing AuditLogService used by UserInterface
 - validates required event fields
 - generates the access timestamp
 - records events through AuditLogStore
@@ -98,4 +98,4 @@ Testing
 
 Manager unit tests use Mockito.
 Persistence and cross-component behavior use separate integration tests with temporary SQLite databases.
-Existing AgencyInterface integration tests exercise the real AuditLogManager.
+Existing UserInterface integration tests exercise the real AuditLogManager.
