@@ -1,5 +1,6 @@
 package org.example;
 
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class TopSecret
@@ -27,7 +28,12 @@ public class TopSecret
             {
                 return;
             }
-            UserInterface uInterface = new UserInterface(dbManager, auditLogger, user, scanner, System.out);
+            // ./gradlew run --args="--change-password" changes the password right after login
+            if (Arrays.asList(args).contains("--change-password"))
+            {
+                UserInterface.changePassword(accounts, user, scanner, System.out);
+            }
+            UserInterface uInterface = new UserInterface(dbManager, auditLogger, user, scanner, System.out, accounts);
             pControl.run(uInterface, args);
         }
         catch (Exception e)

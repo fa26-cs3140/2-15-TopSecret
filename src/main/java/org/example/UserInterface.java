@@ -13,9 +13,16 @@ public class UserInterface {
     private final UserAccount currentUser;
     private final Scanner scanner;
     private final PrintStream output;
+    private final UserAccountManager accounts;
 
     public UserInterface(AgencyDataService data, AuditLogService auditLog,
                          UserAccount currentUser, Scanner scanner, PrintStream output) {
+        this(data, auditLog, currentUser, scanner, output, null);
+    }
+
+    // accounts may be null; the Change password option is then hidden.
+    public UserInterface(AgencyDataService data, AuditLogService auditLog, UserAccount currentUser,
+                         Scanner scanner, PrintStream output, UserAccountManager accounts) {
         if (data == null || auditLog == null || currentUser == null || scanner == null || output == null) {
             throw new IllegalArgumentException("Arguments cannot be null.");
         }
@@ -24,6 +31,7 @@ public class UserInterface {
         this.currentUser = currentUser;
         this.scanner = scanner;
         this.output = output;
+        this.accounts = accounts;
     }
 
     public UserAccount getCurrentUser() {
@@ -36,7 +44,7 @@ public class UserInterface {
             if (!accounts.hasUsers()) {
                 output.println("No accounts exist. Create the first (admin) account.");
                 String username = promptUntilValid(scanner, output, "Username: ", accounts::isValidUsername,
-                        "Usernames need 3+ letters, numbers, hyphens, or underscores.");
+                        "Usernames need 3+ lowercase letters, numbers, hyphens, or underscores.");
                 String password = promptNewPassword(accounts, scanner, output);
                 return accounts.createFirstUser(username, password);
             }
@@ -66,6 +74,22 @@ public class UserInterface {
         return null;
     }
 
+    // Asks for the current password before saving a new one. Returns true if the password changed.
+    public static boolean changePassword(UserAccountManager accounts, UserAccount user,
+                                         Scanner scanner, PrintStream output) {
+        output.print("Current password: ");
+        if (!accounts.verifyLogin(user.getUsername(), scanner.nextLine())) {
+            output.println("Incorrect password. Password not changed.");
+            return false;
+        }
+        if (!accounts.changePassword(user.getUsername(), promptNewPassword(accounts, scanner, output))) {
+            output.println("Unable to change password.");
+            return false;
+        }
+        output.println("Password changed.");
+        return true;
+    }
+
     private static String promptNewPassword(UserAccountManager accounts, Scanner scanner, PrintStream output) {
         return promptUntilValid(scanner, output, "New password: ", accounts::isValidPassword,
                 "Passwords need 5+ characters with uppercase and lowercase letters.");
@@ -92,6 +116,10 @@ public class UserInterface {
                     case "2" -> runTypeMenu(RecordType.AGENT);
                     case "3" -> runTypeMenu(RecordType.FACILITY);
                     case "4" -> { if (isAdmin()) displayAuditLog(); else invalidSelection(); }
+                    case "5" -> {
+                        if (accounts != null) changePassword(accounts, currentUser, scanner, output);
+                        else invalidSelection();
+                    }
                     case "0" -> { output.println("Exiting Top Secret."); return; }
                     default -> invalidSelection();
                 }
@@ -105,6 +133,9 @@ public class UserInterface {
         output.println("\nTop Secret Main Menu\n1. Briefs\n2. Agents\n3. Facilities");
         if (isAdmin()) {
             output.println("4. Review audit log");
+        }
+        if (accounts != null) {
+            output.println("5. Change password");
         }
         output.print("0. Exit\nSelect an option: ");
     }

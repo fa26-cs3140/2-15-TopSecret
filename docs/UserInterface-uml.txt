@@ -5,6 +5,7 @@ auditLog: AuditLogService
 currentUser: UserAccount
 scanner: Scanner
 output: PrintStream
+accounts: UserAccountManager
 --------------------------------------
 UserInterface(
     data: AgencyDataService,
@@ -13,12 +14,21 @@ UserInterface(
     scanner: Scanner,
     output: PrintStream
 )
+UserInterface(
+    data: AgencyDataService,
+    auditLog: AuditLogService,
+    currentUser: UserAccount,
+    scanner: Scanner,
+    output: PrintStream,
+    accounts: UserAccountManager
+)
 
 run(): void
 displayMainMenu(): void
 displayTypeMenu(type: RecordType): void
 getCurrentUser(): UserAccount
 login(accounts: UserAccountManager, scanner: Scanner, output: PrintStream): UserAccount {static}
+changePassword(accounts: UserAccountManager, user: UserAccount, scanner: Scanner, output: PrintStream): boolean {static}
 
 
 <<enumeration>>
@@ -55,6 +65,8 @@ Relationships
 UserInterface uses AgencyDataService, AuditLogService, and UserAccount.
 
 UserInterface.login() uses UserAccountManager (Team D) to log the user in.
+
+UserInterface.changePassword() uses UserAccountManager to verify and replace the user's password.
 
 UserInterface uses RecordType to select briefs, agents, or facilities.
 

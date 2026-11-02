@@ -9,6 +9,8 @@ Responsibilities & requirements:
 * Prompt for each property when adding an entry; the new entry appears in the list immediately.
 * Record READ and CREATE actions in the audit log.
 * Let admins review the audit log. Add and Review audit log are hidden from standard users.
+* Let any user change their password (menu option 5, or the --change-password argument).
+  The current password must be entered first.
 * Handle invalid input without crashing.
 * Do not directly access SQLite; use AgencyDataService and AuditLogService.
 
@@ -46,6 +48,13 @@ Methods:
     login(accounts: UserAccountManager, scanner, output): UserAccount  (static)
     - Prompts for username and password using UserAccountManager.
     - Returns the logged-in user, or null after 3 failed attempts or if input ends.
+
+    UserInterface(data, auditLog, currentUser, scanner, output, accounts)
+    - Same as above; accounts enables the Change password option (it may be null).
+
+    changePassword(accounts: UserAccountManager, user: UserAccount, scanner, output): boolean  (static)
+    - Verifies the current password, then prompts for a valid new one.
+    - Returns true if the password was changed.
 
 Supporting classes:
     RecordType - enum of BRIEF, AGENT, FACILITY.

@@ -584,4 +584,60 @@ class UserInterfaceTest {
 
         assertNull(login(""));
     }
+
+    // ---------- Change password ----------
+
+    private boolean changePassword(String input) {
+        return UserInterface.changePassword(accounts, standard, new Scanner(input), new PrintStream(output));
+    }
+
+    @Test
+    void changePasswordSavesNewPasswordAfterCorrectCurrentPassword() {
+        when(accounts.verifyLogin("agent_7", "Secret")).thenReturn(true);
+        when(accounts.isValidPassword("NewPass")).thenReturn(true);
+        when(accounts.changePassword("agent_7", "NewPass")).thenReturn(true);
+
+        assertTrue(changePassword("Secret\nNewPass\n"));
+        assertTrue(text().contains("Password changed"));
+    }
+
+    @Test
+    void changePasswordRejectsWrongCurrentPassword() {
+        when(accounts.verifyLogin("agent_7", "wrong")).thenReturn(false);
+
+        assertFalse(changePassword("wrong\n"));
+        assertTrue(text().contains("Incorrect password"));
+        verify(accounts, never()).changePassword(any(), any());
+    }
+
+    @Test
+    void changePasswordRepromptsInvalidNewPassword() {
+        when(accounts.verifyLogin("agent_7", "Secret")).thenReturn(true);
+        when(accounts.isValidPassword(anyString())).thenAnswer(i -> i.getArgument(0).equals("NewPass"));
+        when(accounts.changePassword("agent_7", "NewPass")).thenReturn(true);
+
+        assertTrue(changePassword("Secret\nweak\nNewPass\n"));
+        assertTrue(text().contains("Passwords need"));
+    }
+
+    @Test
+    void menuOptionChangesPassword() {
+        when(accounts.verifyLogin("agent_7", "Secret")).thenReturn(true);
+        when(accounts.isValidPassword("NewPass")).thenReturn(true);
+        when(accounts.changePassword("agent_7", "NewPass")).thenReturn(true);
+
+        new UserInterface(dataService, auditLog, standard, new Scanner("5\nSecret\nNewPass\n0\n"),
+                new PrintStream(output), accounts).run();
+
+        assertTrue(text().contains("5. Change password"));
+        assertTrue(text().contains("Password changed"));
+    }
+
+    @Test
+    void changePasswordOptionHiddenWithoutAccountManager() {
+        createInterface(standard, "5\n0\n").run();
+
+        assertFalse(text().contains("Change password"));
+        assertTrue(text().contains("Invalid selection"));
+    }
 }
