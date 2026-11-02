@@ -139,7 +139,14 @@ The current interactive menu provides:
 2. Agents
 3. Facilities
 4. Review audit log       (administrators only)
+5. Change password
 0. Exit
+```
+
+To change your password right after logging in, pass the `--change-password` option:
+
+```bash
+./gradlew run --args="--change-password"
 ```
 
 To build the application:
