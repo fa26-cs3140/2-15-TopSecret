@@ -24,6 +24,10 @@ application {
     mainClass.set("org.example.TopSecret")
 }
 
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
+}
+
 tasks.test {
     useJUnitPlatform()
     testLogging {
@@ -52,7 +56,7 @@ jacoco {
 
 val integrationPatterns = listOf(
     "**/*IntegrationTest.class", "**/*Sqlite*Test.class", "**/DatabaseManagerTest.class",
-    "**/AgencyInterfaceAuditLogManagerTest.class",
+    "**/UserInterfaceAuditLogManagerTest.class", "**/UserInterfaceDatabaseManagerTest.class",
     "**/UserAccountManagerCredentialManagerTest.class",
     "**/AuditLogManagerDatabaseManagerTest.class"
 )
