@@ -1,0 +1,85 @@
+Homework 6 - Team Member B
+Controller class diagram (package org.example.controller)
+
+
+LaunchOptions
+--------------------------------------
+WEB_FLAG: String = "-web" {static}
+--------------------------------------
+isWebMode(args: String[]): boolean {static}
+
+
+AppController
+--------------------------------------
+data: AgencyDataService
+auditLog: AuditLogService
+--------------------------------------
+AppController(data: AgencyDataService, auditLog: AuditLogService)
+listRecords(type: RecordType): String
+readRecord(type: RecordType, id: int, user: UserAccount): String
+auditLog(user: UserAccount): String
+
+
+SessionManager
+--------------------------------------
+COOKIE_NAME: String = "session" {static}
+sessions: Map<String, UserAccount>
+random: SecureRandom
+--------------------------------------
+createSession(user: UserAccount): String
+getUser(token: String): UserAccount
+endSession(token: String): void
+cookieHeader(token: String): String {static}
+tokenFromCookieHeader(cookieHeader: String): String {static}
+
+
+WebServer
+--------------------------------------
+DEFAULT_PORT: int = 3002 {static}
+controller: AppController
+accounts: UserAccountManager
+sessions: SessionManager
+port: int
+server: HttpServer
+--------------------------------------
+WebServer(controller: AppController, accounts: UserAccountManager,
+          sessions: SessionManager, port: int)
+start(): void
+stop(): void
+getPort(): int
+
+
+<<interface>> HttpHandler (com.sun.net.httpserver)
+--------------------------------------
+handle(exchange: HttpExchange): void
+
+
+LoginHandler
+--------------------------------------
+accounts: UserAccountManager
+sessions: SessionManager
+--------------------------------------
+LoginHandler(accounts: UserAccountManager, sessions: SessionManager)
+handle(exchange: HttpExchange): void
+
+
+PageHandler
+--------------------------------------
+controller: AppController
+sessions: SessionManager
+--------------------------------------
+PageHandler(controller: AppController, sessions: SessionManager)
+handle(exchange: HttpExchange): void
+
+
+Relationships
+
+TopSecret uses LaunchOptions to choose the terminal interface or WebServer.
+WebServer creates an HttpServer and registers LoginHandler and PageHandler.
+LoginHandler and PageHandler implement HttpHandler.
+LoginHandler uses UserAccountManager to verify credentials and SessionManager to create sessions.
+PageHandler uses SessionManager to check the cookie and AppController to build page text.
+UserInterface (terminal) and PageHandler (web) both use AppController.
+AppController uses AgencyDataService (DatabaseManager) and AuditLogService (AuditLogManager).
+AppController uses RecordType and returns text; the web view (Team C) wraps it in HTML.
+SessionManager stores UserAccount objects in memory; no database table is added.
