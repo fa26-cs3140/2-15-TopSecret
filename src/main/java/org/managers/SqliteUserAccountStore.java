@@ -1,4 +1,4 @@
-package org.model;
+package org.managers;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -8,6 +8,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.model.AuditLogEntry;
+import org.model.UserAccount;
 
 /**
  * SQLite implementation of UserAccountStore.

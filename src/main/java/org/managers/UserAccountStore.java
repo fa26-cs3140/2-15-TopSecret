@@ -1,6 +1,7 @@
-package org.model;
+package org.managers;
 
 import java.util.List;
+import org.model.UserAccount;
 
 /**
  * Persistence boundary for user-account metadata.

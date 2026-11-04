@@ -9,6 +9,8 @@ import java.util.Scanner;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
+import org.managers.UserAccountManager;
+import org.managers.AuditLogService;
 import org.model.*;
 
 public class AgencyInterface {

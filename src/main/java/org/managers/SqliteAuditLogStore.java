@@ -1,4 +1,4 @@
-package org.model;
+package org.managers;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,6 +9,8 @@ import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.model.AuditLogEntry;
 
 /** SQLite persistence for audit-log records. */
 public class SqliteAuditLogStore implements AuditLogStore {

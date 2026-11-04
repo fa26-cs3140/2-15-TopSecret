@@ -1,4 +1,4 @@
-package org.model;
+package org.managers;
 
 public interface CredentialManager {
     boolean credentialsExist();

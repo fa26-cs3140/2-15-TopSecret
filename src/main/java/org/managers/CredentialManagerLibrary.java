@@ -1,4 +1,6 @@
-package org.model;
+package org.managers;
+
+import org.model.Cipher;
 
 public class CredentialManagerLibrary implements CredentialManager {
 

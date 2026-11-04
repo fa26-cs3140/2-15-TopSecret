@@ -1,9 +1,11 @@
-package org.model;
+package org.managers;
 
 import java.util.List;
 import java.util.HexFormat;
 import java.nio.charset.StandardCharsets;
 
+import org.model.Cipher;
+import org.model.UserAccount;
 /**
  * Manages Homework 5 user accounts and their ciphered password files.
  * User metadata is stored through UserAccountStore. Passwords are never stored in SQLite.
