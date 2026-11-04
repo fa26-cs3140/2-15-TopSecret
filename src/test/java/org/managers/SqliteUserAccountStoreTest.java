@@ -1,4 +1,4 @@
-package org.model;
+package org.managers;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import org.model.UserAccount;
 
 import static org.junit.jupiter.api.Assertions.*;
 

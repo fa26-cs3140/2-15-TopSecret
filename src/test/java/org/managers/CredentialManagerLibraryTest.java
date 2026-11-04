@@ -1,4 +1,6 @@
-package org.model;
+package org.managers;
+
+import org.model.Cipher;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

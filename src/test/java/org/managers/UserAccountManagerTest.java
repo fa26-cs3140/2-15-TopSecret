@@ -1,4 +1,4 @@
-package org.model;
+package org.managers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -7,6 +7,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+
+import org.model.Cipher;
+import org.model.UserAccount;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

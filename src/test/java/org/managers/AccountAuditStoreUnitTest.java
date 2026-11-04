@@ -1,4 +1,8 @@
-package org.model;
+package org.managers;
+
+import org.model.UserAccount;
+import org.model.AuditLogEntry;
+import org.model.Cipher;
 
 import org.junit.jupiter.api.Test;
 

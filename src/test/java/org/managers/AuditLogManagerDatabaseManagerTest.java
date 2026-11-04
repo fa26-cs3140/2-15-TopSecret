@@ -1,4 +1,7 @@
-package org.model;
+package org.managers;
+
+import org.model.UserAccount;
+import org.model.AuditLogEntry;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

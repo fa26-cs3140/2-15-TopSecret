@@ -1,4 +1,6 @@
-package org.model;
+package org.managers;
+
+import org.model.AuditLogEntry;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
