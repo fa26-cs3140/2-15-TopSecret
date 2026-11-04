@@ -38,8 +38,6 @@ class UserAccountManagerTest {
                 () -> new UserAccountManager(store, null, cipher));
         assertThrows(IllegalArgumentException.class,
                 () -> new UserAccountManager(store, fileHandler, null));
-        assertThrows(IllegalArgumentException.class,
-                () -> new UserAccountManager((DatabaseManager) null, fileHandler, cipher));
     }
 
     @Test

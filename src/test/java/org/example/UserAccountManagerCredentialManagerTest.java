@@ -26,7 +26,7 @@ class UserAccountManagerCredentialManagerTest {
         Cipher cipher = new Cipher(new CipherKey(original + "\n" + encrypted));
 
         manager = new UserAccountManager(
-                new DatabaseManager("jdbc:sqlite:" + database.toAbsolutePath()),
+                "jdbc:sqlite:" + database.toAbsolutePath(),
                 fileHandler,
                 cipher
         );
@@ -78,7 +78,7 @@ class UserAccountManagerCredentialManagerTest {
         String original = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
         Cipher cipher = new Cipher(new CipherKey(original + "\n"
                 + "bcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890a"));
-        var reopened = new UserAccountManager(new DatabaseManager("jdbc:sqlite:" + database),
+        var reopened = new UserAccountManager("jdbc:sqlite:" + database,
                 new FileHandler(directory.toString()), cipher);
         assertTrue(reopened.verifyLogin("Agent", "Charlie3"));
         assertTrue(reopened.verifyLogin("agent", "Bravo2"));

@@ -21,8 +21,6 @@ class AuditLogManagerTest {
     void constructorRejectsNullDependencies() {
         assertThrows(IllegalArgumentException.class,
                 () -> new AuditLogManager((AuditLogStore) null));
-        assertThrows(IllegalArgumentException.class,
-                () -> new AuditLogManager((DatabaseManager) null));
     }
 
     @Test
