@@ -37,6 +37,20 @@ public class ProgramControl {
         this.userManager = new UserAccountManager(this.databaseURL, fileHandler, cipher);
     }
 
+
+    ProgramControl(FileHandler fileHandler, BriefManager briefManager, AgentManager agentManager, FacilityManager facilityManager, AuditLogManager auditLogger, UserAccountManager userManager) {
+        if (fileHandler == null || briefManager == null || agentManager == null || facilityManager == null || auditLogger == null || userManager == null) {
+            throw new IllegalArgumentException("Dependencies cannot be null.");
+        }
+
+        this.fileHandler = fileHandler;
+        this.briefManager = briefManager;
+        this.agentManager = agentManager;
+        this.facilityManager = facilityManager;
+        this.auditLogger = auditLogger;
+        this.userManager = userManager;
+    }
+
     /**
      * Runs the main program, handles the creation of a database
      *

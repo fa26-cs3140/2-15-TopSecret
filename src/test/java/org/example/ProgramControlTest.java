@@ -6,12 +6,26 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import org.managers.*;
+
 public class ProgramControlTest {
     private static final String ORIGINAL =
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
 
     private static final String CIPHERED =
             "bcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890a";
+
+    // Helper method: Create a new ProgramControl instance using mocks
+    private ProgramControl createControl(FileHandler fileHandler) {
+        return new ProgramControl(
+                fileHandler,
+                mock(BriefManager.class),
+                mock(AgentManager.class),
+                mock(FacilityManager.class),
+                mock(AuditLogManager.class),
+                mock(UserAccountManager.class)
+        );
+    }
 
     // mock FileHandler to test ProgramControl by itself
     @Test
@@ -21,7 +35,7 @@ public class ProgramControlTest {
         when(fileHandler.getAvailableFiles())
                 .thenReturn(List.of("carnivore.txt", "cointelpro.txt"));
 
-        ProgramControl control = new ProgramControl(fileHandler);
+        ProgramControl control = createControl(fileHandler);
         List<String> result = control.getAvailableFiles();
 
         assertEquals(
@@ -42,7 +56,7 @@ public class ProgramControlTest {
         when(fileHandler.readFile("secret.txt"))
                 .thenReturn("Hello World!");
 
-        ProgramControl control = new ProgramControl(fileHandler);
+        ProgramControl control = createControl(fileHandler);
         String result = control.getFileContents("secret.txt");
 
         assertEquals("Hello World!", result);
@@ -58,7 +72,7 @@ public class ProgramControlTest {
         when(fileHandler.readFile("secret.txt"))
                 .thenReturn("bcd");
 
-        ProgramControl control = new ProgramControl(fileHandler);
+        ProgramControl control = createControl(fileHandler);
         String result = control.getFileContents("secret.txt", 1);
 
         assertEquals("abc", result);
@@ -75,7 +89,7 @@ public class ProgramControlTest {
         when(fileHandler.readFile("missing.txt"))
                 .thenReturn(null);
 
-        ProgramControl control = new ProgramControl(fileHandler);
+        ProgramControl control = createControl(fileHandler);
 
         assertNull(control.getFileContents("missing.txt"));
     }
@@ -87,7 +101,7 @@ public class ProgramControlTest {
         when(fileHandler.readFile("key.txt"))
                 .thenReturn(null);
 
-        ProgramControl control = new ProgramControl(fileHandler);
+        ProgramControl control = createControl(fileHandler);
 
         assertNull(control.getFileContents("secret.txt"));
     }
@@ -99,7 +113,7 @@ public class ProgramControlTest {
         when(fileHandler.readFile("key.txt"))
                 .thenReturn(ORIGINAL + "\n" + CIPHERED);
 
-        ProgramControl control = new ProgramControl(fileHandler);
+        ProgramControl control = createControl(fileHandler);
 
         assertThrows(
                 IllegalArgumentException.class,
@@ -111,7 +125,7 @@ public class ProgramControlTest {
     void nullFileHandlerThrowsException() {
         assertThrows(
                 IllegalArgumentException.class,
-                () -> new ProgramControl(null)
+                () -> createControl(null)
         );
     }
 }
