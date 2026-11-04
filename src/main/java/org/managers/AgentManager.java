@@ -1,7 +1,7 @@
 package org.managers;
 
 import org.model.Agent;
-import org.example.DebugHelper;
+import org.controller.DebugHelper;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
