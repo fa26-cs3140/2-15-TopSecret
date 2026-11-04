@@ -81,18 +81,27 @@ class AccountAuditStoreUnitTest {
 
     @Test
     void managerConvenienceConstructorsUseTheActualDatabaseUrl() {
-        DatabaseManager database = mock(DatabaseManager.class);
-        when(database.getURL()).thenReturn("jdbc:sqlite:configured");
-        try (var accounts = mockConstruction(SqliteUserAccountStore.class,
-                (mock, context) -> assertEquals("jdbc:sqlite:configured", context.arguments().get(0)));
-             var audits = mockConstruction(SqliteAuditLogStore.class,
-                (mock, context) -> assertEquals("jdbc:sqlite:configured", context.arguments().get(0)))) {
-            var users = new UserAccountManager(database, mock(FileHandler.class), mock(Cipher.class));
+        String url = "jdbc:sqlite:configured";
+
+        try (var accounts = mockConstruction(
+                SqliteUserAccountStore.class,
+                (mock, context) -> assertEquals(url, context.arguments().get(0))
+        );
+             var audits = mockConstruction(
+                     SqliteAuditLogStore.class,
+                     (mock, context) -> assertEquals(url, context.arguments().get(0))
+             )) {
+
+            UserAccountManager users = new UserAccountManager(url, mock(FileHandler.class), mock(Cipher.class));
+
+            AuditLogManager logs = new AuditLogManager(url);
+
             assertFalse(users.hasUsers());
-            var logs = new AuditLogManager(database);
             assertTrue(logs.getAuditLog().isEmpty());
+
             assertEquals(1, accounts.constructed().size());
             assertEquals(1, audits.constructed().size());
+
             verify(accounts.constructed().get(0)).hasUsers();
             verify(audits.constructed().get(0)).getAll();
         }
