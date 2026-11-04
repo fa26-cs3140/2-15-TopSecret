@@ -1,6 +1,6 @@
 package org.example;
 
-import java.util.Scanner;
+import org.controller.ProgramControl;
 
 public class TopSecret
 {

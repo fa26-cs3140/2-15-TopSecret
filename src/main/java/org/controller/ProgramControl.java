@@ -1,4 +1,4 @@
-package org.example;
+package org.controller;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Scanner;
 
+import org.example.*;
 import org.managers.*;
 
 //Controls the main application logic by connecting the UserInterface, FileHandler, and Cipher classes.

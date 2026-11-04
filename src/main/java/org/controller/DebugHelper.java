@@ -1,4 +1,4 @@
-package org.example;
+package org.controller;
 
 // This is a helper class with some useful debug functions I've created. 
 public class DebugHelper
