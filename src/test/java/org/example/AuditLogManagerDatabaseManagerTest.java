@@ -22,7 +22,7 @@ class AuditLogManagerDatabaseManagerTest {
 
         SqliteUserAccountStore users = new SqliteUserAccountStore(url);
         users.addUser(new UserAccount("agent_7", false));
-        manager = new AuditLogManager(new DatabaseManager(url));
+        manager = new AuditLogManager(url);
     }
 
     @AfterEach
@@ -36,7 +36,7 @@ class AuditLogManagerDatabaseManagerTest {
         manager.log("agent_7", "CREATE", "FACILITY", "3");
 
         AuditLogManager secondManager = new AuditLogManager(
-                new DatabaseManager("jdbc:sqlite:" + database.toAbsolutePath())
+                "jdbc:sqlite:" + database.toAbsolutePath()
         );
 
         List<AuditLogEntry> entries = secondManager.getAuditLog();
