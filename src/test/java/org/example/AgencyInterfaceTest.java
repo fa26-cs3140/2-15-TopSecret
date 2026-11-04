@@ -575,7 +575,7 @@ class AgencyInterfaceTest {
     void emptyAuditLogShowsMessage() {
         when(auditLog.getAuditLog()).thenReturn(List.of());
 
-        createInterface(admin, "4\n0\n").run();
+        createInterface(admin, "5\n0\n").run();
 
         assertTrue(text().contains("No audit entries"));
     }

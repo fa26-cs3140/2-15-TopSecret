@@ -77,10 +77,11 @@ class AgencyInterfaceAgentManagerTest {
 
     @Test
     void listsAgentsFromSQLite() {
-        int facilityId = createFacility();
+        int facility1 = facilityManager.addRecord("Blackwood Annex", "BA").getId();
+        int facility2 = facilityManager.addRecord("Rose Garden", "RG").getId();
 
-        agentManager.addRecord("Vanguard", "1985-06-14", null, null, facilityId);
-        agentManager.addRecord("Ghost", "1992-11-22", null, null, facilityId);
+        agentManager.addRecord("Vanguard", "1985-06-14", null, null, facility1);
+        agentManager.addRecord("Ghost", "1992-11-22", null, null, facility2);
 
         String text = run(standard, "2\n1\n0\n0\n");
 
