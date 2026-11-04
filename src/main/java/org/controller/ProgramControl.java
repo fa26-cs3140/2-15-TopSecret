@@ -6,8 +6,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Scanner;
 
-import org.example.*;
 import org.managers.*;
+import org.model.*;
 import org.view.AgencyInterface;
 
 //Controls the main application logic by connecting the UserInterface, FileHandler, and Cipher classes.

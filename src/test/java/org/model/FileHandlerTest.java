@@ -1,6 +1,4 @@
-package org.example;
-
-import org.example.FileHandler;
+package org.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;

@@ -1,4 +1,4 @@
-package org.example;
+package org.model;
 
 public class CredentialManagerLibrary implements CredentialManager {
 

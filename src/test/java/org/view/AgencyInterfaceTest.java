@@ -1,9 +1,6 @@
 package org.view;
 
-import org.example.*;
-import org.model.Agent;
-import org.model.Brief;
-import org.model.Facility;
+import org.model.*;
 import org.managers.AgentManager;
 import org.managers.FacilityManager;
 import org.managers.BriefManager;

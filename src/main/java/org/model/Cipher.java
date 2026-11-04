@@ -1,5 +1,5 @@
 
-package org.example;
+package org.model;
 
 /**
  * Deciphers encrypted text using a validated CipherKey.

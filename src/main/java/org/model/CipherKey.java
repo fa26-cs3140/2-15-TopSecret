@@ -1,5 +1,5 @@
 
-package org.example;
+package org.model;
 
 /**
  * Validates and stores the character mappings used by the cipher.

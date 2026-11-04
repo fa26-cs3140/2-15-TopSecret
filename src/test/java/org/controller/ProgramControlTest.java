@@ -1,8 +1,8 @@
 package org.controller;
 
-import org.example.AuditLogManager;
-import org.example.FileHandler;
-import org.example.UserAccountManager;
+import org.model.AuditLogManager;
+import org.model.FileHandler;
+import org.model.UserAccountManager;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 
