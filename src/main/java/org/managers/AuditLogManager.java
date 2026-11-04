@@ -1,5 +1,6 @@
-package org.model;
+package org.managers;
 
+import org.model.AuditLogEntry;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,8 +24,6 @@ public class AuditLogManager implements AuditLogService {
 
     @Override
     public void log(String username, String action, String contentType, String contentIdentifier) {
-        // TODO: Remove this after testing
-        // return;
         if (isBlank(username) || isBlank(action) || isBlank(contentType) || isBlank(contentIdentifier)) {
             throw new IllegalArgumentException("Audit fields cannot be blank.");
         }
