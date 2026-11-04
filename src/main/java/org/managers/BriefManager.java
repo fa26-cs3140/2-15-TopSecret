@@ -30,7 +30,6 @@ public class BriefManager extends IDatabaseManager<Brief>
             throw new IllegalArgumentException("Database URL cannot be blank.");
         }
         this.url = url;
-        this.createTable();
     }
 
     @Override 
@@ -44,14 +43,18 @@ public class BriefManager extends IDatabaseManager<Brief>
     {
         return this.tableName;
     }
-    
+
+    /**
+     * Columns contain data formatted as follows
+     * 0. id, 1. title, 2. date, 3. text, 4. mission_id*
+     * Starried entries can be null
+     */
     @Override 
     public String[] getColumnNames()
     {
         return this.columnNames;
     }
 
-    // TODO: Make sure this one in particular works
     /**
      * Returns an array of Brief objects that match the key in the column.
      */

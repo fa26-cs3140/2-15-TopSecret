@@ -1,8 +1,5 @@
 package org.example;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Scanner;
 
@@ -16,7 +13,6 @@ public class ProgramControl {
     private final AgentManager agentManager;
     private final FacilityManager facilityManager;
     private final AuditLogManager auditLogger;
-    // TODO: Implement userManager into ProgramControl
     private final UserAccountManager userManager;
     private final String databaseFile = "mission_database.db";
     private final String databaseURL = "jdbc:sqlite:data/" + databaseFile;
@@ -183,42 +179,5 @@ public class ProgramControl {
         briefManager.createTable();
         agentManager.createTable();
         facilityManager.createTable();
-    }
-
-    private void importTSVFiles()
-    {
-        if (!Files.exists(Path.of("data/agents.tsv")) || !Files.exists(Path.of("data/facilities.tsv")) || !Files.exists(Path.of("data/briefs.tsv")))
-        {
-            DebugHelper.debugPrintln("One or more tsv files not found. Import failed.");
-            return;
-        }
-        try
-        {
-            if (!this.briefManager.tableExists("briefs"))
-            {
-                this.briefManager.importTSV(fileHandler.getDataDirectory() + "/briefs.tsv",
-                                               "briefs",
-                                               fileHandler.getDataDirectory(), 
-                                               databaseFile);
-            }
-            if (!this.facilityManager.tableExists("facilities"))
-            {
-                this.facilityManager.importTSV(fileHandler.getDataDirectory() + "/facilities.tsv",
-                                               "briefs",
-                                               fileHandler.getDataDirectory(), 
-                                               databaseFile);
-            }
-            if (!this.agentManager.tableExists("agents"))
-            {
-                this.agentManager.importTSV(fileHandler.getDataDirectory() + "/agents.tsv",
-                                               "briefs",
-                                               fileHandler.getDataDirectory(), 
-                                               databaseFile);
-            }
-        }
-        catch (IOException e)
-        {
-            DebugHelper.debugPrintln(e.getMessage());
-        }
     }
 }

@@ -33,7 +33,6 @@ public class AgentManager extends IDatabaseManager<Agent>
             throw new IllegalArgumentException("Database URL cannot be blank.");
         }
         this.url = url;
-        this.createTable();
     }
 
     @Override 
@@ -48,6 +47,11 @@ public class AgentManager extends IDatabaseManager<Agent>
         return this.tableName;
     }
     
+    /**
+     * Columns contain data formatted as follows
+     * 0. id, 1. name, 2. dataOfBirth, 3. dateOfDeath*, 4. notes*, 5. facilityId
+     * Starred entries can be null
+     */
     @Override 
     public String[] getColumnNames()
     {
@@ -134,7 +138,7 @@ public class AgentManager extends IDatabaseManager<Agent>
         return rowsAffected > 0;
     }
 
-    
+    // TODO: Remove tableName as a parameter
     /**
      * Imports a file containing tab separated values into a database.
      * Does not check to see if file is formatted correctly

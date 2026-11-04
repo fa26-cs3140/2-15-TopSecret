@@ -2,7 +2,6 @@ package org.example;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -23,7 +22,7 @@ public class AgencyInterface {
     private final Scanner scanner;
     private final PrintStream output;
 
-    private final String SEPARATOR= "-----------------";
+    private final String SEPARATOR = "-----------------";
 
     public AgencyInterface(AgentManager aManager, FacilityManager fManager, BriefManager bManager, UserAccountManager uManager, 
                            AuditLogService auditLog, UserAccount currentUser, Scanner scanner, PrintStream output) {
@@ -55,8 +54,8 @@ public class AgencyInterface {
                     case "3" -> runTypeMenu(RecordType.FACILITY);
                     case "4" -> userCreationMenu();
                     case "5" -> { if (isAdmin()) displayAuditLog(); else invalidSelection(); }
-                    case "6" -> { if (isAdmin()) userPromotionMenu(); else invalidSelection(); } // TODO: Promote/Demote admin *cannot demote self
-                    case "0" -> { output.println("Exiting Top Secret."); return; }
+                    case "6" -> { if (isAdmin()) userPromotionMenu(); else invalidSelection(); } 
+                    case "0" -> { exit(); return; } // Make sure to run exit() to log logut info
                     default -> invalidSelection();
                 }
             }
@@ -97,9 +96,14 @@ public class AgencyInterface {
         output.print("Password: ");
         String password = readLine();
         output.println(this.SEPARATOR);
-        
-        return new String[] { username, password };
 
+        return new String[] { username, password };
+    }
+
+    private void exit()
+    {
+        auditLog.log(currentUser.getUsername(), "LOGOUT", "LOGOUT", "x");
+        output.println("Exiting Top Secret.");
     }
 
     private void userCreationMenu()
@@ -130,8 +134,9 @@ public class AgencyInterface {
         while (inMenu)
         {
             output.println(this.SEPARATOR);
-            output.print("Select username: ");
+            output.print("Select username (Bank to exit): ");
             String username = readLine();
+            if (username.isBlank()) return;
             selectedUser = uManager.getUser(username);
             // If cannot find the user
             if (selectedUser == null)
@@ -150,7 +155,7 @@ public class AgencyInterface {
             }
         }
         output.println(this.SEPARATOR);
-        output.println("1. Promote to Admin\n2. Demote to Standard User");
+        output.println("0. Exit\n1. Promote to Admin\n2. Demote to Standard User");
         inMenu = true;
         int option = 0;
         while (inMenu)
@@ -159,7 +164,7 @@ public class AgencyInterface {
             {
                 output.print("Select option: ");
                 option = Integer.parseInt(readLine());
-                if (option != 1 && option != 2) throw new NumberFormatException();
+                if (option != 0 && option != 1 && option != 2) throw new NumberFormatException();
                 // If everything works, we can leave
                 inMenu = false;
 
@@ -169,6 +174,7 @@ public class AgencyInterface {
             }
         }
         output.println(this.SEPARATOR);
+        if (option == 0) return; // Exit code means to leave
         if (option == 1) // Grant admin 
         {
             if (!selectedUser.isAdmin())
@@ -326,7 +332,6 @@ public class AgencyInterface {
         auditLog.log(currentUser.getUsername(), "IMPORT", type.getTitle(), "%d".formatted(recordsAdded));
 
         return recordsAdded > 0;
-
     }
 
 

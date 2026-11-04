@@ -31,7 +31,6 @@ public class FacilityManager extends IDatabaseManager<Facility>
             throw new IllegalArgumentException("Database URL cannot be blank.");
         }
         this.url = url;
-        this.createTable();
     }
 
     @Override 
@@ -46,6 +45,11 @@ public class FacilityManager extends IDatabaseManager<Facility>
         return this.tableName;
     }
     
+    /**
+     * Columns contain data formatted as follows
+     * 0. id, 1. name, 2. abbreviation, 3. mission_id*
+     * Starred entries can be null
+     */
     @Override 
     public String[] getColumnNames()
     {
