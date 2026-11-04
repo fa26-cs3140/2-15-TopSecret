@@ -1,5 +1,6 @@
-package org.model;
+package org.managers;
 
+import org.model.AuditLogEntry;
 import java.util.List;
 
 /** Persistence boundary for audit-log records. */
