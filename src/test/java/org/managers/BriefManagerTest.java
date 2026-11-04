@@ -83,7 +83,7 @@ public class BriefManagerTest {
 
     @Test
     void testBriefTableCreated() throws SQLException {
-        new BriefManager(testUrl);
+        new BriefManager(testUrl).createTable();
 
         try (Connection conn = DriverManager.getConnection(testUrl);
              ResultSet rs = conn.getMetaData().getTables(null, null, "briefs", new String[]{"TABLE"})) {
@@ -103,7 +103,7 @@ public class BriefManagerTest {
 
     @Test
     void testTableSchema() throws SQLException {
-        new BriefManager(testUrl);
+        new BriefManager(testUrl).createTable();
 
         List<String> columns = new ArrayList<>();
         List<String> types = new ArrayList<>();
