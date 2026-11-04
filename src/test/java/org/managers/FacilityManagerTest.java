@@ -410,9 +410,9 @@ public class FacilityManagerTest {
                         + "Headquarters\tHQ\n"
                         + "Research Center\tRC\n");
 
-        Boolean imported = manager.importTSV(tsv.toString(), "facilities", tempDir.toString(), "test.db");
+        int imported = manager.importTSV(tsv.toString(), "facilities", tempDir.toString(), "test.db");
 
-        assertTrue(imported);
+        assertEquals(2, imported);
         assertEquals(2, countFacilities());
 
         try (Connection conn = DriverManager.getConnection(testUrl);

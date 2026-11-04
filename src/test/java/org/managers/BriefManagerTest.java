@@ -367,9 +367,9 @@ public class BriefManagerTest {
                         + "Operation Alpha\t2026-10-01\tFirst brief\n"
                         + "Operation Bravo\t2026-10-02\tSecond brief\n");
 
-        Boolean imported = manager.importTSV(tsv.toString(), "briefs", tempDir.toString(), "test.db");
+        int imported = manager.importTSV(tsv.toString(), "briefs", tempDir.toString(), "test.db");
 
-        assertTrue(imported);
+        assertEquals(2, imported);
         assertEquals(2, countBriefs());
 
         try (Connection conn = DriverManager.getConnection(testUrl);
