@@ -1,6 +1,8 @@
 package org.view;
 
 import org.model.*;
+import org.managers.UserAccountManager;
+import org.managers.AuditLogService;
 import org.managers.AgentManager;
 import org.managers.FacilityManager;
 import org.managers.BriefManager;
