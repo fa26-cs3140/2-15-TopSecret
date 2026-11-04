@@ -89,7 +89,7 @@ public class FacilityManagerTest {
 
     @Test
     void testFacilityTableCreated() throws SQLException {
-        new FacilityManager(testUrl);
+        new FacilityManager(testUrl).createTable();;
 
         try (Connection conn = DriverManager.getConnection(testUrl);
              ResultSet rs = conn.getMetaData().getTables(null, null, "facilities", new String[]{"TABLE"})) {
@@ -100,7 +100,7 @@ public class FacilityManagerTest {
 
     @Test
     void testTableSchema() throws SQLException {
-        new FacilityManager(testUrl);
+        new FacilityManager(testUrl).createTable();
 
         List<String> columns = new ArrayList<>();
         List<String> types = new ArrayList<>();
@@ -131,7 +131,7 @@ public class FacilityManagerTest {
 
     @Test
     void testUniqueMissionId() throws SQLException {
-        new FacilityManager(testUrl);
+        new FacilityManager(testUrl).createTable();
 
         try (Connection conn = DriverManager.getConnection(testUrl);
              Statement stmt = conn.createStatement()) {
