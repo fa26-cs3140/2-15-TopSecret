@@ -1,12 +1,14 @@
 package org.example;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.managers.AgentManager;
+import org.managers.BriefManager;
+import org.managers.FacilityManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -15,57 +17,81 @@ import java.util.List;
 import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
-/**
- * Integration tests for AgencyInterface with Team D's real AuditLogManager
- * and the real DatabaseManager, sharing one temporary SQLite database.
- */
 class AgencyInterfaceAuditLogManagerTest {
 
-    private Path testDatabasePath;
-    private DatabaseManager dataService;
+    @TempDir
+    Path tempDir;
+
+    private AgentManager agentManager;
+    private FacilityManager facilityManager;
+    private BriefManager briefManager;
+    private UserAccountManager userManager;
     private AuditLogManager auditLogManager;
     private ByteArrayOutputStream output;
 
-    private final UserAccount admin = new UserAccount("pat", true);
-    private final UserAccount standard = new UserAccount("agent_7", false);
+    private final UserAccount admin =
+            new UserAccount("pat", true);
+
+    private final UserAccount standard =
+            new UserAccount("agent_7", false);
 
     @BeforeEach
     void setUp() throws Exception {
-        testDatabasePath = Files.createTempFile("topsecret-audit-ui-test", ".db");
-        String url = "jdbc:sqlite:" + testDatabasePath.toAbsolutePath();
+        String url = "jdbc:sqlite:"
+                + tempDir.resolve("audit.db").toAbsolutePath();
 
-        dataService = new DatabaseManager(url);
-        auditLogManager = new AuditLogManager(new DatabaseManager(url));
+        facilityManager = new FacilityManager(url);
+        agentManager = new AgentManager(url);
+        briefManager = new BriefManager(url);
 
-        try (Connection connection = DriverManager.getConnection(url);
-             Statement statement = connection.createStatement()) {
-            // audit_log.username references users.username
-            statement.execute("CREATE TABLE IF NOT EXISTS users ("
-                    + "username TEXT PRIMARY KEY, is_admin INTEGER NOT NULL DEFAULT 0)");
-            statement.execute("INSERT INTO users (username, is_admin) VALUES ('pat', 1)");
-            statement.execute("INSERT INTO users (username, is_admin) VALUES ('agent_7', 0)");
-            statement.execute("INSERT INTO facilities (id, name, abbreviation) VALUES (1, 'Blackwood Annex', 'BA')");
-            statement.execute("INSERT INTO briefs (id, title, date, text, mission_id) "
-                    + "VALUES (1, 'Operation Sandtrap', '1970-11-03', 'Bug the diplomatic pouch.', NULL)");
+        auditLogManager = new AuditLogManager(url);
+        userManager = mock(UserAccountManager.class);
+
+        try (Connection conn = DriverManager.getConnection(url);
+             Statement stmt = conn.createStatement()) {
+
+            // The audit-log store creates the users table.
+            stmt.execute("""
+                INSERT INTO users (username, is_admin)
+                VALUES ('pat', 1)
+                """);
+
+            stmt.execute("""
+                INSERT INTO users (username, is_admin)
+                VALUES ('agent_7', 0)
+                """);
+
+            stmt.execute("""
+                INSERT INTO facilities (id, name, abbreviation)
+                VALUES (1, 'Blackwood Annex', 'BA')
+                """);
+
+            stmt.execute("""
+                INSERT INTO briefs
+                (id, title, date, text, mission_id)
+                VALUES
+                (1, 'Operation Sandtrap', '1970-11-03',
+                 'Bug the diplomatic pouch.', NULL)
+                """);
         }
 
         output = new ByteArrayOutputStream();
     }
 
-    @AfterEach
-    void tearDown() throws Exception {
-        Files.deleteIfExists(testDatabasePath);
-    }
-
     private String run(UserAccount user, String input) {
         new AgencyInterface(
-                dataService,
+                agentManager,
+                facilityManager,
+                briefManager,
+                userManager,
                 auditLogManager,
                 user,
                 new Scanner(input),
                 new PrintStream(output)
         ).run();
+
         return output.toString();
     }
 
@@ -73,9 +99,13 @@ class AgencyInterfaceAuditLogManagerTest {
     void readingABriefIsStoredInAuditLog() {
         run(standard, "1\n2\n1\n0\n0\n");
 
-        List<AuditLogEntry> entries = auditLogManager.getAuditLog();
+        List<AuditLogEntry> entries =
+                auditLogManager.getAuditLog();
+
         assertEquals(1, entries.size());
+
         AuditLogEntry entry = entries.get(0);
+
         assertEquals("agent_7", entry.getUsername());
         assertEquals("READ", entry.getAction());
         assertEquals("BRIEF", entry.getContentType());
@@ -87,7 +117,9 @@ class AgencyInterfaceAuditLogManagerTest {
     void addingAFacilityIsStoredInAuditLog() {
         run(admin, "3\n3\nFairbanks Point\nFP\n0\n0\n");
 
-        List<AuditLogEntry> entries = auditLogManager.getAuditLog();
+        List<AuditLogEntry> entries =
+                auditLogManager.getAuditLog();
+
         assertEquals(1, entries.size());
         assertEquals("pat", entries.get(0).getUsername());
         assertEquals("CREATE", entries.get(0).getAction());
@@ -96,7 +128,10 @@ class AgencyInterfaceAuditLogManagerTest {
 
     @Test
     void failedAddIsNotStoredInAuditLog() {
-        run(admin, "2\n3\nOrphan\n1990-01-01\n\n\n99\n0\n0\n");
+        run(
+                admin,
+                "2\n3\nOrphan\n1990-01-01\n\n\n99\n0\n0\n"
+        );
 
         assertTrue(auditLogManager.getAuditLog().isEmpty());
     }
@@ -104,9 +139,11 @@ class AgencyInterfaceAuditLogManagerTest {
     @Test
     void adminSeesOperationsFromEarlierSessionsInAuditLog() {
         run(standard, "1\n2\n1\n0\n0\n");
+
         output.reset();
 
-        String text = run(admin, "4\n0\n");
+        // Audit-log review is menu option 5, not 4.
+        String text = run(admin, "5\n0\n");
 
         assertTrue(text.contains("agent_7"));
         assertTrue(text.contains("READ"));
@@ -115,7 +152,7 @@ class AgencyInterfaceAuditLogManagerTest {
 
     @Test
     void emptyAuditLogShowsMessage() {
-        String text = run(admin, "4\n0\n");
+        String text = run(admin, "5\n0\n");
 
         assertTrue(text.contains("No audit entries"));
     }
