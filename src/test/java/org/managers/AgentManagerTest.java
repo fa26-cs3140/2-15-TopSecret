@@ -1,5 +1,6 @@
 package org.managers;
 
+import org.controller.DebugHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -63,6 +64,7 @@ public class AgentManagerTest {
     @Test
     void testAgentTableCreated() throws SQLException {
         AgentManager manager = new AgentManager(testUrl);
+        manager.createTable();
 
         assertTrue(manager.tableExists("agents"));
     }
@@ -88,7 +90,7 @@ public class AgentManagerTest {
     // Table should contain all six columns id, name, dateOfBirth, dateOfDeath, notes, facilityId
     @Test
     void testTableSchema() throws SQLException {
-        new AgentManager(testUrl);
+        new AgentManager(testUrl).createTable();
 
         try (Connection conn = DriverManager.getConnection(testUrl);
             Statement stmt = conn.createStatement();
@@ -107,7 +109,7 @@ public class AgentManagerTest {
     // Foreign key should reference facilities (id)
     @Test
     void testFacilityForeignKey() throws SQLException {
-        new AgentManager(testUrl);
+        new AgentManager(testUrl).createTable();
 
         try (Connection conn = DriverManager.getConnection(testUrl);
              Statement stmt = conn.createStatement();
