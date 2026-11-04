@@ -49,6 +49,7 @@ class AgencyInterfaceAuditLogManagerTest {
         facilityManager = new FacilityManager(url);
         agentManager = new AgentManager(url);
         briefManager = new BriefManager(url);
+        this.createTables();
 
         auditLogManager = new AuditLogManager(url);
         userManager = mock(UserAccountManager.class);
@@ -82,6 +83,13 @@ class AgencyInterfaceAuditLogManagerTest {
         }
 
         output = new ByteArrayOutputStream();
+    }
+
+    private void createTables()
+    {
+        facilityManager.createTable();
+        briefManager.createTable();
+        agentManager.createTable();
     }
 
     private String run(UserAccount user, String input) {

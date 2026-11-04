@@ -44,6 +44,7 @@ class AgencyInterfaceFacilityManagerTest {
 
         // Real FacilityManager connected to temporary SQLite
         facilityManager = new FacilityManager(url);
+        this.createTables();
 
         // Other dependencies are mocked
         agentManager = mock(AgentManager.class);
@@ -52,6 +53,11 @@ class AgencyInterfaceFacilityManagerTest {
         auditLog = mock(AuditLogService.class);
 
         output = new ByteArrayOutputStream();
+    }
+
+    private void createTables()
+    {
+        facilityManager.createTable();
     }
 
     private String run(UserAccount user, String input) {

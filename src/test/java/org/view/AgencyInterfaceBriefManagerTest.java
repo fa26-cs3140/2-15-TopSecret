@@ -47,6 +47,7 @@ class AgencyInterfaceBriefManagerTest {
 
         // Real database manager under test
         briefManager = new BriefManager(url);
+        this.createTables();
 
         // Unrelated dependencies are mocked
         agentManager = mock(AgentManager.class);
@@ -55,6 +56,11 @@ class AgencyInterfaceBriefManagerTest {
         auditLog = mock(AuditLogService.class);
 
         output = new ByteArrayOutputStream();
+    }
+
+    private void createTables()
+    {
+        briefManager.createTable();
     }
 
     private String run(UserAccount user, String input) {

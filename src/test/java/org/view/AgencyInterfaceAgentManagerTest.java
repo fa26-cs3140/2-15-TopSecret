@@ -45,6 +45,7 @@ class AgencyInterfaceAgentManagerTest {
         // Real managers sharing the same SQLite database
         facilityManager = new FacilityManager(url);
         agentManager = new AgentManager(url);
+        this.createTables();
 
         // Mock unrelated dependencies
         briefManager = mock(BriefManager.class);
@@ -53,6 +54,13 @@ class AgencyInterfaceAgentManagerTest {
 
         output = new ByteArrayOutputStream();
     }
+
+    private void createTables()
+    {
+        facilityManager.createTable();
+        agentManager.createTable();
+    }
+
 
     private String run(UserAccount user, String input) {
         output.reset();
