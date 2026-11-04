@@ -8,6 +8,7 @@ import java.util.Scanner;
 
 import org.example.*;
 import org.managers.*;
+import org.view.AgencyInterface;
 
 //Controls the main application logic by connecting the UserInterface, FileHandler, and Cipher classes.
 public class ProgramControl {
@@ -73,7 +74,7 @@ public class ProgramControl {
         // Then import the data from the relevant .tsv file as a .db
         this.createModelTables();
 
-        AgencyInterface ui = 
+        AgencyInterface ui =
             new AgencyInterface(this.agentManager, this.facilityManager, this.briefManager, this.userManager,
                                 this.auditLogger, new UserAccount("__DUMMY__", false), new Scanner(System.in), System.out);
 

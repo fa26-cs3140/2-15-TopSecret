@@ -1,5 +1,8 @@
-package org.example;
+package org.view;
 
+import org.example.AuditLogService;
+import org.example.UserAccount;
+import org.example.UserAccountManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

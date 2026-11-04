@@ -1,5 +1,6 @@
-package org.example;
+package org.view;
 
+import org.example.*;
 import org.model.Agent;
 import org.model.Brief;
 import org.model.Facility;
