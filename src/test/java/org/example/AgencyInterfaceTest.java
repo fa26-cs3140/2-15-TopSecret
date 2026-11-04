@@ -3,6 +3,9 @@ package org.example;
 import org.model.Agent;
 import org.model.Brief;
 import org.model.Facility;
+import org.managers.AgentManager;
+import org.managers.FacilityManager;
+import org.managers.BriefManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +39,16 @@ import static org.mockito.Mockito.*;
 class AgencyInterfaceTest {
 
     @Mock
-    private AgencyDataService dataService;
+    private AgentManager agentManager;
+
+    @Mock
+    private FacilityManager facilityManager;
+
+    @Mock
+    private BriefManager briefManager;
+
+    @Mock
+    private UserAccountManager userManager;
 
     @Mock
     private AuditLogService auditLog;
@@ -53,7 +65,10 @@ class AgencyInterfaceTest {
 
     private AgencyInterface createInterface(UserAccount user, String input) {
         return new AgencyInterface(
-                dataService,
+                agentManager,
+                facilityManager,
+                briefManager,
+                userManager,
                 auditLog,
                 user,
                 new Scanner(input),
@@ -75,33 +90,108 @@ class AgencyInterfaceTest {
     }
 
     @Test
-    void constructorRejectsNullDataService() {
-        assertThrows(IllegalArgumentException.class, () -> new AgencyInterface(
-                null, auditLog, admin, new Scanner(""), new PrintStream(output)));
+    void constructorRejectsNullAgentManager() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new AgencyInterface(
+                        null,
+                        facilityManager,
+                        briefManager,
+                        userManager,
+                        auditLog,
+                        admin,
+                        new Scanner(""),
+                        new PrintStream(output)
+                ));
+    }
+
+    @Test
+    void constructorRejectsNullBriefManager() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new AgencyInterface(
+                        agentManager,
+                        facilityManager,
+                        null,
+                        userManager,
+                        auditLog,
+                        admin,
+                        new Scanner(""),
+                        new PrintStream(output)
+                ));
+    }
+
+    @Test
+    void constructorRejectsNullFacilityManager() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new AgencyInterface(
+                        agentManager,
+                        null,
+                        briefManager,
+                        userManager,
+                        auditLog,
+                        admin,
+                        new Scanner(""),
+                        new PrintStream(output)
+                ));
     }
 
     @Test
     void constructorRejectsNullAuditLog() {
         assertThrows(IllegalArgumentException.class, () -> new AgencyInterface(
-                dataService, null, admin, new Scanner(""), new PrintStream(output)));
+                agentManager,
+                facilityManager,
+                briefManager,
+                userManager,
+                null,
+                admin,
+                new Scanner(""),
+                new PrintStream(output)
+            )
+        );
     }
 
     @Test
     void constructorRejectsNullUser() {
         assertThrows(IllegalArgumentException.class, () -> new AgencyInterface(
-                dataService, auditLog, null, new Scanner(""), new PrintStream(output)));
+                agentManager,
+                facilityManager,
+                briefManager,
+                userManager,
+                auditLog,
+                null,
+                new Scanner(""),
+                new PrintStream(output)
+            )
+        );
     }
 
     @Test
     void constructorRejectsNullScanner() {
         assertThrows(IllegalArgumentException.class, () -> new AgencyInterface(
-                dataService, auditLog, admin, null, new PrintStream(output)));
+                agentManager,
+                facilityManager,
+                briefManager,
+                userManager,
+                auditLog,
+                admin,
+                null,
+                new PrintStream(output)
+            )
+        );
     }
 
     @Test
     void constructorRejectsNullOutput() {
         assertThrows(IllegalArgumentException.class, () -> new AgencyInterface(
-                dataService, auditLog, admin, new Scanner(""), null));
+                agentManager,
+                facilityManager,
+                briefManager,
+                userManager,
+                auditLog,
+                admin,
+                new Scanner(""),
+                null
+            )
+        );
     }
 
     // ---------- Main menu ----------
@@ -113,7 +203,9 @@ class AgencyInterfaceTest {
         assertTrue(text().contains("1. Briefs"));
         assertTrue(text().contains("2. Agents"));
         assertTrue(text().contains("3. Facilities"));
-        assertTrue(text().contains("4. Review audit log"));
+        assertTrue(text().contains("4. Create User"));
+        assertTrue(text().contains("5. Review audit log"));
+        assertTrue(text().contains("6. Manage User Permissions"));
         assertTrue(text().contains("0. Exit"));
     }
 
@@ -146,7 +238,7 @@ class AgencyInterfaceTest {
 
     @Test
     void standardUserCannotSelectAuditLog() {
-        createInterface(standard, "4\n0\n").run();
+        createInterface(standard, "5\n0\n").run();
 
         assertTrue(text().contains("Invalid selection"));
         verify(auditLog, never()).getAuditLog();
@@ -178,7 +270,7 @@ class AgencyInterfaceTest {
         createInterface(standard, "1\n3\n0\n0\n").run();
 
         assertTrue(text().contains("Invalid selection"));
-        verify(dataService, never()).addBrief(any(), any(), any());
+        verify(briefManager, never()).addRecord(any(), any(), any());
     }
 
     @Test
@@ -192,7 +284,7 @@ class AgencyInterfaceTest {
 
     @Test
     void listBriefsShowsIdsAndTitles() {
-        when(dataService.getBriefs()).thenReturn(List.of(
+        when(briefManager.getRecords("id", "%")).thenReturn(List.of(
                 new Brief(1, "Operation Sandtrap", "1970-11-03", "Bug the pouch.", null),
                 new Brief(2, "The Munich Lead", "1972-09-15", "Identify the cell.", null)));
 
@@ -204,7 +296,7 @@ class AgencyInterfaceTest {
 
     @Test
     void listBriefsShowsMessageWhenEmpty() {
-        when(dataService.getBriefs()).thenReturn(List.of());
+        when(briefManager.getRecords("id", "%")).thenReturn(List.of());
 
         createInterface(standard, "1\n1\n0\n0\n").run();
 
@@ -213,7 +305,7 @@ class AgencyInterfaceTest {
 
     @Test
     void readBriefShowsAllPropertiesAndIsAudited() {
-        when(dataService.getBriefs()).thenReturn(List.of(
+        when(briefManager.getRecords("id", "%")).thenReturn(List.of(
                 new Brief(2, "The Munich Lead", "1972-09-15", "Identify the cell.", null)));
 
         createInterface(standard, "1\n2\n2\n0\n0\n").run();
@@ -226,7 +318,7 @@ class AgencyInterfaceTest {
 
     @Test
     void readBriefWithUnknownIdIsRejectedAndNotAudited() {
-        when(dataService.getBriefs()).thenReturn(List.of(
+        when(briefManager.getRecords("id", "%")).thenReturn(List.of(
                 new Brief(1, "Operation Sandtrap", "1970-11-03", "Bug the pouch.", null)));
 
         createInterface(standard, "1\n2\n99\n0\n0\n").run();
@@ -245,7 +337,7 @@ class AgencyInterfaceTest {
 
     @Test
     void addBriefPromptsForPropertiesAndIsAudited() {
-        when(dataService.addBrief("Operation Nightfall", "1980-05-15", "New report."))
+        when(briefManager.addRecord("Operation Nightfall", "1980-05-15", "New report."))
                 .thenReturn(new Brief(101, "Operation Nightfall", "1980-05-15", "New report.", null));
 
         createInterface(admin, "1\n3\nOperation Nightfall\n1980-05-15\nNew report.\n0\n0\n").run();
@@ -254,7 +346,7 @@ class AgencyInterfaceTest {
         assertTrue(text().contains("Date (yyyy-mm-dd):"));
         assertTrue(text().contains("Text:"));
         assertTrue(text().contains("Added"));
-        verify(dataService).addBrief("Operation Nightfall", "1980-05-15", "New report.");
+        verify(briefManager).addRecord("Operation Nightfall", "1980-05-15", "New report.");
         verify(auditLog).log("pat", "CREATE", "BRIEF", "101");
     }
 
@@ -262,8 +354,8 @@ class AgencyInterfaceTest {
     void addedBriefIsImmediatelyVisibleInList() {
         List<Brief> briefs = new ArrayList<>();
         briefs.add(new Brief(1, "Operation Sandtrap", "1970-11-03", "Bug the pouch.", null));
-        when(dataService.getBriefs()).thenAnswer(invocation -> List.copyOf(briefs));
-        when(dataService.addBrief("Operation Nightfall", "1980-05-15", "New report."))
+        when(briefManager.getRecords("id", "%")).thenAnswer(invocation -> List.copyOf(briefs));
+        when(briefManager.addRecord("Operation Nightfall", "1980-05-15", "New report."))
                 .thenAnswer(invocation -> {
                     Brief brief = new Brief(2, "Operation Nightfall", "1980-05-15", "New report.", null);
                     briefs.add(brief);
@@ -277,7 +369,7 @@ class AgencyInterfaceTest {
 
     @Test
     void addBriefWithInvalidDataShowsErrorAndIsNotAudited() {
-        when(dataService.addBrief(any(), eq("November 3"), any()))
+        when(briefManager.addRecord(any(), eq("November 3"), any()))
                 .thenThrow(new IllegalArgumentException("Invalid date."));
 
         createInterface(admin, "1\n3\nBad Brief\nNovember 3\nText\n0\n0\n").run();
@@ -290,7 +382,7 @@ class AgencyInterfaceTest {
 
     @Test
     void listAgentsShowsIdsAndNames() {
-        when(dataService.getAgents()).thenReturn(List.of(
+        when(agentManager.getRecords("id", "%")).thenReturn(List.of(
                 new Agent(1, "Vanguard", "1985-06-14", null, null, 1),
                 new Agent(2, "Ghost", "1992-11-22", null, null, 2)));
 
@@ -302,7 +394,7 @@ class AgencyInterfaceTest {
 
     @Test
     void listAgentsShowsMessageWhenEmpty() {
-        when(dataService.getAgents()).thenReturn(List.of());
+        when(agentManager.getRecords("id", "%")).thenReturn(List.of());
 
         createInterface(standard, "2\n1\n0\n0\n").run();
 
@@ -311,7 +403,7 @@ class AgencyInterfaceTest {
 
     @Test
     void readAgentShowsAllPropertiesAndIsAudited() {
-        when(dataService.getAgents()).thenReturn(List.of(
+        when(agentManager.getRecords("id", "%")).thenReturn(List.of(
                 new Agent(5, "Falcon", "1982-01-30", "2020-03-01", "Retired.", 3)));
 
         createInterface(standard, "2\n2\n5\n0\n0\n").run();
@@ -326,7 +418,7 @@ class AgencyInterfaceTest {
 
     @Test
     void readAgentShowsPlaceholderForMissingOptionalFields() {
-        when(dataService.getAgents()).thenReturn(List.of(
+        when(agentManager.getRecords("id", "%")).thenReturn(List.of(
                 new Agent(1, "Vanguard", "1985-06-14", null, null, 1)));
 
         createInterface(standard, "2\n2\n1\n0\n0\n").run();
@@ -337,7 +429,7 @@ class AgencyInterfaceTest {
 
     @Test
     void readAgentWithUnknownIdIsRejected() {
-        when(dataService.getAgents()).thenReturn(List.of());
+        when(agentManager.getRecords("id", "%")).thenReturn(List.of());
 
         createInterface(standard, "2\n2\n4\n0\n0\n").run();
 
@@ -347,7 +439,7 @@ class AgencyInterfaceTest {
 
     @Test
     void addAgentPromptsForPropertiesAndIsAudited() {
-        when(dataService.addAgent("Jackal", "1991-02-11", "2024-01-01", "Double agent.", 2))
+        when(agentManager.addRecord("Jackal", "1991-02-11", "2024-01-01", "Double agent.", 2))
                 .thenReturn(new Agent(11, "Jackal", "1991-02-11", "2024-01-01", "Double agent.", 2));
 
         createInterface(admin, "2\n3\nJackal\n1991-02-11\n2024-01-01\nDouble agent.\n2\n0\n0\n").run();
@@ -362,12 +454,12 @@ class AgencyInterfaceTest {
 
     @Test
     void addAgentTreatsBlankOptionalFieldsAsNull() {
-        when(dataService.addAgent("Jackal", "1991-02-11", null, null, 2))
+        when(agentManager.addRecord("Jackal", "1991-02-11", null, null, 2))
                 .thenReturn(new Agent(11, "Jackal", "1991-02-11", null, null, 2));
 
         createInterface(admin, "2\n3\nJackal\n1991-02-11\n\n\n2\n0\n0\n").run();
 
-        verify(dataService).addAgent("Jackal", "1991-02-11", null, null, 2);
+        verify(agentManager).addRecord("Jackal", "1991-02-11", null, null, 2);
     }
 
     @Test
@@ -375,13 +467,13 @@ class AgencyInterfaceTest {
         createInterface(admin, "2\n3\nJackal\n1991-02-11\n\n\nBA\n0\n0\n").run();
 
         assertTrue(text().contains("Invalid ID"));
-        verify(dataService, never()).addAgent(any(), any(), any(), any(), anyInt());
+        verify(agentManager, never()).addRecord(any(), any(), any(), any(), anyInt());
         verify(auditLog, never()).log(any(), any(), any(), any());
     }
 
     @Test
     void addAgentRejectedByServiceShowsError() {
-        when(dataService.addAgent(any(), any(), any(), any(), anyInt()))
+        when(agentManager.addRecord(any(), any(), any(), any(), anyInt()))
                 .thenThrow(new IllegalArgumentException("Facility does not exist."));
 
         createInterface(admin, "2\n3\nJackal\n1991-02-11\n\n\n99\n0\n0\n").run();
@@ -394,7 +486,7 @@ class AgencyInterfaceTest {
 
     @Test
     void listFacilitiesShowsIdsNamesAndAbbreviations() {
-        when(dataService.getFacilities()).thenReturn(List.of(
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(
                 new Facility(1, "Blackwood Annex", "BA"),
                 new Facility(2, "Rose Garden", "RG")));
 
@@ -406,7 +498,7 @@ class AgencyInterfaceTest {
 
     @Test
     void listFacilitiesShowsMessageWhenEmpty() {
-        when(dataService.getFacilities()).thenReturn(List.of());
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of());
 
         createInterface(standard, "3\n1\n0\n0\n").run();
 
@@ -415,7 +507,7 @@ class AgencyInterfaceTest {
 
     @Test
     void readFacilityShowsAllPropertiesAndIsAudited() {
-        when(dataService.getFacilities()).thenReturn(List.of(
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(
                 new Facility(3, "Meridian Observatory", "MO")));
 
         createInterface(standard, "3\n2\n3\n0\n0\n").run();
@@ -427,7 +519,7 @@ class AgencyInterfaceTest {
 
     @Test
     void readFacilityWithUnknownIdIsRejected() {
-        when(dataService.getFacilities()).thenReturn(List.of());
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of());
 
         createInterface(standard, "3\n2\n8\n0\n0\n").run();
 
@@ -436,7 +528,7 @@ class AgencyInterfaceTest {
 
     @Test
     void addFacilityPromptsForPropertiesAndIsAudited() {
-        when(dataService.addFacility("Fairbanks Point", "FP"))
+        when(facilityManager.addRecord("Fairbanks Point", "FP"))
                 .thenReturn(new Facility(6, "Fairbanks Point", "FP"));
 
         createInterface(admin, "3\n3\nFairbanks Point\nFP\n0\n0\n").run();
@@ -448,7 +540,7 @@ class AgencyInterfaceTest {
 
     @Test
     void addFacilityRejectedByServiceShowsError() {
-        when(dataService.addFacility(any(), any()))
+        when(facilityManager.addRecord(any(), any()))
                 .thenThrow(new IllegalArgumentException("Name cannot be blank."));
 
         createInterface(admin, "3\n3\n\nFP\n0\n0\n").run();
@@ -467,7 +559,7 @@ class AgencyInterfaceTest {
                 new AuditLogEntry(2, "agent_7", "CREATE", "AGENT", "11",
                         LocalDateTime.of(2026, 10, 22, 10, 15))));
 
-        createInterface(admin, "4\n0\n").run();
+        createInterface(admin, "5\n0\n").run();
 
         assertTrue(text().contains("pat"));
         assertTrue(text().contains("READ"));
@@ -492,9 +584,9 @@ class AgencyInterfaceTest {
 
     @Test
     void multipleOperationsCanRunInOneSession() {
-        when(dataService.getBriefs()).thenReturn(List.of(
+        when(briefManager.getRecords("id", "%")).thenReturn(List.of(
                 new Brief(1, "Operation Sandtrap", "1970-11-03", "Bug the pouch.", null)));
-        when(dataService.getFacilities()).thenReturn(List.of(
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(
                 new Facility(1, "Blackwood Annex", "BA")));
 
         createInterface(standard, "1\n1\n0\n3\n1\n0\n0\n").run();
