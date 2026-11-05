@@ -33,7 +33,7 @@ tasks.test {
 
 tasks.jar {
     manifest {
-        attributes("Main-Class" to "org.example.TopSecret")
+        attributes("Main-Class" to "org.runtime.TopSecret")
     }
 
     from({

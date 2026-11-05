@@ -6,6 +6,7 @@ import java.util.Scanner;
 import org.managers.*;
 import org.model.*;
 import org.view.AgencyInterface;
+import org.managers.FileHandler;
 
 //Controls the main application logic by connecting the UserInterface, FileHandler, and Cipher classes.
 public class ProgramControl {
