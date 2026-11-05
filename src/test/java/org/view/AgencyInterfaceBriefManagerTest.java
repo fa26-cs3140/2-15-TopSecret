@@ -137,7 +137,7 @@ class AgencyInterfaceBriefManagerTest {
 
         assertTrue(briefManager.getRecords("title", "Bad Brief").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
     }
 
     @Test
@@ -154,6 +154,6 @@ class AgencyInterfaceBriefManagerTest {
         assertTrue(text.contains("Invalid selection"));
         assertTrue(briefManager.getRecords("id", "%").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
     }
 }

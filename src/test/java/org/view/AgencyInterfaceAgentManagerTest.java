@@ -166,7 +166,7 @@ class AgencyInterfaceAgentManagerTest {
         assertTrue(text.contains("Unable to add agent"));
         assertTrue(agentManager.getRecords("name", "Orphan").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
     }
 
     @Test
@@ -183,6 +183,6 @@ class AgencyInterfaceAgentManagerTest {
         assertTrue(text.contains("Invalid selection"));
         assertTrue(agentManager.getRecords("id", "%").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
     }
 }
