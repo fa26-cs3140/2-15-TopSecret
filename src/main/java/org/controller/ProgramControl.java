@@ -1,5 +1,6 @@
 package org.controller;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
@@ -71,6 +72,13 @@ public class ProgramControl {
         // Then import the data from the relevant .tsv file as a .db
         this.createModelTables();
 
+        // -web starts the read-only web view instead of the terminal menu
+        if (LaunchOptions.isWebMode(args))
+        {
+            startWeb(WebServer.DEFAULT_PORT);
+            return;
+        }
+
         AgencyInterface ui =
             new AgencyInterface(this.agentManager, this.facilityManager, this.briefManager, this.userManager,
                                 this.auditLogger, new UserAccount("__DUMMY__", false), new Scanner(System.in), System.out);
@@ -119,7 +127,26 @@ public class ProgramControl {
         ui.run();
 }
 
-    // End of run()  
+    // End of run()
+
+    // Starts the web view on the port; returns null (with a message) when it cannot start,
+    // for example before the first account has been created in the terminal.
+    WebServer startWeb(int port)
+    {
+        AppController controller = new AppController(briefManager, agentManager, facilityManager, auditLogger);
+        WebServer server = new WebServer(controller, userManager, new SessionManager(), port);
+        try
+        {
+            server.start();
+        }
+        catch (IllegalStateException | IOException e)
+        {
+            System.out.println("Web view not started: " + e.getMessage());
+            return null;
+        }
+        System.out.println("Web view running at http://localhost:" + port + "/ (press Ctrl+C to stop)");
+        return server;
+    }
 
     //@return list of available filenames
     public List<String> getAvailableFiles() {
