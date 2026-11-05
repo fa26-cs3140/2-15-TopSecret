@@ -8,7 +8,7 @@ Passwords are deliberately not stored in UserAccount or SQLite.
 
 UserAccountManager provides the Homework 5 account rules:
 - usernames must be at least three characters
-- usernames may contain only letters, numbers, hyphens, and underscores
+- usernames may contain only lowercase letters, numbers, hyphens, and underscores
 - passwords must be at least five characters and contain uppercase and lowercase letters
 - the first account can be created as an admin with createFirstUser()
 - later accounts can be created without passwords so the associated user can set their own password on first login
@@ -23,7 +23,7 @@ Team A owns the authorization policy for promoting/demoting users. The shared us
 
 Audit Log
 
-AuditLogManager implements AuditLogService, which is already used by AgencyInterface.
+AuditLogManager implements AuditLogService, which is already used by UserInterface.
 It creates an AuditLogEntry containing:
 - username
 - action
@@ -33,7 +33,7 @@ It creates an AuditLogEntry containing:
 
 SqliteAuditLogStore stores audit records in the audit_log table. Audit records reference users by username.
 
-AgencyInterface currently records successful READ and CREATE operations through AuditLogService. The AuditLogManager is generic and can also store UPDATE and DELETE operations when those UI/model operations are connected.
+UserInterface currently records successful READ and CREATE operations through AuditLogService. The AuditLogManager is generic and can also store UPDATE and DELETE operations when those UI/model operations are connected.
 
 Testing
 
@@ -79,8 +79,8 @@ must not perform bootstrap without external coordination.
 Remaining cross-team wiring
 
 TopSecret/ProgramControl still launch Team B's Homework 4 UserInterface.
-The account login/first-password prompts and launch of AgencyInterface remain
-Team B's responsibility. AgencyInterface already consumes UserAccount and
+The account login/first-password prompts and launch of UserInterface remain
+Team B's responsibility. UserInterface already consumes UserAccount and
 AuditLogService and records successful READ and CREATE operations.
 Team A's UserManager is a stub and its User/AccessLevel representation is not
 yet persisted through UserAccountStore. Team A must use shared users.is_admin,

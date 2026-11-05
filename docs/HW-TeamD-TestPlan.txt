@@ -23,7 +23,7 @@ AuditLogEntryTest.java
 
 UserAccountManagerTest.java (Mockito)
 - rejects null dependencies
-- username validation: letters, numbers, hyphens, underscores, minimum length
+- username validation: lowercase letters, numbers, hyphens, underscores, minimum length
 - password validation: minimum five characters plus uppercase and lowercase
 - hasUsers()
 - createUser()
@@ -80,7 +80,7 @@ AuditLogManagerDatabaseManagerTest.java
 - READ and CREATE operations persist
 - entries remain available through a new AuditLogManager instance
 
-AgencyInterfaceAuditLogManagerTest.java (cross-team integration already present)
+UserInterfaceAuditLogManagerTest.java (cross-team integration already present)
 - reading content writes READ audit records
 - creating content writes CREATE audit records
 - failed creation is not logged
@@ -101,7 +101,7 @@ Team B:
 
 Team C:
 - provides content identifiers for briefs, agents, and facilities
-- AgencyInterface passes those identifiers to AuditLogService
+- UserInterface passes those identifiers to AuditLogService
 
 Integration regression additions
 - CredentialManager compatibility and first-admin bootstrap

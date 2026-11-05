@@ -68,13 +68,14 @@ class UserAccountManagerCredentialManagerTest {
     }
 
     @Test
-    void passwordChangesRemainIndependentAcrossSessionsAndCaseVariants() throws Exception {
-        manager.createFirstUser("Agent", "Alpha1");
+    void passwordChangesRemainIndependentAcrossSessions() throws Exception {
+        assertThrows(IllegalArgumentException.class, () -> manager.createFirstUser("Agent", "Alpha1"));
+        manager.createFirstUser("director", "Alpha1");
         manager.createUser("agent", false);
         assertTrue(manager.createCredentials("agent", "Bravo2"));
-        assertTrue(manager.changePassword("Agent", "Charlie3"));
-        assertFalse(manager.verifyLogin("Agent", "Alpha1"));
-        assertTrue(manager.verifyLogin("Agent", "Charlie3"));
+        assertTrue(manager.changePassword("director", "Charlie3"));
+        assertFalse(manager.verifyLogin("director", "Alpha1"));
+        assertTrue(manager.verifyLogin("director", "Charlie3"));
         assertTrue(manager.verifyLogin("agent", "Bravo2"));
         assertFalse(manager.verifyLogin("agent", "Charlie3"));
         assertFalse(manager.createCredentials("agent", "Delta4"));
@@ -84,7 +85,7 @@ class UserAccountManagerCredentialManagerTest {
                 + "bcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890a"));
         var reopened = new UserAccountManager("jdbc:sqlite:" + database,
                 new FileHandler(directory.toString()), cipher);
-        assertTrue(reopened.verifyLogin("Agent", "Charlie3"));
+        assertTrue(reopened.verifyLogin("director", "Charlie3"));
         assertTrue(reopened.verifyLogin("agent", "Bravo2"));
         try (var files = Files.list(directory)) {
             var paths = files.toList();

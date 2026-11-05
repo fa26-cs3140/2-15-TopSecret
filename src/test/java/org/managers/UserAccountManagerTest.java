@@ -46,9 +46,12 @@ class UserAccountManagerTest {
     @Test
     void usernameValidationMatchesHomeworkRules() {
         assertTrue(manager.isValidUsername("abc"));
-        assertTrue(manager.isValidUsername("Agent_7"));
+        assertTrue(manager.isValidUsername("agent_7"));
         assertTrue(manager.isValidUsername("field-agent"));
         assertTrue(manager.isValidUsername("a1_"));
+
+        assertFalse(manager.isValidUsername("Agent_7"));
+        assertFalse(manager.isValidUsername("PAT"));
 
         assertFalse(manager.isValidUsername(null));
         assertFalse(manager.isValidUsername("ab"));
