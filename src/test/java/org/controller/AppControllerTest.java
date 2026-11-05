@@ -8,7 +8,6 @@ import org.managers.AuditLogService;
 import org.model.RecordType;
 import org.model.UserAccount;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -24,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@Disabled("HW6 week 1 draft: enable when AppController is implemented in week 2")
 @ExtendWith(MockitoExtension.class)
 class AppControllerTest {
 
