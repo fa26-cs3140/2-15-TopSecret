@@ -125,6 +125,9 @@ public class ProgramControl {
             ui.changePasswordMenu();
         }
 
+        ui.enableMessaging(new org.model.messaging.AuthenticatedMessageService(
+                agentManager, new SqliteUserAccountStore(agentManager.getURL()),
+                new org.model.messaging.SqliteMessageStore(agentManager.getURL()), ui.getCurrentUser()));
         ui.run();
 }
 

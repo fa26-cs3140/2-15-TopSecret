@@ -112,7 +112,7 @@ class AgencyInterfaceAuditLogManagerTest {
         run(standard, "1\n2\n1\n0\n0\n");
 
         List<AuditLogEntry> entries =
-                auditLogManager.getAuditLog();
+                auditLogManager.getAuditLog().stream().filter(e -> !"LOGOUT".equals(e.getAction())).toList();
 
         assertEquals(1, entries.size());
 
@@ -130,7 +130,7 @@ class AgencyInterfaceAuditLogManagerTest {
         run(admin, "3\n3\nFairbanks Point\nFP\n0\n0\n");
 
         List<AuditLogEntry> entries =
-                auditLogManager.getAuditLog();
+                auditLogManager.getAuditLog().stream().filter(e -> !"LOGOUT".equals(e.getAction())).toList();
 
         assertEquals(1, entries.size());
         assertEquals("pat", entries.get(0).getUsername());
@@ -145,7 +145,7 @@ class AgencyInterfaceAuditLogManagerTest {
                 "2\n3\nOrphan\n1990-01-01\n\n\n99\n0\n0\n"
         );
 
-        assertTrue(auditLogManager.getAuditLog().isEmpty());
+        assertTrue(auditLogManager.getAuditLog().stream().noneMatch(e -> !"LOGOUT".equals(e.getAction())));
     }
 
     @Test
@@ -167,5 +167,13 @@ class AgencyInterfaceAuditLogManagerTest {
         String text = run(admin, "5\n0\n");
 
         assertTrue(text.contains("No audit entries"));
+    }
+    @Test
+    void normalExitRecordsExactlyOneLogout() {
+        run(standard, "0\n");
+        var entries = auditLogManager.getAuditLog();
+        assertEquals(1, entries.size());
+        assertEquals("LOGOUT", entries.get(0).getAction());
+        assertEquals("agent_7", entries.get(0).getUsername());
     }
 }
