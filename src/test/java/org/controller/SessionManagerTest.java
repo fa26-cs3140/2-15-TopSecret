@@ -2,12 +2,10 @@ package org.controller;
 
 import org.model.UserAccount;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Disabled("HW6 week 1 draft: enable when SessionManager is implemented in week 2")
 class SessionManagerTest {
 
     private SessionManager sessions;
