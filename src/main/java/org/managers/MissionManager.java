@@ -132,7 +132,39 @@ public class MissionManager extends IDatabaseManager<Mission>
     @Override
     public Mission addRecord(Mission value)
     {
-        return null;
+        String title = value.getTitle();
+        int[] briefIdsInts = value.getBriefIds();
+        int[] agentIdsInts = value.getBriefIds();
+        int facilityId = value.getFacilityId();
+
+        // We need to do some extra formatting and parsing to
+        // properly insert the mutliple values of briefs and agents
+        // assigned to a mission
+        String briefIds = "";
+        for (int i = 0; i < briefIdsInts.length; i++)
+        {
+            briefIds += briefIdsInts[i];
+            if (i < briefIdsInts.length - 1) briefIds += ",";
+        }
+
+        String agentIds = "";
+        for (int i = 0; i < agentIdsInts.length; i++)
+        {
+            agentIds += agentIdsInts[i];
+            if (i < agentIdsInts.length - 1) agentIds += ",";
+        }
+        // TODO: This almost certainly does not work. Make sure you are aware
+        // how to actually add MULTIPLE items into an sql column
+        int id = this.insert("INSERT INTO " + this.tableName + 
+                             " (%s, %s, %s, %s) "
+                             .formatted(this.columnNames[1], this.columnNames[2],
+                                        this.columnNames[3], this.columnNames[4])
+                             + "VALUES (?, ?, ?, ?)",
+                             title, briefIds, agentIds, facilityId
+                            );
+
+        // Now that we have all the data, we are good to go!
+        return new Mission(id, title, briefIdsInts, agentIdsInts, facilityId);
     }
     
     // TODO: Change signature when details of Mission type are finalised
@@ -141,7 +173,8 @@ public class MissionManager extends IDatabaseManager<Mission>
      */
     public Mission addRecord(String title, int[] briefIds, int[] agentIds, int facilityId) 
     {
-        return null;
+        Mission mission = new Mission(1, title, briefIds, agentIds, facilityId);
+        return this.addRecord(mission);
     }
 
 /**
@@ -156,7 +189,12 @@ public class MissionManager extends IDatabaseManager<Mission>
     @Override 
     public Boolean updateRecord(String checkColumn, String key, String changeColumn, String value)
     {
-        return false;
+        String query = "UPDATE " + this.tableName + 
+                      " SET " + changeColumn + " = " + "\'" + value +"\'" +
+                      " WHERE " + checkColumn + " LIKE " + "\'" + key + "\'"; 
+        int rowsAffected = this.update(query, checkColumn, key, changeColumn, value);
+
+        return rowsAffected > 0;
     }
 
     // TODO: Implement
