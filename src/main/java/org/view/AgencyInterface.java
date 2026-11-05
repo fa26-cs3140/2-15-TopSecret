@@ -2,6 +2,7 @@ package org.view;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -11,10 +12,11 @@ import org.controller.AppController;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
+import org.managers.MissionManager;
 import org.managers.UserAccountManager;
 import org.managers.AuditLogService;
 import org.model.*;
-//TODO:
+
 public class AgencyInterface {
 
     // private final AgencyDataService data;
@@ -22,6 +24,7 @@ public class AgencyInterface {
     private final FacilityManager fManager;
     private final BriefManager bManager;
     private final UserAccountManager uManager;
+    private final MissionManager mManager;
     private final AuditLogService auditLog;
     private UserAccount currentUser;
     private final Scanner scanner;
@@ -30,7 +33,7 @@ public class AgencyInterface {
 
     private final String SEPARATOR = "-----------------";
 
-    public AgencyInterface(AgentManager aManager, FacilityManager fManager, BriefManager bManager, UserAccountManager uManager, 
+    public AgencyInterface(AgentManager aManager, FacilityManager fManager, BriefManager bManager, UserAccountManager uManager, MissionManager mManager,
                            AuditLogService auditLog, UserAccount currentUser, Scanner scanner, PrintStream output) {
         if (aManager == null || fManager == null || bManager == null || auditLog == null || currentUser == null || scanner == null || output == null) {
             throw new IllegalArgumentException("Arguments cannot be null.");
@@ -40,11 +43,12 @@ public class AgencyInterface {
         this.fManager = fManager;
         this.bManager = bManager;
         this.uManager = uManager;
+        this.mManager = mManager;
         this.auditLog = auditLog;
         this.currentUser = currentUser;
         this.scanner = scanner;
         this.output = output;
-        this.controller = new AppController(bManager, aManager, fManager, auditLog);
+        this.controller = new AppController(bManager, aManager, mManager, fManager, auditLog);
     }
 
     public UserAccount getCurrentUser() {
@@ -59,10 +63,11 @@ public class AgencyInterface {
                     case "1" -> runTypeMenu(RecordType.BRIEF);
                     case "2" -> runTypeMenu(RecordType.AGENT);
                     case "3" -> runTypeMenu(RecordType.FACILITY);
-                    case "4" -> userCreationMenu();
-                    case "5" -> { if (isAdmin()) displayAuditLog(); else invalidSelection(); }
-                    case "6" -> { if (isAdmin()) userPromotionMenu(); else invalidSelection(); } 
-                    case "7" -> changePasswordMenu();
+                    case "4" -> runTypeMenu(RecordType.MISSION);
+                    case "5" -> userCreationMenu();
+                    case "6" -> { if (isAdmin()) displayAuditLog(); else invalidSelection(); }
+                    case "7" -> { if (isAdmin()) userPromotionMenu(); else invalidSelection(); }
+                    case "8" -> changePasswordMenu();
                     case "0" -> { exit(); return; } // Make sure to run exit() to log logut info
                     default -> invalidSelection();
                 }
@@ -91,7 +96,8 @@ public class AgencyInterface {
         output.println("\n" + type.getTitle() + "\n1. List\n2. Read");
         if (isAdmin()) {
             output.println("3. Add");
-            output.println("4. Import");
+            // Cannot import missions
+            if (type != RecordType.MISSION) output.println("4. Import");
         }
         output.print("0. Back\nSelect an option: ");
     }
@@ -285,7 +291,7 @@ public class AgencyInterface {
                 case "1" -> listRecords(type);
                 case "2" -> readRecord(type);
                 case "3" -> { if (isAdmin()) addRecord(type); else invalidSelection(); }
-                case "4" -> { if (isAdmin()) importRecords(type); else invalidSelection(); }
+                case "4" -> { if (isAdmin() && type != RecordType.MISSION) importRecords(type); else invalidSelection(); }
                 case "0" -> { return; }
                 default -> invalidSelection();
             }
@@ -317,6 +323,7 @@ public class AgencyInterface {
                         prompt("Text: ")).getId();
                 case AGENT -> addAgent();
                 case FACILITY -> fManager.addRecord(prompt("Name: "), prompt("Abbreviation: ")).getId();
+                case MISSION -> addMission();
             };
             if (id != null) {
                 auditLog.log(currentUser.getUsername(), "CREATE", type.name(), String.valueOf(id));
@@ -341,6 +348,7 @@ public class AgencyInterface {
                 case BRIEF -> bManager.importTSV(pathToTSV, bManager.getTableName(), "data", "mission_database.db");
                 case AGENT -> aManager.importTSV(pathToTSV, aManager.getTableName(), "data", "mission_database.db");
                 case FACILITY -> fManager.importTSV(pathToTSV, fManager.getTableName(), "data", "mission_database.db");
+                case MISSION -> 0;
             };
         } catch (IllegalArgumentException e) {
             output.println("Unable to import TSV file.");
@@ -348,6 +356,12 @@ public class AgencyInterface {
             output.println("Unable to find " + pathToTSV);
         } catch (Exception e) {
             output.println("Something went wrong.");
+        }
+
+        if (type == RecordType.MISSION)
+        {
+            output.println("Cannot import a mission file.");
+            return false;
         }
 
         if (recordsAdded == 0) { output.println("Unable to import TSV file."); }
@@ -366,6 +380,28 @@ public class AgencyInterface {
         String notes = blankToNull(prompt("Notes (blank if none): "));
         Integer facilityId = readId("Facility ID: ");
         return facilityId == null ? null : aManager.addRecord(name, born, died, notes, facilityId).getId();
+    }
+
+    private Integer addMission() {
+        String title = prompt("Title: ");
+        // Get list of Briefs
+        String[] briefNames = prompt("Brief titles, comma separated: ").trim().split(",");
+        List<Brief> briefRecs = new ArrayList<>();
+        for (int i = 0; i < briefNames.length; i++)
+        {
+            briefRecs.addAll( bManager.getRecords(bManager.getColumnNames()[1], briefNames[i]) ); 
+        }
+
+        // Get list of Agents
+        String[] agentNames = prompt("Agent names, comma separated: ").trim().split(",");
+        List<Agent> agentRecs = new ArrayList<>();
+        for (int i = 0; i < agentNames.length; i++)
+        {
+            agentRecs.addAll( aManager.getRecords(aManager.getColumnNames()[1], agentNames[i]) );
+        }
+
+        String facilityName = prompt("Facility name: ");
+        Facility facility = fManager.getRecords(fManager.getColumnNames()[1], facilityName).get(0);
     }
 
     private void displayAuditLog() {

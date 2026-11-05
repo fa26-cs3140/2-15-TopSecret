@@ -17,6 +17,7 @@ public class ProgramControl {
     private final BriefManager briefManager;
     private final AgentManager agentManager;
     private final FacilityManager facilityManager;
+    private final MissionManager missionManager;
     private final AuditLogManager auditLogger;
     private final UserAccountManager userManager;
     private final String databaseFile = "mission_database.db";
@@ -29,6 +30,7 @@ public class ProgramControl {
         this.briefManager = new BriefManager(this.databaseURL);
         this.agentManager = new AgentManager(this.databaseURL);
         this.facilityManager = new FacilityManager(this.databaseURL);
+        this.missionManager = new MissionManager(this.databaseURL);
         this.auditLogger = new AuditLogManager(this.databaseURL);
 
         // TODO: Figure out how cipher works
@@ -39,7 +41,7 @@ public class ProgramControl {
     }
 
 
-    ProgramControl(FileHandler fileHandler, BriefManager briefManager, AgentManager agentManager, FacilityManager facilityManager, AuditLogManager auditLogger, UserAccountManager userManager) {
+    ProgramControl(FileHandler fileHandler, BriefManager briefManager, AgentManager agentManager, FacilityManager facilityManager, AuditLogManager auditLogger, UserAccountManager userManager, MissionManager missionManager) {
         if (fileHandler == null || briefManager == null || agentManager == null || facilityManager == null || auditLogger == null || userManager == null) {
             throw new IllegalArgumentException("Dependencies cannot be null.");
         }
@@ -50,6 +52,7 @@ public class ProgramControl {
         this.facilityManager = facilityManager;
         this.auditLogger = auditLogger;
         this.userManager = userManager;
+        this.missionManager = missionManager;
     }
 
     /**
@@ -81,7 +84,7 @@ public class ProgramControl {
         }
 
         AgencyInterface ui =
-            new AgencyInterface(this.agentManager, this.facilityManager, this.briefManager, this.userManager,
+            new AgencyInterface(this.agentManager, this.facilityManager, this.briefManager, this.userManager, this.missionManager,
                                 this.auditLogger, new UserAccount("__DUMMY__", false), new Scanner(System.in), System.out);
 
         if (!userManager.hasUsers())
@@ -134,7 +137,7 @@ public class ProgramControl {
     // for example before the first account has been created in the terminal.
     WebServer startWeb(int port)
     {
-        AppController controller = new AppController(briefManager, agentManager, facilityManager, auditLogger);
+        AppController controller = new AppController(briefManager, agentManager, missionManager, facilityManager, auditLogger);
         WebServer server = new WebServer(controller, userManager, new SessionManager(), port);
         try
         {
@@ -230,5 +233,6 @@ public class ProgramControl {
         briefManager.createTable();
         agentManager.createTable();
         facilityManager.createTable();
+        missionManager.createTable();
     }
 }

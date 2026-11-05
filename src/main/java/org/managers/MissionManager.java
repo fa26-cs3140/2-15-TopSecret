@@ -8,10 +8,10 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.model.Agent;
 import org.model.Mission;
 import org.controller.DebugHelper;
 
+// TODO: Implement the JSON feauture in sql3 instead?
 
 public class MissionManager extends IDatabaseManager<Mission>
 {
@@ -126,6 +126,7 @@ public class MissionManager extends IDatabaseManager<Mission>
  * addRecord() + Overloads
  */
 
+    // TODO: Test
     /**
      * Adds a record to the databse, taking in a Mission object as its value.
      */
@@ -181,7 +182,7 @@ public class MissionManager extends IDatabaseManager<Mission>
  * End addRecord()
  */
 
-    // TODO: Implement
+    // TODO: Test
     /**
      * Updates a record in the database. Finds the record by checking the key in checkColumn
      * and updates the value stored in changeColumn with the input value
@@ -210,10 +211,10 @@ public class MissionManager extends IDatabaseManager<Mission>
         return 0;
     }
 
-    // TODO: Implement
 /**
  * Private helper functions defined below
  */ 
+    // TODO: Test
     /**
      * Note the Table Schema:
      *
@@ -260,6 +261,12 @@ public class MissionManager extends IDatabaseManager<Mission>
                             this.columnNames[3],
                             this.columnNames[4]
                             );
+        try (Connection c = connect(); Statement s = c.createStatement()) {
+            s.execute(schema);
+        } catch (SQLException e)
+        {
+            DebugHelper.debugPrintln(e.getMessage());
+        }
         return;
     }
 }
