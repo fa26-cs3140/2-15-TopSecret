@@ -21,7 +21,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.example.TopSecret")
+    mainClass.set("org.runtime.TopSecret")
 }
 
 tasks.named<JavaExec>("run") {
@@ -37,12 +37,14 @@ tasks.test {
 
 tasks.jar {
     manifest {
-        attributes("Main-Class" to "org.example.TopSecret")
+        attributes("Main-Class" to "org.runtime.TopSecret")
     }
 
     from({
         configurations.runtimeClasspath.get().map {  file -> if (file.isDirectory) file else zipTree(file) }
     })
+
+    archiveFileName.set("TopSecret.jar");
 
     // Prevents Gradle from crashing if multiple libraries contain the same meta-files (e.g. LICENSE files)
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE 
@@ -90,4 +92,14 @@ tasks.register<JacocoReport>("jacocoUnitTestReport") {
     executionData(layout.buildDirectory.file("jacoco/unitTest.exec"))
     sourceSets(sourceSets.main.get())
     reports { xml.required.set(true); html.required.set(true) }
+}
+
+sourceSets {
+    named("test") {
+        java {
+            if (project.hasProperty("managersOnly")) {
+                include("org/managers/**")
+            }
+        }
+    }
 }
