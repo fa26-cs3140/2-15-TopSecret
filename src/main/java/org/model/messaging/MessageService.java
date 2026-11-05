@@ -3,11 +3,11 @@ package org.model.messaging;
 import org.model.Agent;
 import java.util.List;
 
-/** Week 1 service contract. A future implementation is bound to ONE authenticated
+/** Session-bound service contract. The implementation is bound to ONE authenticated
  * session when constructed; a caller cannot supply a sender or inbox username.
  * Creating an unauthenticated instance must be rejected. All accounts, including
  * admins, receive only their own messages. Ambiguous case-insensitive account
- * identities must fail closed. No live implementation is supplied in Week 1.
+ * identities must fail closed. AuthenticatedMessageService supplies the live implementation.
  */
 public interface MessageService {
     List<Agent> getAgents();

@@ -2,7 +2,7 @@ package org.model.messaging;
 
 import java.util.List;
 
-/** Week 1 persistence contract; the SQLite adapter is Week 2 work.
+/** Persistence contract implemented by SqliteMessageStore.
  * This low-level interface does not authorize callers; do not expose it to views.
  */
 public interface MessageStore {
