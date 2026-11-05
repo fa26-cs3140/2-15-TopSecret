@@ -59,6 +59,7 @@ public class AgencyInterface {
                     case "4" -> userCreationMenu();
                     case "5" -> { if (isAdmin()) displayAuditLog(); else invalidSelection(); }
                     case "6" -> { if (isAdmin()) userPromotionMenu(); else invalidSelection(); } 
+                    case "7" -> changePasswordMenu();
                     case "0" -> { exit(); return; } // Make sure to run exit() to log logut info
                     default -> invalidSelection();
                 }
@@ -79,6 +80,7 @@ public class AgencyInterface {
             output.println("5. Review audit log");
             output.println("6. Manage User Permissions");
         }
+        output.println("7. Change Password");
         output.print("0. Exit\nSelect an option: ");
     }
 
@@ -101,6 +103,23 @@ public class AgencyInterface {
         output.println(this.SEPARATOR);
 
         return new String[] { username, password };
+    }
+
+    // Asks for the current password before saving a new one. Returns true if the password changed.
+    public boolean changePasswordMenu()
+    {
+        output.println(this.SEPARATOR);
+        output.print("Current password: ");
+        if (!uManager.verifyLogin(currentUser.getUsername(), readLine()))
+        {
+            output.println("Incorrect password. Password not changed.");
+            output.println(this.SEPARATOR);
+            return false;
+        }
+        boolean changed = uManager.changePassword(currentUser.getUsername(), promptNewPassword());
+        output.println(changed ? "Password changed." : "Unable to change password.");
+        output.println(this.SEPARATOR);
+        return changed;
     }
 
     private String promptNewPassword()

@@ -1,5 +1,6 @@
 package org.controller;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -107,6 +108,12 @@ public class ProgramControl {
                     ui.message("Try again or enter empty username to exit.");
                 }
             }
+        }
+
+        // --change-password changes the password right after login
+        if (Arrays.asList(args).contains("--change-password"))
+        {
+            ui.changePasswordMenu();
         }
 
         ui.run();

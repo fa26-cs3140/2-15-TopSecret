@@ -624,4 +624,57 @@ class AgencyInterfaceTest {
         verify(userManager, never()).createCredentials(any(), any());
         verify(auditLog, never()).log(any(), eq("CREATE"), eq("USER"), any());
     }
+
+    // ---------- Change password ----------
+
+    @Test
+    void changePasswordSavesNewPasswordAfterCorrectCurrentPassword() {
+        when(userManager.verifyLogin("agent_7", "Secret1")).thenReturn(true);
+        when(userManager.isValidPassword("NewPass1")).thenReturn(true);
+        when(userManager.changePassword("agent_7", "NewPass1")).thenReturn(true);
+
+        assertTrue(createInterface(standard, "Secret1\nNewPass1\n").changePasswordMenu());
+        assertTrue(text().contains("Password changed."));
+    }
+
+    @Test
+    void changePasswordRejectsWrongCurrentPassword() {
+        when(userManager.verifyLogin("agent_7", "wrong")).thenReturn(false);
+
+        assertFalse(createInterface(standard, "wrong\n").changePasswordMenu());
+        assertTrue(text().contains("Incorrect password"));
+        verify(userManager, never()).changePassword(any(), any());
+    }
+
+    @Test
+    void changePasswordRepromptsInvalidNewPassword() {
+        when(userManager.verifyLogin("agent_7", "Secret1")).thenReturn(true);
+        when(userManager.isValidPassword(anyString())).thenAnswer(i -> i.getArgument(0).equals("NewPass1"));
+        when(userManager.changePassword("agent_7", "NewPass1")).thenReturn(true);
+
+        assertTrue(createInterface(standard, "Secret1\nweak\nNewPass1\n").changePasswordMenu());
+        assertTrue(text().contains("Passwords need"));
+    }
+
+    @Test
+    void changePasswordReportsFailedSave() {
+        when(userManager.verifyLogin("agent_7", "Secret1")).thenReturn(true);
+        when(userManager.isValidPassword("NewPass1")).thenReturn(true);
+        when(userManager.changePassword("agent_7", "NewPass1")).thenReturn(false);
+
+        assertFalse(createInterface(standard, "Secret1\nNewPass1\n").changePasswordMenu());
+        assertTrue(text().contains("Unable to change password."));
+    }
+
+    @Test
+    void mainMenuOptionChangesPasswordForStandardUser() {
+        when(userManager.verifyLogin("agent_7", "Secret1")).thenReturn(true);
+        when(userManager.isValidPassword("NewPass1")).thenReturn(true);
+        when(userManager.changePassword("agent_7", "NewPass1")).thenReturn(true);
+
+        createInterface(standard, "7\nSecret1\nNewPass1\n0\n").run();
+
+        assertTrue(text().contains("7. Change Password"));
+        assertTrue(text().contains("Password changed."));
+    }
 }
