@@ -16,7 +16,7 @@ public class Mission {
         this.title = title;
         this.briefIds = briefIds;
         this.agentIds = agentIds;
-        this.facilityId = facilityId;
+        setFacilityId(facilityId);
     }
 
     public int getId() {
