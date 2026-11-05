@@ -149,6 +149,22 @@ To change your password right after logging in, pass the `--change-password` opt
 ./gradlew run --args="--change-password"
 ```
 
+### Web view
+
+Start the read-only web view instead of the terminal menu with the `-web` option:
+
+```bash
+./gradlew run --args="-web"
+```
+
+or, from the packaged jar:
+
+```bash
+java -jar build/libs/TopSecret.jar -web
+```
+
+Then open http://localhost:3002/ and log in. The first account must be created in the terminal; the web view does not start until an account exists. The login sets a session cookie that is cleared when the browser closes. Pages: `/menu`, `/briefs`, `/briefs/{id}`, `/agents`, `/agents/{id}`, `/facilities`, `/facilities/{id}`, `/audit` (admins only), and `/logout`.
+
 To build the application:
 
 ```bash

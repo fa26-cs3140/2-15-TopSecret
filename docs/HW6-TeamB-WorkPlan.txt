@@ -103,7 +103,11 @@ Integration tests (real server on a test port, java.net.http.HttpClient):
 - WebServerIntegrationTest: login form, valid and invalid login, session cookie,
   redirect without a cookie, refusal to start without accounts.
 
-Week 1 tests are drafted and @Disabled until the stubs are implemented in week 2.
+Week 2 status: all stubs are implemented and their tests are enabled.
+AgencyInterface (terminal) now calls AppController for listing, reading, and the audit log,
+so the terminal and web share the same control logic.
+HtmlPage (org.view) is a minimal plain-HTML template; Team C may replace it.
+LoginHandlerTest covers form parsing; HtmlPageTest covers the template.
 
 
 Schedule
