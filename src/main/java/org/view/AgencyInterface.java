@@ -5,6 +5,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.function.Predicate;
 
 import org.managers.AgentManager;
 import org.managers.BriefManager;
@@ -94,13 +95,28 @@ public class AgencyInterface {
     {
         output.println(this.SEPARATOR);
         output.println("User Creation Menu");
-        output.print("Username: ");
-        String username = readLine();
-        output.print("Password: ");
-        String password = readLine();
+        String username = promptUntilValid("Username: ", uManager::isValidUsername,
+                "Usernames need 3+ lowercase letters, numbers, hyphens, or underscores.");
+        String password = promptNewPassword();
         output.println(this.SEPARATOR);
 
         return new String[] { username, password };
+    }
+
+    private String promptNewPassword()
+    {
+        return promptUntilValid("Password: ", uManager::isValidPassword,
+                "Passwords need 5+ characters with uppercase and lowercase letters.");
+    }
+
+    private String promptUntilValid(String label, Predicate<String> isValid, String rules)
+    {
+        while (true)
+        {
+            String value = prompt(label);
+            if (isValid.test(value)) return value;
+            output.println(rules);
+        }
     }
 
     private void exit()
@@ -114,7 +130,16 @@ public class AgencyInterface {
         output.println(this.SEPARATOR);
         output.println("Create new user account");
         String[] data = this.userCreationPrompt();
-        uManager.createUser(data[0], false);
+        try
+        {
+            uManager.createUser(data[0], false);
+        }
+        catch (IllegalArgumentException e)
+        {
+            output.println("Unable to create user: " + e.getMessage());
+            output.println(this.SEPARATOR);
+            return;
+        }
         uManager.createCredentials(data[0], data[1]);
         auditLog.log(currentUser.getUsername(), "CREATE", "USER", data[0]);
         output.println(this.SEPARATOR);

@@ -595,4 +595,33 @@ class AgencyInterfaceTest {
         assertTrue(text().contains("Blackwood Annex"));
         assertTrue(text().contains("Exiting"));
     }
+
+    // ---------- Create user ----------
+
+    @Test
+    void createUserRepromptsInvalidUsernameAndPassword() {
+        when(userManager.isValidUsername(anyString())).thenAnswer(i -> i.getArgument(0).equals("ghost"));
+        when(userManager.isValidPassword(anyString())).thenAnswer(i -> i.getArgument(0).equals("Secret1"));
+
+        createInterface(admin, "4\nGhost\nghost\nweak\nSecret1\n0\n").run();
+
+        assertTrue(text().contains("Usernames need"));
+        assertTrue(text().contains("Passwords need"));
+        verify(userManager).createUser("ghost", false);
+        verify(userManager).createCredentials("ghost", "Secret1");
+        verify(auditLog).log("pat", "CREATE", "USER", "ghost");
+    }
+
+    @Test
+    void createUserWithTakenUsernameShowsErrorAndIsNotAudited() {
+        when(userManager.isValidUsername("ghost")).thenReturn(true);
+        when(userManager.isValidPassword("Secret1")).thenReturn(true);
+        when(userManager.createUser("ghost", false)).thenThrow(new IllegalArgumentException("Username already exists."));
+
+        createInterface(admin, "4\nghost\nSecret1\n0\n").run();
+
+        assertTrue(text().contains("Unable to create user: Username already exists."));
+        verify(userManager, never()).createCredentials(any(), any());
+        verify(auditLog, never()).log(any(), eq("CREATE"), eq("USER"), any());
+    }
 }
