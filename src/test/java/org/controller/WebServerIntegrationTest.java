@@ -8,19 +8,19 @@ import org.model.UserAccount;
 import org.managers.UserAccountManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.model.Brief;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 // Starts a real server on a test port so 3002 stays free for the running application.
-@Disabled("HW6 week 1 draft: enable when WebServer and its handlers are implemented in week 2")
 class WebServerIntegrationTest {
 
     private static final int TEST_PORT = 3012;
@@ -38,8 +38,14 @@ class WebServerIntegrationTest {
         when(accounts.getUser("pat")).thenReturn(new UserAccount("pat", true));
         when(accounts.passwordExists("pat")).thenReturn(true);
         when(accounts.verifyLogin("pat", "Secret1")).thenReturn(true);
+        when(accounts.getUser("agent7")).thenReturn(new UserAccount("agent7", false));
+        when(accounts.verifyLogin("agent7", "Agent77")).thenReturn(true);
 
-        AppController controller = newController();
+        BriefManager briefs = mock(BriefManager.class);
+        when(briefs.getRecords("id", "%")).thenReturn(List.of(
+                new Brief(1, "Operation <Sandtrap>", "1970-11-03", "Bug the pouch.", null)));
+        AppController controller = new AppController(briefs, mock(AgentManager.class),
+                mock(FacilityManager.class), mock(AuditLogService.class));
         server = new WebServer(controller, accounts, new SessionManager(), TEST_PORT);
         server.start();
     }
@@ -143,5 +149,51 @@ class WebServerIntegrationTest {
         WebServer empty = new WebServer(controller, accounts, new SessionManager(), TEST_PORT + 1);
 
         assertThrows(IllegalStateException.class, empty::start);
+    }
+
+    @Test
+    void briefListLinksToRecordPagesAndEscapesHtml() throws Exception {
+        String cookie = sessionCookie(login("pat", "Secret1"));
+
+        String body = get("/briefs", cookie).body();
+
+        assertTrue(body.contains("<a href=\"/briefs/1\">1. Operation &lt;Sandtrap&gt;</a>"));
+    }
+
+    @Test
+    void recordPageShowsDetails() throws Exception {
+        String cookie = sessionCookie(login("pat", "Secret1"));
+
+        String body = get("/briefs/1", cookie).body();
+
+        assertTrue(body.contains("<p>Date: 1970-11-03</p>"));
+        assertTrue(body.contains("<p>Text: Bug the pouch.</p>"));
+    }
+
+    @Test
+    void unknownPagesAndBadIdsReturnNotFound() throws Exception {
+        String cookie = sessionCookie(login("pat", "Secret1"));
+
+        assertEquals(404, get("/nothing", cookie).statusCode());
+        assertEquals(404, get("/briefs/abc", cookie).statusCode());
+        assertEquals(404, get("/briefs/1/extra", cookie).statusCode());
+    }
+
+    @Test
+    void standardUserCannotSeeAuditLog() throws Exception {
+        String cookie = sessionCookie(login("agent7", "Agent77"));
+
+        assertFalse(get("/menu", cookie).body().contains("/audit"));
+        assertTrue(get("/audit", cookie).body().contains("Access denied"));
+    }
+
+    @Test
+    void loggedInUserVisitingRootGoesToMenu() throws Exception {
+        String cookie = sessionCookie(login("pat", "Secret1"));
+
+        HttpResponse<String> response = get("/", cookie);
+
+        assertEquals(303, response.statusCode());
+        assertEquals("/menu", response.headers().firstValue("Location").orElseThrow());
     }
 }
