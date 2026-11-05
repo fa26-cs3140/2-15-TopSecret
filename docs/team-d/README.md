@@ -65,43 +65,31 @@ username rules. Names that cannot be registered under current username rules
 still require coordinated alias/account policy; no implicit alias is invented.
 The proposed snapshot/ambiguity policies from Week 1 are implemented.
 
-## Verification and shared regression fixes
+## Verification and PR scope
 
-All 19 inherited failures are resolved on this feature branch.
-Final command: ./gradlew test unitTest integrationTest jacocoTestReport jacocoUnitTestReport build
-Results: 322 total tests, 283 unit tests and 39 integration tests; zero failures,
-errors or skips. The build and both coverage-report tasks pass. The rebuilt JAR
-also passed bootstrap/agent creation/send/account creation/recipient inbox and
-sender isolation again in three separate processes.
+All MissionManager/Mission implementation and test changes have been removed
+from this PR at the owner's request. These four files exactly match the shared
+base: org.managers.MissionManager, org.model.Mission and their test classes.
+Mission persistence, TSV import, schema and validation remain with Team A.
+Earlier Mission changes remain visible in commit history but have no net PR diff.
 
-Audit assertions now distinguish content-operation actions from the legitimate
-LOGOUT action. A new integration assertion explicitly requires exactly one logout
-entry. Production logout logging was preserved, not removed to satisfy old tests.
+The previous 322-test green build included the now-removed Mission fixes and is
+historical, not a passing result for the current revision. The shared MissionTest
+still calls the old two-argument constructor, so the ordinary full test/build
+commands cannot currently compile that test. No test exclusion is committed.
 
-MissionManager now executes idempotent table creation, maps every result row after
-rs.next(), handles null/empty ID arrays, uses the agent IDs instead of duplicating
-brief IDs, and binds queries/updates with validated column identifiers. The stubbed
-TSV import now reads title, briefIds CSV, agentIds CSV, facilityId with a header.
-Input rows are validated before insertion; database failures are surfaced.
-The existing comma-separated list design is retained using TEXT list columns;
-arrays cannot be scalar foreign keys. The facility FK is enforced. This fix does
-not introduce normalized mission-association join tables; that remains a separate
-schema-design decision for the model owner, not evidence of a fully normalized ERD.
-Existing manually created mission tables are not automatically migrated.
+After this scope correction, ./gradlew assemble passes. A diagnostic run of
+all 26 messaging tests also passes, using an external Gradle init script that
+excludes only the inherited, uncompilable org/model/MissionTest.java from test
+compilation. No source/build exclusions are committed. This is not a passing
+complete-suite result. The packaged JAR workflow was verified before the scope
+correction; no messaging source changed.
 
-The old MissionManager test suite had empty TODO methods. It is replaced with
-eight meaningful tests covering schema/idempotence, reopening, null/empty lists,
-distinct brief/agent arrays, multiple-row retrieval, SQL parameter isolation,
-invalid records/FKs, updates and TSV import. This explains the lower total test
-count; no failed tests were disabled or skipped.
-
-Git attribution: Zaid (za-uv) introduced logout logging in 0ac51c0 on November 4;
-MissionManager tests/stubs and implementations are attributed to za-uv in
-0dacc7a/e096244/a053676 on November 5. The older AgencyInterface tests originate
-in earlier Team B/view work and were moved/updated during Team C's MVC refactor.
-These are integration mismatches across revisions, not proof that one member's
-entire contribution was broken. No attribution is made to current main, which
-was not the independent comparison target.
+Audit assertions still distinguish content-operation actions from the legitimate
+LOGOUT action. A real-store regression test requires exactly one logout entry;
+production logout logging is unchanged. The sixteen outdated audit expectations
+are addressed here; the remaining Mission compilation/failures belong to the
+shared branch and are left for its owner.
 
 ## Accounts and audit (current reference)
 

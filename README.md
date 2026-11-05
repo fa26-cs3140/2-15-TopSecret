@@ -53,9 +53,11 @@ Sample agents must be created/imported; startup does not automatically load them
 ```
 
 The complete suite runs with `test`; `unitTest` and `integrationTest` also run
-separately. Latest local verification: **322 tests, zero failures/errors/skips**;
-build and coverage-report tasks pass. Empty MissionManager TODO tests were replaced
-with substantive checks; none of the failing tests were disabled or excluded.
+separately. Team D messaging and logout-test corrections are included here.
+Mission changes have been removed from this PR: the shared MissionTest still
+calls an outdated constructor and blocks compilation of the full test suite.
+The earlier 322-test passing result included those removed fixes and is not a
+current full-suite result. See the Team D notes for verification scope.
 
 ## Documentation
 
