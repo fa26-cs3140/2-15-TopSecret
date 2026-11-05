@@ -131,4 +131,29 @@ public class ProgramControlTest {
                 () -> createControl(null)
         );
     }
+
+    private ProgramControl controlWithAccounts(UserAccountManager accounts) {
+        return new ProgramControl(mock(FileHandler.class), mock(BriefManager.class), mock(AgentManager.class),
+                mock(FacilityManager.class), mock(AuditLogManager.class), accounts);
+    }
+
+    @Test
+    void webViewDoesNotStartWithoutAccounts() {
+        UserAccountManager accounts = mock(UserAccountManager.class);
+        when(accounts.hasUsers()).thenReturn(false);
+
+        assertNull(controlWithAccounts(accounts).startWeb(3013));
+    }
+
+    @Test
+    void webViewStartsWhenAccountsExist() {
+        UserAccountManager accounts = mock(UserAccountManager.class);
+        when(accounts.hasUsers()).thenReturn(true);
+
+        WebServer server = controlWithAccounts(accounts).startWeb(3013);
+
+        assertNotNull(server);
+        assertEquals(3013, server.getPort());
+        server.stop();
+    }
 }

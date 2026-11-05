@@ -595,4 +595,86 @@ class AgencyInterfaceTest {
         assertTrue(text().contains("Blackwood Annex"));
         assertTrue(text().contains("Exiting"));
     }
+
+    // ---------- Create user ----------
+
+    @Test
+    void createUserRepromptsInvalidUsernameAndPassword() {
+        when(userManager.isValidUsername(anyString())).thenAnswer(i -> i.getArgument(0).equals("ghost"));
+        when(userManager.isValidPassword(anyString())).thenAnswer(i -> i.getArgument(0).equals("Secret1"));
+
+        createInterface(admin, "4\nGhost\nghost\nweak\nSecret1\n0\n").run();
+
+        assertTrue(text().contains("Usernames need"));
+        assertTrue(text().contains("Passwords need"));
+        verify(userManager).createUser("ghost", false);
+        verify(userManager).createCredentials("ghost", "Secret1");
+        verify(auditLog).log("pat", "CREATE", "USER", "ghost");
+    }
+
+    @Test
+    void createUserWithTakenUsernameShowsErrorAndIsNotAudited() {
+        when(userManager.isValidUsername("ghost")).thenReturn(true);
+        when(userManager.isValidPassword("Secret1")).thenReturn(true);
+        when(userManager.createUser("ghost", false)).thenThrow(new IllegalArgumentException("Username already exists."));
+
+        createInterface(admin, "4\nghost\nSecret1\n0\n").run();
+
+        assertTrue(text().contains("Unable to create user: Username already exists."));
+        verify(userManager, never()).createCredentials(any(), any());
+        verify(auditLog, never()).log(any(), eq("CREATE"), eq("USER"), any());
+    }
+
+    // ---------- Change password ----------
+
+    @Test
+    void changePasswordSavesNewPasswordAfterCorrectCurrentPassword() {
+        when(userManager.verifyLogin("agent_7", "Secret1")).thenReturn(true);
+        when(userManager.isValidPassword("NewPass1")).thenReturn(true);
+        when(userManager.changePassword("agent_7", "NewPass1")).thenReturn(true);
+
+        assertTrue(createInterface(standard, "Secret1\nNewPass1\n").changePasswordMenu());
+        assertTrue(text().contains("Password changed."));
+    }
+
+    @Test
+    void changePasswordRejectsWrongCurrentPassword() {
+        when(userManager.verifyLogin("agent_7", "wrong")).thenReturn(false);
+
+        assertFalse(createInterface(standard, "wrong\n").changePasswordMenu());
+        assertTrue(text().contains("Incorrect password"));
+        verify(userManager, never()).changePassword(any(), any());
+    }
+
+    @Test
+    void changePasswordRepromptsInvalidNewPassword() {
+        when(userManager.verifyLogin("agent_7", "Secret1")).thenReturn(true);
+        when(userManager.isValidPassword(anyString())).thenAnswer(i -> i.getArgument(0).equals("NewPass1"));
+        when(userManager.changePassword("agent_7", "NewPass1")).thenReturn(true);
+
+        assertTrue(createInterface(standard, "Secret1\nweak\nNewPass1\n").changePasswordMenu());
+        assertTrue(text().contains("Passwords need"));
+    }
+
+    @Test
+    void changePasswordReportsFailedSave() {
+        when(userManager.verifyLogin("agent_7", "Secret1")).thenReturn(true);
+        when(userManager.isValidPassword("NewPass1")).thenReturn(true);
+        when(userManager.changePassword("agent_7", "NewPass1")).thenReturn(false);
+
+        assertFalse(createInterface(standard, "Secret1\nNewPass1\n").changePasswordMenu());
+        assertTrue(text().contains("Unable to change password."));
+    }
+
+    @Test
+    void mainMenuOptionChangesPasswordForStandardUser() {
+        when(userManager.verifyLogin("agent_7", "Secret1")).thenReturn(true);
+        when(userManager.isValidPassword("NewPass1")).thenReturn(true);
+        when(userManager.changePassword("agent_7", "NewPass1")).thenReturn(true);
+
+        createInterface(standard, "7\nSecret1\nNewPass1\n0\n").run();
+
+        assertTrue(text().contains("7. Change Password"));
+        assertTrue(text().contains("Password changed."));
+    }
 }

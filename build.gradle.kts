@@ -21,7 +21,11 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.example.TopSecret")
+    mainClass.set("org.runtime.TopSecret")
+}
+
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
 }
 
 tasks.test {
@@ -54,7 +58,7 @@ jacoco {
 
 val integrationPatterns = listOf(
     "**/*IntegrationTest.class", "**/*Sqlite*Test.class", "**/DatabaseManagerTest.class",
-    "**/AgencyInterfaceAuditLogManagerTest.class",
+    "**/UserInterfaceAuditLogManagerTest.class", "**/UserInterfaceDatabaseManagerTest.class",
     "**/UserAccountManagerCredentialManagerTest.class",
     "**/AuditLogManagerDatabaseManagerTest.class"
 )

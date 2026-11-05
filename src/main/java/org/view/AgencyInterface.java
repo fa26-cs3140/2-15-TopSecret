@@ -5,7 +5,9 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.function.Predicate;
 
+import org.controller.AppController;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
@@ -24,6 +26,7 @@ public class AgencyInterface {
     private UserAccount currentUser;
     private final Scanner scanner;
     private final PrintStream output;
+    private final AppController controller;
 
     private final String SEPARATOR = "-----------------";
 
@@ -41,6 +44,7 @@ public class AgencyInterface {
         this.currentUser = currentUser;
         this.scanner = scanner;
         this.output = output;
+        this.controller = new AppController(bManager, aManager, fManager, auditLog);
     }
 
     public UserAccount getCurrentUser() {
@@ -58,6 +62,7 @@ public class AgencyInterface {
                     case "4" -> userCreationMenu();
                     case "5" -> { if (isAdmin()) displayAuditLog(); else invalidSelection(); }
                     case "6" -> { if (isAdmin()) userPromotionMenu(); else invalidSelection(); } 
+                    case "7" -> changePasswordMenu();
                     case "0" -> { exit(); return; } // Make sure to run exit() to log logut info
                     default -> invalidSelection();
                 }
@@ -78,6 +83,7 @@ public class AgencyInterface {
             output.println("5. Review audit log");
             output.println("6. Manage User Permissions");
         }
+        output.println("7. Change Password");
         output.print("0. Exit\nSelect an option: ");
     }
 
@@ -94,13 +100,45 @@ public class AgencyInterface {
     {
         output.println(this.SEPARATOR);
         output.println("User Creation Menu");
-        output.print("Username: ");
-        String username = readLine();
-        output.print("Password: ");
-        String password = readLine();
+        String username = promptUntilValid("Username: ", uManager::isValidUsername,
+                "Usernames need 3+ lowercase letters, numbers, hyphens, or underscores.");
+        String password = promptNewPassword();
         output.println(this.SEPARATOR);
 
         return new String[] { username, password };
+    }
+
+    // Asks for the current password before saving a new one. Returns true if the password changed.
+    public boolean changePasswordMenu()
+    {
+        output.println(this.SEPARATOR);
+        output.print("Current password: ");
+        if (!uManager.verifyLogin(currentUser.getUsername(), readLine()))
+        {
+            output.println("Incorrect password. Password not changed.");
+            output.println(this.SEPARATOR);
+            return false;
+        }
+        boolean changed = uManager.changePassword(currentUser.getUsername(), promptNewPassword());
+        output.println(changed ? "Password changed." : "Unable to change password.");
+        output.println(this.SEPARATOR);
+        return changed;
+    }
+
+    private String promptNewPassword()
+    {
+        return promptUntilValid("Password: ", uManager::isValidPassword,
+                "Passwords need 5+ characters with uppercase and lowercase letters.");
+    }
+
+    private String promptUntilValid(String label, Predicate<String> isValid, String rules)
+    {
+        while (true)
+        {
+            String value = prompt(label);
+            if (isValid.test(value)) return value;
+            output.println(rules);
+        }
     }
 
     private void exit()
@@ -114,7 +152,16 @@ public class AgencyInterface {
         output.println(this.SEPARATOR);
         output.println("Create new user account");
         String[] data = this.userCreationPrompt();
-        uManager.createUser(data[0], false);
+        try
+        {
+            uManager.createUser(data[0], false);
+        }
+        catch (IllegalArgumentException e)
+        {
+            output.println("Unable to create user: " + e.getMessage());
+            output.println(this.SEPARATOR);
+            return;
+        }
         uManager.createCredentials(data[0], data[1]);
         auditLog.log(currentUser.getUsername(), "CREATE", "USER", data[0]);
         output.println(this.SEPARATOR);
@@ -245,18 +292,10 @@ public class AgencyInterface {
         }
     }
 
+    // List, read and audit-log text comes from AppController, which the web view also uses.
     private void listRecords(RecordType type) {
         output.println(this.SEPARATOR);
-        List<String> lines = switch (type) {
-            case BRIEF -> bManager.getRecords("id", "%").stream().map(b -> b.getId() + ". " + b.getTitle()).toList();
-            case AGENT -> aManager.getRecords("id", "%").stream().map(a -> a.getId() + ". " + a.getName()).toList();
-            case FACILITY -> fManager.getRecords("id", "%").stream()
-                    .map(f -> f.getId() + ". " + f.getName() + " (" + f.getAbbreviation() + ")").toList();
-        };
-        if (lines.isEmpty()) {
-            output.println("No " + type.getTitle().toLowerCase() + " are available.");
-        }
-        lines.forEach(output::println);
+        output.println(controller.listRecords(type));
         output.println(this.SEPARATOR);
     }
 
@@ -266,25 +305,7 @@ public class AgencyInterface {
         if (id == null) {
             return;
         }
-        List<String> details = switch (type) {
-            case BRIEF -> bManager.getRecords("id", "%").stream().filter(b -> b.getId() == id).findFirst()
-                    .map(b -> List.of("Title: " + b.getTitle(), "Date: " + b.getDate(), "Text: " + b.getText()))
-                    .orElse(null);
-            case AGENT -> aManager.getRecords("id", "%").stream().filter(a -> a.getId() == id).findFirst()
-                    .map(a -> List.of("Name: " + a.getName(), "Date of birth: " + a.getDateOfBirth(),
-                            "Date of death: " + orNA(a.getDateOfDeath()), "Notes: " + orNA(a.getNotes()),
-                            "Facility ID: " + a.getFacilityId()))
-                    .orElse(null);
-            case FACILITY -> fManager.getRecords("id", "%").stream().filter(f -> f.getId() == id).findFirst()
-                    .map(f -> List.of("Name: " + f.getName(), "Abbreviation: " + f.getAbbreviation()))
-                    .orElse(null);
-        };
-        if (details == null) {
-            output.println("No " + type.getSingular() + " found with ID " + id + ".");
-            return;
-        }
-        details.forEach(output::println);
-        auditLog.log(currentUser.getUsername(), "READ", type.name(), String.valueOf(id));
+        output.println(controller.readRecord(type, id, currentUser));
         output.println(this.SEPARATOR);
     }
 
@@ -349,15 +370,7 @@ public class AgencyInterface {
 
     private void displayAuditLog() {
         output.println(this.SEPARATOR);
-        List<AuditLogEntry> entries = auditLog.getAuditLog();
-        if (entries == null || entries.isEmpty()) {
-            output.println("No audit entries have been recorded.");
-            return;
-        }
-        for (AuditLogEntry e : entries) {
-            output.println(e.getTimestamp() + " | " + e.getUsername() + " | " + e.getAction()
-                    + " | " + e.getContentType() + " " + e.getContentIdentifier());
-        }
+        output.println(controller.auditLog(currentUser));
         output.println(this.SEPARATOR);
     }
 
@@ -389,9 +402,5 @@ public class AgencyInterface {
 
     private static String blankToNull(String value) {
         return value.isEmpty() ? null : value;
-    }
-
-    private static String orNA(String value) {
-        return value == null ? "N/A" : value;
     }
 }
