@@ -31,6 +31,8 @@ public class AgencyInterface {
     private final PrintStream output;
     private final AppController controller;
 
+    private org.controller.messaging.MessageController messages;
+
     private final String SEPARATOR = "-----------------";
 
     public AgencyInterface(AgentManager aManager, FacilityManager fManager, BriefManager bManager, UserAccountManager uManager, MissionManager mManager,
@@ -63,11 +65,20 @@ public class AgencyInterface {
                     case "1" -> runTypeMenu(RecordType.BRIEF);
                     case "2" -> runTypeMenu(RecordType.AGENT);
                     case "3" -> runTypeMenu(RecordType.FACILITY);
+<<<<<<< HEAD
                     case "4" -> runTypeMenu(RecordType.MISSION);
                     case "5" -> userCreationMenu();
                     case "6" -> { if (isAdmin()) displayAuditLog(); else invalidSelection(); }
                     case "7" -> { if (isAdmin()) userPromotionMenu(); else invalidSelection(); }
                     case "8" -> changePasswordMenu();
+=======
+                    case "4" -> userCreationMenu();
+                    case "5" -> { if (isAdmin()) displayAuditLog(); else invalidSelection(); }
+                    case "6" -> { if (isAdmin()) userPromotionMenu(); else invalidSelection(); } 
+                    case "7" -> changePasswordMenu();
+                    case "8" -> sendAgentMessage();
+                    case "9" -> showMyMessages();
+>>>>>>> 50436b97f9ee455db5e27f8ad82013f9701a1d34
                     case "0" -> { exit(); return; } // Make sure to run exit() to log logut info
                     default -> invalidSelection();
                 }
@@ -80,6 +91,7 @@ public class AgencyInterface {
     public void setUser(UserAccount user)
     {
         this.currentUser = user;
+        this.messages = null; // Never retain a previous user's messaging session.
     }
 
     public void displayMainMenu() {
@@ -89,6 +101,7 @@ public class AgencyInterface {
             output.println("6. Manage User Permissions");
         }
         output.println("7. Change Password");
+        if (messages != null) output.println("8. Send an agent message\n9. My messages");
         output.print("0. Exit\nSelect an option: ");
     }
 
@@ -100,6 +113,42 @@ public class AgencyInterface {
             if (type != RecordType.MISSION) output.println("4. Import");
         }
         output.print("0. Back\nSelect an option: ");
+    }
+
+    /** Called by ProgramControl only after successful login/account bootstrap. */
+    public void enableMessaging(org.model.messaging.MessageService service) {
+        messages = new org.controller.messaging.MessageController(service,
+                new org.view.messaging.TerminalMessageView(output));
+    }
+
+    private void sendAgentMessage() {
+        if (messages == null) { invalidSelection(); return; }
+        try {
+            messages.listAgents();
+            Integer id = readId("Agent ID: ");
+            if (id == null) return;
+            output.println("Write your message. A line containing . sends; /cancel cancels.");
+            StringBuilder body = new StringBuilder();
+            while (true) {
+                if (!scanner.hasNextLine()) return; // EOF never sends a partial message.
+                String line = scanner.nextLine();
+                if (line.equals("/cancel")) { output.println("Message cancelled."); return; }
+                if (line.equals(".")) break;
+                if (!body.isEmpty()) body.append("\n");
+                body.append(line);
+            }
+            messages.sendMessage(id, body.toString());
+        } catch (IllegalStateException e) {
+            output.println("Messaging unavailable. No delivery was confirmed.");
+        }
+    }
+
+    private void showMyMessages() {
+        if (messages == null) { invalidSelection(); return; }
+        try { messages.showInbox(); }
+        catch (IllegalStateException | IllegalArgumentException e) {
+            output.println("Inbox unavailable. Please contact an administrator.");
+        }
     }
 
     public String[] userCreationPrompt()

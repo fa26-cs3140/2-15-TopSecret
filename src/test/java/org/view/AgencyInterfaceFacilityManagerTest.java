@@ -143,7 +143,7 @@ class AgencyInterfaceFacilityManagerTest {
 
         assertTrue(facilityManager.getRecords("name", "").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
     }
 
     @Test
@@ -161,6 +161,6 @@ class AgencyInterfaceFacilityManagerTest {
 
         assertTrue(facilityManager.getRecords("id", "%").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
     }
 }

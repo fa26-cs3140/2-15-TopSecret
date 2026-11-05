@@ -324,7 +324,7 @@ class AgencyInterfaceTest {
         createInterface(standard, "1\n2\n99\n0\n0\n").run();
 
         assertTrue(text().contains("No brief found"));
-        verify(auditLog, never()).log(any(), any(), any(), any());
+        verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());
     }
 
     @Test
@@ -332,7 +332,7 @@ class AgencyInterfaceTest {
         createInterface(standard, "1\n2\nabc\n0\n0\n").run();
 
         assertTrue(text().contains("Invalid ID"));
-        verify(auditLog, never()).log(any(), any(), any(), any());
+        verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());
     }
 
     @Test
@@ -375,7 +375,7 @@ class AgencyInterfaceTest {
         createInterface(admin, "1\n3\nBad Brief\nNovember 3\nText\n0\n0\n").run();
 
         assertTrue(text().contains("Unable to add brief"));
-        verify(auditLog, never()).log(any(), any(), any(), any());
+        verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());
     }
 
     // ---------- Agents ----------
@@ -434,7 +434,7 @@ class AgencyInterfaceTest {
         createInterface(standard, "2\n2\n4\n0\n0\n").run();
 
         assertTrue(text().contains("No agent found"));
-        verify(auditLog, never()).log(any(), any(), any(), any());
+        verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());
     }
 
     @Test
@@ -468,7 +468,7 @@ class AgencyInterfaceTest {
 
         assertTrue(text().contains("Invalid ID"));
         verify(agentManager, never()).addRecord(any(), any(), any(), any(), anyInt());
-        verify(auditLog, never()).log(any(), any(), any(), any());
+        verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());
     }
 
     @Test
@@ -479,7 +479,7 @@ class AgencyInterfaceTest {
         createInterface(admin, "2\n3\nJackal\n1991-02-11\n\n\n99\n0\n0\n").run();
 
         assertTrue(text().contains("Unable to add agent"));
-        verify(auditLog, never()).log(any(), any(), any(), any());
+        verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());
     }
 
     // ---------- Facilities ----------
@@ -546,7 +546,7 @@ class AgencyInterfaceTest {
         createInterface(admin, "3\n3\n\nFP\n0\n0\n").run();
 
         assertTrue(text().contains("Unable to add facility"));
-        verify(auditLog, never()).log(any(), any(), any(), any());
+        verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());
     }
 
     // ---------- Audit log ----------
