@@ -2,7 +2,7 @@
 
 Base: origin/NewDatabaseManagerRefactor at a053676.
 Feature branch: team-d-messaging-week2. PR target: NewDatabaseManagerRefactor.
-No PR, merge, or submission is performed until user review.
+Review: [PR #13](https://github.com/fa26-cs3140/2-15-TopSecret/pull/13). No merge or submission has been performed.
 
 ## Use
 
@@ -65,47 +65,7 @@ username rules. Names that cannot be registered under current username rules
 still require coordinated alias/account policy; no implicit alias is invented.
 The proposed snapshot/ambiguity policies from Week 1 are implemented.
 
-## Initial tests and integration evidence (before shared regression fixes)
-
-Full ./gradlew test build --continue: 328 tests, 19 failures, zero NEW failures.
-Independent shared-base snapshot, with ONLY the Mission compatibility fix needed
-to compile its tests: 302 tests, the SAME 19 failure names. Those failures are
-existing logout audit expectations (16) and MissionManager behavior (3).
-At that initial checkpoint the build remained RED. See the resolution below for the now-passing full build.
-No tests were removed, disabled or excluded to hide that result.
-
-./gradlew test --tests '*messaging*': 26 tests passing. The eight formerly abstract
-acceptance scenarios now execute via MessagingAcceptanceIntegrationTest against
-real SQLite. Extra tests cover multiline terminal input, cancellation/EOF,
-storage failures, identity capture, SQL injection isolation and foreign keys.
-Full-suite JaCoCo: all 29 methods in five new concrete classes covered (100%);
-Message 20/20 lines, service 15/15, controller 15/15, view 7/7, store 29/30.
-This is method coverage, not a claim of complete branch coverage.
-
-The packaged JAR was run in three separate processes in a disposable data folder:
-bootstrap sender, create facility/agent, send before recipient account exists,
-create ghost account, log in as ghost and read the message; then log in as sender
-and verify an empty inbox. Passwords flowed through the existing ciphered files.
-
-## Necessary shared-code changes
-
-ProgramControl: four-line authenticated-session wiring, same database URL.
-AgencyInterface: optional messaging controller, menu entries 8/9, multiline prompts,
-safe storage-error messages; changing currentUser clears the old message session.
-Mission/MissionTest: isolated compatibility commit updates constructor calls to
-Team A's new signature and restores existing positive-facility validation via
-setFacilityId. No mission features or schema redesign were taken over.
-
-Original local checkout and its uncommitted files were left untouched. Work is in
-a separate checkout. MathServerTest was not recreated or included. Earlier
-Week 1 commits remain on their original branch; their contracts/tests were adapted
-to the new package structure without cherry-picking obsolete root-package code.
-
-Team-owned remaining concerns: malformed shared sample
-TSVs/no automatic sample-data import, and final joint web/Mission integration.
-No claim is made that those shared assignment requirements are fully green.
-
-## Shared regression fixes - 5 November 2026
+## Verification and shared regression fixes
 
 All 19 inherited failures are resolved on this feature branch.
 Final command: ./gradlew test unitTest integrationTest jacocoTestReport jacocoUnitTestReport build
@@ -142,3 +102,42 @@ in earlier Team B/view work and were moved/updated during Team C's MVC refactor.
 These are integration mismatches across revisions, not proof that one member's
 entire contribution was broken. No attribution is made to current main, which
 was not the independent comparison target.
+
+## Accounts and audit (current reference)
+
+The active account classes are org.model.UserAccount and org.managers.
+UserAccountManager, UserAccountStore and SqliteUserAccountStore. The manager
+accepts either a store or a database URL plus FileHandler and Cipher. UserAccount
+contains username and admin status, never a password. Usernames follow
+[a-z0-9_-]{3,}; passwords require at least five characters with upper/lowercase.
+The first account is admin; subsequent accounts start without a password until
+initial credentials are set. Current terminal creation prompts perform that setup.
+Admin updates persist through setUserAdmin; menu policy prevents self-demotion.
+
+Passwords remain in credentials-<lowercase hex UTF-8 username>.cip files. The
+existing substitution Cipher is retained; it is not modern password hashing.
+Database/file writes are not one atomic transaction; failed password-file writing
+requires correcting file access and completing initial password setup. The legacy
+CredentialManagerLibrary is separate and does not migrate credentials automatically.
+
+users: username TEXT NOT NULL PRIMARY KEY, is_admin INTEGER NOT NULL DEFAULT 0.
+audit_log: id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL REFERENCES
+users(username), action TEXT NOT NULL, content_type TEXT NOT NULL,
+content_identifier TEXT NOT NULL, accessed_at TEXT NOT NULL (ISO local time).
+AuditLogManager implements AuditLogService through SqliteAuditLogStore. Content
+READ/CREATE and existing account/login/logout actions remain recorded. Only admins
+can review audit history; message bodies are deliberately not copied into it.
+SQLite read failures propagate instead of appearing to be empty persistence.
+
+Current tests reside under src/test/java/org/managers, org/model, org/controller
+and org/view. Account and audit tests remain active; messaging acceptance,
+SQLite persistence and terminal tests are under their messaging subpackages.
+
+## Documentation maintenance
+
+This is the maintained Team D reference, with the adjacent current class/ERD and
+terminal-wireframe PDF. Superseded HW5 plans, duplicate account/audit text diagrams,
+old HW5 PDFs and the HW4 UI planning draft were removed from the working tree.
+Their history remains recoverable through Git. No account/audit production code
+or tests were deleted. Shared and teammate-owned documentation remains for its
+owners to review, rather than treating every older file as safe to delete.
