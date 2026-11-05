@@ -21,7 +21,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.example.TopSecret")
+    mainClass.set("org.runtime.TopSecret")
 }
 
 tasks.named<JavaExec>("run") {
@@ -37,7 +37,7 @@ tasks.test {
 
 tasks.jar {
     manifest {
-        attributes("Main-Class" to "org.example.TopSecret")
+        attributes("Main-Class" to "org.runtime.TopSecret")
     }
 
     from({
