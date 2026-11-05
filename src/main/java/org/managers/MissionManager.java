@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.model.Agent;
 import org.model.Mission;
 import org.controller.DebugHelper;
 
@@ -16,14 +17,28 @@ public class MissionManager extends IDatabaseManager<Mission>
 {
     /**
      * Table Schema
-     * CREATE TABLE missions (ID INTEGER PRIMARY KEY, Title TEXT NOT NULL, briefIds INTEGER NOT NULL REFERENCES briefs (id),
-     * agentIds INTEGER REFERENCES agent (id), facilityId INTEGER REFERENCES facilities (id) )
+     * CREATE TABLE missions 
+     * (
+     * ID INTEGER PRIMARY KEY, 
+     * Title TEXT NOT NULL, 
+     * briefIds INTEGER,
+     * agentIds INTEGER, 
+     * facilityId INTEGER NOT NULL,
+     *
+     * CONSTRAINT fk_briefs FOREIGN KEY (briefIds) REFERENCES briefs(id) ON DELETE CASCADE,
+     * CONSTRAINT fk_agents FOREIGN KEY (agentIds) REFERENCES agents(id) ON DELETE CASCADE,
+     * CONSTRAINT fk_facility FOREIGN KEY (facilityId) REFERENCES facilities(id) ON DELETE CASCADE,
+     *
+     * )
      */
     private final String tableName = "missions";
     private final String[] columnNames = { "id", "title", "briefIds", "agentIds", "facilityId" };
 
     public MissionManager(String url)
     {
+        if (url == null || url.isBlank()) {
+            throw new IllegalArgumentException("Database URL cannot be blank.");
+        }
         this.url = url;
     }
 
@@ -64,13 +79,46 @@ public class MissionManager extends IDatabaseManager<Mission>
                                                             " ORDER BY id")) {
 
             // TODO: Redesign Mission type to contain all requisite data
+            int id = rs.getInt(this.columnNames[0]);
+            String title = rs.getString(this.columnNames[1]);
+            // Parse out briefIds and agentIds differently because
+            // they can contain multiple values
+            // Parse out briefIds
+            String[] briefIdsParts = rs.getString(this.columnNames[2]).split(",");
+            List<Integer> briefIdsList = new ArrayList<>();
+            for (String part : briefIdsParts)
+            {
+                briefIdsList.add(Integer.parseInt(part.trim()));
+            }
+
+            // Parse out agentIds
+            String[] agentIdsParts = rs.getString(this.columnNames[3]).split(",");
+            List<Integer> agentIdsList = new ArrayList<>();
+            for (String part : agentIdsParts)
+            {
+                agentIdsList.add(Integer.parseInt(part.trim()));
+            }
+
+            // Now make them arrays
+            int[] briefIds = new int[briefIdsList.size()];
+            int[] agentIds = new int[agentIdsList.size()];
+            for (int i = 0; i < briefIds.length; i++) briefIds[i] = briefIdsList.get(i);
+            for (int i = 0; i < agentIds.length; i++) agentIds[i] = agentIdsList.get(i);
+
+            int facilityId = Integer.parseInt(rs.getString(this.columnNames[4]));
+
+            // Now create a list of all the missions
             while (rs.next()) {
-                missions.add(new Mission(rs.getInt("id"), rs.getInt("facilityIds")));
+                missions.add(
+                        new Mission(id, title, 
+                                    briefIds, agentIds,
+                                    facilityId));
             }
         } catch (SQLException e) {
             DebugHelper.debugPrintln(e.getMessage());
         }
 
+        // Now we can FINALLY return it
         return missions;
     }
 
@@ -91,7 +139,7 @@ public class MissionManager extends IDatabaseManager<Mission>
     /**
      * Adds a record to the database, constructs a brief from input title, date, and text
      */
-    public Mission addRecord(String title, String date, String text) 
+    public Mission addRecord(String title, int[] briefIds, int[] agentIds, int facilityId) 
     {
         return null;
     }
@@ -129,13 +177,51 @@ public class MissionManager extends IDatabaseManager<Mission>
  * Private helper functions defined below
  */ 
     /**
-     * Note the Table Schema
-     * CREATE TABLE missions (ID INTEGER PRIMARY KEY, Title TEXT NOT NULL, briefIds INTEGER NOT NULL REFERENCES briefs (id),
-     * agentIds INTEGER REFERENCES agent (id), facilityId INTEGER REFERENCES facilities (id) )
+     * Note the Table Schema:
+     *
+     * Table Schema
+     * CREATE TABLE missions 
+     * (
+     * id INTEGER PRIMARY KEY, 
+     * Title TEXT NOT NULL, 
+     * briefIds INTEGER,
+     * agentIds INTEGER, 
+     * facilityId INTEGER NOT NULL,
+     *
+     * CONSTRAINT fk_briefs FOREIGN KEY (briefIds) REFERENCES briefs(id) ON DELETE CASCADE,
+     * CONSTRAINT fk_agents FOREIGN KEY (agentIds) REFERENCES agents(id) ON DELETE CASCADE,
+     * CONSTRAINT fk_facility FOREIGN KEY (facilityId) REFERENCES facilities(id) ON DELETE CASCADE,
+     *
+     * )
      */
     @Override 
     public void createTable()
     {
+        String schema = """
+                        CREATE TABLE %s
+                        (
+                         %s INTEGER PRIMARY KEY,
+                         %s TEXT NOT NULL,
+                         %s INTEGER,
+                         %s INTEGER,
+                         %s INTEGER NOT NULL
+                         
+                         CONSTRAINT fk_briefs FOREIGN KEY (%s) REFERENCES briefs(id) ON DELETE CASCADE,
+                         CONSTRAINT fk_agents FOREIGN KEY (%s) REFERENCES agents(id) ON DELETE CASCADE,
+                         CONSTRAINT fk_facility FOREIGN KEY (%s) REFERENCES facilities(id) ON DELETE CASCADE,
+                        )
+                        """.formatted(
+                            this.tableName,
+                            this.columnNames[0], // id
+                            this.columnNames[1], // title
+                            this.columnNames[2], // briefIds
+                            this.columnNames[3], // agentids
+                            this.columnNames[4], // facilityId
+                            
+                            this.columnNames[2],
+                            this.columnNames[3],
+                            this.columnNames[4]
+                            );
         return;
     }
 }
