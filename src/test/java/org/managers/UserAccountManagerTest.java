@@ -54,6 +54,7 @@ class UserAccountManagerTest {
         assertFalse(manager.isValidUsername("ab"));
         assertFalse(manager.isValidUsername("bad name"));
         assertFalse(manager.isValidUsername("bad!"));
+        assertFalse(manager.isValidUsername("Ghost"));
     }
 
     @Test
