@@ -1,2 +1,6 @@
 # Local SQLite database: created on first run and filled from data/*.tsv
 data/mission_database.db
+
+# Gradle build output and cache
+build/
+.gradle/
