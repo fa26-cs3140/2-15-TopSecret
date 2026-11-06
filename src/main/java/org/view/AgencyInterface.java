@@ -9,6 +9,7 @@ import java.util.Scanner;
 import java.util.function.Predicate;
 
 import org.controller.AppController;
+import org.controller.DebugHelper;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
@@ -65,20 +66,13 @@ public class AgencyInterface {
                     case "1" -> runTypeMenu(RecordType.BRIEF);
                     case "2" -> runTypeMenu(RecordType.AGENT);
                     case "3" -> runTypeMenu(RecordType.FACILITY);
-<<<<<<< HEAD
                     case "4" -> runTypeMenu(RecordType.MISSION);
                     case "5" -> userCreationMenu();
                     case "6" -> { if (isAdmin()) displayAuditLog(); else invalidSelection(); }
                     case "7" -> { if (isAdmin()) userPromotionMenu(); else invalidSelection(); }
                     case "8" -> changePasswordMenu();
-=======
-                    case "4" -> userCreationMenu();
-                    case "5" -> { if (isAdmin()) displayAuditLog(); else invalidSelection(); }
-                    case "6" -> { if (isAdmin()) userPromotionMenu(); else invalidSelection(); } 
-                    case "7" -> changePasswordMenu();
-                    case "8" -> sendAgentMessage();
                     case "9" -> showMyMessages();
->>>>>>> 50436b97f9ee455db5e27f8ad82013f9701a1d34
+                    case "10" -> sendAgentMessage();
                     case "0" -> { exit(); return; } // Make sure to run exit() to log logut info
                     default -> invalidSelection();
                 }
@@ -95,13 +89,13 @@ public class AgencyInterface {
     }
 
     public void displayMainMenu() {
-        output.println("\nTop Secret Main Menu\n1. Briefs\n2. Agents\n3. Facilities\n4. Create User");
+        output.println("\nTop Secret Main Menu\n1. Briefs\n2. Agents\n3. Facilities\n4. Missions\n5. Create User");
         if (isAdmin()) {
-            output.println("5. Review audit log");
-            output.println("6. Manage User Permissions");
+            output.println("6. Review audit log");
+            output.println("7. Manage User Permissions");
         }
-        output.println("7. Change Password");
-        if (messages != null) output.println("8. Send an agent message\n9. My messages");
+        output.println("8. Change Password");
+        if (messages != null) output.println("9. Send an agent message\n10. My messages");
         output.print("0. Exit\nSelect an option: ");
     }
 
@@ -334,6 +328,12 @@ public class AgencyInterface {
     }
 
     private void runTypeMenu(RecordType type) {
+        // Can only create missions if there exists at least one facility
+        if (type == RecordType.MISSION && fManager.getRecords("id", "1").isEmpty())
+        {
+            output.println("Cannot create a mission: No available facilities.");
+            return;
+        }
         while (true) {
             displayTypeMenu(type);
             switch (readLine()) {
@@ -434,23 +434,45 @@ public class AgencyInterface {
     private Integer addMission() {
         String title = prompt("Title: ");
         // Get list of Briefs
-        String[] briefNames = prompt("Brief titles, comma separated: ").trim().split(",");
+        String[] briefNames = prompt("Brief titles, comma separated: ").split(",");
+        for (int i = 0; i < briefNames.length; i++) briefNames[i] = briefNames[i].trim();
         List<Brief> briefRecs = new ArrayList<>();
         for (int i = 0; i < briefNames.length; i++)
         {
-            briefRecs.addAll( bManager.getRecords(bManager.getColumnNames()[1], briefNames[i]) ); 
+            List<Brief> briefsToAdd = bManager.getRecords(bManager.getColumnNames()[1], briefNames[i]);
+            briefRecs.addAll(briefsToAdd);
+        }
+        int[] briefIds = new int[briefRecs.size()];
+        for (int i = 0; i < briefIds.length; i++)
+        {
+            briefIds[i] = briefRecs.get(i).getId();
         }
 
         // Get list of Agents
-        String[] agentNames = prompt("Agent names, comma separated: ").trim().split(",");
+        String[] agentNames = prompt("Agent names, comma separated: ").split(",");
+        for (int i = 0; i < agentNames.length; i++) agentNames[i] = agentNames[i].trim();
+        for (int i = 0; i < agentNames.length; i++)
+        {
+            DebugHelper.debugPrintln("Agent Names: " + agentNames[i]);
+        }
         List<Agent> agentRecs = new ArrayList<>();
         for (int i = 0; i < agentNames.length; i++)
         {
-            agentRecs.addAll( aManager.getRecords(aManager.getColumnNames()[1], agentNames[i]) );
+            List<Agent> agentsToAdd = aManager.getRecords(aManager.getColumnNames()[1], agentNames[i]);
+            agentRecs.addAll(agentsToAdd);
+        }
+        int[] agentIds = new int[agentRecs.size()];
+        for (int i = 0; i < agentIds.length; i++)
+        {
+            agentIds[i] = agentRecs.get(i).getId();
         }
 
         String facilityName = prompt("Facility name: ");
-        Facility facility = fManager.getRecords(fManager.getColumnNames()[1], facilityName).get(0);
+        int facilityId = fManager.getRecords(fManager.getColumnNames()[1], facilityName).get(0).getId();
+
+        Integer id = mManager.addRecord(title, briefIds, agentIds, facilityId).getId();
+
+        return id;
     }
 
     private void displayAuditLog() {
