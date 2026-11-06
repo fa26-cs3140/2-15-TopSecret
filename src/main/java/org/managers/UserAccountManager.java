@@ -30,8 +30,7 @@ public class UserAccountManager implements CredentialManager {
     }
 
     public boolean isValidUsername(String username) {
-        // TODO: This is broken. Requires a PATTERN of this, which is not helpful
-        return username != null && username.matches("([A-Za-z0-9_-].*?){3}") && !username.matches("!\s");
+        return username != null && username.matches("[a-z0-9_-]{3,}");
     }
 
     public boolean isValidPassword(String password) {
