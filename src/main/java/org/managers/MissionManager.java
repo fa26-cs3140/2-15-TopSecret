@@ -136,7 +136,7 @@ public class MissionManager extends IDatabaseManager<Mission>
     private int[] getJuncBriefIds(int missionId)
     {
         String sql = "SELECT * FROM " + this.juncBriefTableName
-                     + " WHERE briefId = '%d'".formatted(missionId);
+                     + " WHERE missionId = '%d'".formatted(missionId);
         List<Integer> ids = new ArrayList<>();
         try (Connection c = connect(); ResultSet rs = c.createStatement().executeQuery(sql))
         {
@@ -161,7 +161,7 @@ public class MissionManager extends IDatabaseManager<Mission>
     {
 
         String sql = "SELECT * FROM " + this.juncAgentTableName
-                     + " WHERE agentId = '%d'".formatted(missionId);
+                     + " WHERE missionId = '%d'".formatted(missionId);
         List<Integer> ids = new ArrayList<>();
         try (Connection c = connect(); ResultSet rs = c.createStatement().executeQuery(sql))
         {
@@ -209,15 +209,13 @@ public class MissionManager extends IDatabaseManager<Mission>
             briefIds += briefIdsInts[i];
             if (i < briefIdsInts.length - 1) briefIds += ",";
         }
-        DebugHelper.debugPrintln(briefIds);
-    
+
         String agentIds = "";
         for (int i = 0; i < agentIdsInts.length; i++)
         {
             agentIds += agentIdsInts[i];
             if (i < agentIdsInts.length - 1) agentIds += ",";
         }
-        DebugHelper.debugPrintln(agentIds);
 
         // Note the override on insert()
         int id = this.insert("INSERT INTO " + this.tableName + 
@@ -236,7 +234,6 @@ public class MissionManager extends IDatabaseManager<Mission>
     @Override 
     protected int insert(String query, Object... values)
     {
-        // TODO: finish
         String insertBriefSql = "INSERT INTO %s (%s, %s) VALUES (?, ?)".formatted(this.juncBriefTableName, "missionId", "briefId");
         String insertAgentSql = "INSERT INTO %s (%s, %s) VALUES (?, ?)".formatted(this.juncAgentTableName, "missionId", "agentId");
 
@@ -321,7 +318,6 @@ public class MissionManager extends IDatabaseManager<Mission>
         // return super.insert(query, values[1], values[2]);
     }
     
-    // TODO: Change signature when details of Mission type are finalised
     /**
      * Adds a record to the database, constructs a brief from input title, date, and text
      */
@@ -335,7 +331,6 @@ public class MissionManager extends IDatabaseManager<Mission>
  * End addRecord()
  */
 
-    // TODO: Test
     /**
      * Updates a record in the database. Finds the record by checking the key in checkColumn
      * and updates the value stored in changeColumn with the input value
