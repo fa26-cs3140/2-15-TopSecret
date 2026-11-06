@@ -1,5 +1,7 @@
 package org.view;
 
+import jdk.jshell.spi.ExecutionControl;
+
 import java.util.List;
 
 /**
@@ -120,14 +122,60 @@ public final class HtmlPage {
         return html.toString();
     }
 
+    /**
+     * Creates the login form and displays error if necessary
+     */
     public static String loginForm(String error) {
-        return (error == null ? "" : escape(error) + "<br>\n")
-                + "<form method=\"post\" action=\"/login\">\n"
-                + "<input name=\"username\"><input type=\"password\" name=\"password\"><input type=\"submit\">\n"
-                + "</form>";
+        StringBuilder html = new StringBuilder();
+
+        if (error != null && !error.isBlank()) {
+            html.append("<p role=\"alert\"><strong>")
+                .append(escape(error))
+                .append("</strong></p>\n");
+        }
+
+        html.append("<form method=\"post\" action=\"/login\">\n")
+            .append("<p><label for=\"username\">Username:</label> ")
+            .append("<input id=\"username\" name=\"username\" ")
+            .append("type=\"text\" autocomplete=\"username\" required>")
+            .append("</p>\n")
+            .append("<p><label for=\"password\">Password:</label> ")
+            .append("<input id=\"password\" name=\"password\" ")
+            .append("type=\"password\" ")
+            .append("autocomplete=\"current-password\" required>")
+            .append("</p>\n")
+            .append("<p><button type=\"submit\">Log in</button></p>\n")
+            .append("</form>");
+
+        return html.toString();
     }
 
+    /**
+     * Displays audit records in an HTML table
+     *
+     * Expected format:
+     * timestamp | username | action | record
+     *
+     * NOTE: Status messages are displayed as paragraphs instead
+     */
+    // TODO: Assignment doc didn't specify audit log having to be presented as a table, but I think it could look nice
+    public static String auditTable(String text) throws ExecutionControl.NotImplementedException {
+        throw new ExecutionControl.NotImplementedException("Maybe implemented and integrate this if time allows");
+    }
+
+    /**
+     * Escapes characters that could be interpreted as HTML.
+     */
     public static String escape(String text) {
-        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+        // just making it look a little cleaner
+        if (text == null) {
+            return "";
+        }
+
+        return text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 }
