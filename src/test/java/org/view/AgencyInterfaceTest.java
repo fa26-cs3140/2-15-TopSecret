@@ -6,6 +6,7 @@ import org.managers.AuditLogService;
 import org.managers.AgentManager;
 import org.managers.FacilityManager;
 import org.managers.BriefManager;
+import org.managers.MissionManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +54,9 @@ class AgencyInterfaceTest {
     @Mock
     private AuditLogService auditLog;
 
+    @Mock
+    private MissionManager missionManager;
+
     private ByteArrayOutputStream output;
 
     private final UserAccount admin = new UserAccount("pat", true);
@@ -69,6 +73,7 @@ class AgencyInterfaceTest {
                 facilityManager,
                 briefManager,
                 userManager,
+                missionManager,
                 auditLog,
                 user,
                 new Scanner(input),
@@ -97,6 +102,7 @@ class AgencyInterfaceTest {
                         facilityManager,
                         briefManager,
                         userManager,
+                        missionManager,
                         auditLog,
                         admin,
                         new Scanner(""),
@@ -112,6 +118,7 @@ class AgencyInterfaceTest {
                         facilityManager,
                         null,
                         userManager,
+                        missionManager,
                         auditLog,
                         admin,
                         new Scanner(""),
@@ -127,6 +134,7 @@ class AgencyInterfaceTest {
                         null,
                         briefManager,
                         userManager,
+                        missionManager,
                         auditLog,
                         admin,
                         new Scanner(""),
@@ -141,6 +149,7 @@ class AgencyInterfaceTest {
                 facilityManager,
                 briefManager,
                 userManager,
+                missionManager,
                 null,
                 admin,
                 new Scanner(""),
@@ -156,6 +165,7 @@ class AgencyInterfaceTest {
                 facilityManager,
                 briefManager,
                 userManager,
+                missionManager,
                 auditLog,
                 null,
                 new Scanner(""),
@@ -171,6 +181,7 @@ class AgencyInterfaceTest {
                 facilityManager,
                 briefManager,
                 userManager,
+                missionManager,
                 auditLog,
                 admin,
                 null,
@@ -186,6 +197,7 @@ class AgencyInterfaceTest {
                 facilityManager,
                 briefManager,
                 userManager,
+                missionManager,
                 auditLog,
                 admin,
                 new Scanner(""),
