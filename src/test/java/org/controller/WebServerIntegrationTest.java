@@ -3,6 +3,7 @@ package org.controller;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
+import org.managers.MissionManager;
 import org.managers.AuditLogService;
 import org.model.UserAccount;
 import org.managers.UserAccountManager;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.model.Brief;
+import org.model.Mission;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -44,14 +46,17 @@ class WebServerIntegrationTest {
         BriefManager briefs = mock(BriefManager.class);
         when(briefs.getRecords("id", "%")).thenReturn(List.of(
                 new Brief(1, "Operation <Sandtrap>", "1970-11-03", "Bug the pouch.", null)));
-        AppController controller = new AppController(briefs, mock(AgentManager.class),
+        MissionManager missions = mock(MissionManager.class);
+        when(missions.getRecords("id", "%")).thenReturn(List.of(
+                new Mission(4, "Joint Op", new int[]{1}, new int[]{2}, 1)));
+        AppController controller = new AppController(briefs, mock(AgentManager.class), missions,
                 mock(FacilityManager.class), mock(AuditLogService.class));
         server = new WebServer(controller, accounts, new SessionManager(), TEST_PORT);
         server.start();
     }
 
     private static AppController newController() {
-        return new AppController(mock(BriefManager.class), mock(AgentManager.class),
+        return new AppController(mock(BriefManager.class), mock(AgentManager.class), mock(MissionManager.class),
                 mock(FacilityManager.class), mock(AuditLogService.class));
     }
 
@@ -112,7 +117,7 @@ class WebServerIntegrationTest {
 
     @Test
     void pagesRedirectToLoginWithoutCookie() throws Exception {
-        for (String path : new String[]{"/menu", "/briefs", "/agents", "/facilities", "/audit"}) {
+        for (String path : new String[]{"/menu", "/briefs", "/agents", "/facilities", "/missions", "/audit"}) {
             HttpResponse<String> response = get(path, null);
 
             assertEquals(303, response.statusCode(), path);
@@ -126,6 +131,15 @@ class WebServerIntegrationTest {
 
         assertEquals(200, get("/menu", cookie).statusCode());
         assertEquals(200, get("/briefs", cookie).statusCode());
+    }
+
+    @Test
+    void missionsListAndDetailLoadWithSessionCookie() throws Exception {
+        String cookie = sessionCookie(login("pat", "Secret1"));
+
+        assertTrue(get("/menu", cookie).body().contains("href=\"/missions\""));
+        assertTrue(get("/missions", cookie).body().contains("<a href=\"/missions/4\">4. Joint Op</a>"));
+        assertEquals(200, get("/missions/4", cookie).statusCode());
     }
 
     @Test

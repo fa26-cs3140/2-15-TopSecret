@@ -4,6 +4,7 @@ import org.managers.AgentManager;
 import org.managers.AuditLogService;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
+import org.managers.MissionManager;
 import org.model.AuditLogEntry;
 import org.model.RecordType;
 import org.model.UserAccount;
@@ -16,16 +17,18 @@ public class AppController {
 
     private final BriefManager briefManager;
     private final AgentManager agentManager;
+    private final MissionManager missionManager;
     private final FacilityManager facilityManager;
     private final AuditLogService auditLog;
 
-    public AppController(BriefManager briefManager, AgentManager agentManager,
+    public AppController(BriefManager briefManager, AgentManager agentManager, MissionManager missionManager,
                          FacilityManager facilityManager, AuditLogService auditLog) {
         if (briefManager == null || agentManager == null || facilityManager == null || auditLog == null) {
             throw new IllegalArgumentException("Arguments cannot be null.");
         }
         this.briefManager = briefManager;
         this.agentManager = agentManager;
+        this.missionManager = missionManager;
         this.facilityManager = facilityManager;
         this.auditLog = auditLog;
     }
@@ -39,6 +42,8 @@ public class AppController {
                     .map(a -> a.getId() + ". " + a.getName()).toList();
             case FACILITY -> facilityManager.getRecords("id", "%").stream()
                     .map(f -> f.getId() + ". " + f.getName() + " (" + f.getAbbreviation() + ")").toList();
+            case MISSION -> missionManager.getRecords("id", "%").stream()
+                    .map(m -> m.getId() + ". " + m.getTitle()).toList();
         };
         if (lines.isEmpty()) {
             return "No " + type.getTitle().toLowerCase() + " are available.";
@@ -59,6 +64,10 @@ public class AppController {
                     .orElse(null);
             case FACILITY -> facilityManager.getRecords("id", "%").stream().filter(f -> f.getId() == id).findFirst()
                     .map(f -> List.of("Name: " + f.getName(), "Abbreviation: " + f.getAbbreviation()))
+                    .orElse(null);
+            case MISSION -> missionManager.getRecords("id", "%").stream().filter(m -> m.getId() == id).findFirst()
+                    .map(m -> List.of("Title: " + m.getTitle(), "Brief Ids: " + m.getBriefIdsAsString(), 
+                                      "Agent Ids: " + m.getAgentIdsAsString(), "Facility Id: " + m.getFacilityId()))
                     .orElse(null);
         };
         if (details == null) {

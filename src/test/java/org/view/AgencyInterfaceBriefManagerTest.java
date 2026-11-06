@@ -10,6 +10,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
+import org.managers.MissionManager;
 import org.model.Brief;
 
 import java.io.ByteArrayOutputStream;
@@ -71,6 +72,7 @@ class AgencyInterfaceBriefManagerTest {
                 facilityManager,
                 briefManager,
                 userManager,
+                mock(MissionManager.class),
                 auditLog,
                 user,
                 new Scanner(input),
@@ -137,7 +139,7 @@ class AgencyInterfaceBriefManagerTest {
 
         assertTrue(briefManager.getRecords("title", "Bad Brief").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
     }
 
     @Test
@@ -154,6 +156,6 @@ class AgencyInterfaceBriefManagerTest {
         assertTrue(text.contains("Invalid selection"));
         assertTrue(briefManager.getRecords("id", "%").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
     }
 }

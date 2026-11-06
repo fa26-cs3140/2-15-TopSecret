@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-// Serves /menu, /briefs, /agents, /facilities, /audit and /logout for logged-in users.
+// Serves /menu, /briefs, /agents, /facilities, /missions, /audit and /logout for logged-in users.
 // Requests without a valid session cookie are redirected to the login page.
 public class PageHandler implements HttpHandler {
 
@@ -43,7 +43,7 @@ public class PageHandler implements HttpHandler {
         if (path.equals("/menu")) {
             String body = "<p>Logged in as " + HtmlPage.escape(user.getUsername()) + ".</p>\n"
                     + "<ul>\n<li><a href=\"/briefs\">Briefs</a></li>\n<li><a href=\"/agents\">Agents</a></li>\n"
-                    + "<li><a href=\"/facilities\">Facilities</a></li>\n"
+                    + "<li><a href=\"/facilities\">Facilities</a></li>\n<li><a href=\"/missions\">Missions</a></li>\n"
                     + (user.isAdmin() ? "<li><a href=\"/audit\">Review audit log</a></li>\n" : "") + "</ul>";
             send(exchange, user, 200, "Main Menu", body);
             return;
@@ -53,7 +53,7 @@ public class PageHandler implements HttpHandler {
             return;
         }
 
-        // /briefs, /briefs/3, /agents, /agents/2, /facilities, /facilities/1
+        // /briefs, /briefs/3, /agents, /agents/2, /facilities, /facilities/1, /missions, /missions/4
         String[] parts = path.substring(1).split("/");
         RecordType type = typeFor(parts[0]);
         if (type == null || parts.length > 2) {
@@ -76,6 +76,7 @@ public class PageHandler implements HttpHandler {
             case "briefs" -> RecordType.BRIEF;
             case "agents" -> RecordType.AGENT;
             case "facilities" -> RecordType.FACILITY;
+            case "missions" -> RecordType.MISSION;
             default -> null;
         };
     }

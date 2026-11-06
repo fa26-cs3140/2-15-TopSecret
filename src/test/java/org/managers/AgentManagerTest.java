@@ -261,4 +261,33 @@ public class AgentManagerTest {
             assertEquals(0, rs.getInt(1));
         }
     }
+
+    // Blank date of death and notes columns import as null instead of failing
+    @Test
+    void testImportTSVTreatsBlankColumnsAsNull() throws Exception {
+        AgentManager manager = createManagerWithValidSchema();
+        Path tsv = tempDir.resolve("agents.tsv");
+        java.nio.file.Files.writeString(tsv,
+                "Name\tDateOfBirth\tDateOfDeath\tNotes\tFacilityID\nGhost\t1992-11-22\t\t\t2\n");
+
+        assertEquals(1, manager.importTSV(tsv.toString(), manager.getTableName(), tempDir.toString(), "test.db"));
+
+        Agent ghost = manager.getRecords("name", "Ghost").get(0);
+        assertEquals("1992-11-22", ghost.getDateOfBirth());
+        assertNull(ghost.getDateOfDeath());
+        assertNull(ghost.getNotes());
+        assertEquals(2, ghost.getFacilityId());
+    }
+
+    // The shipped test data must stay importable (Ghost is needed for the messaging workflow)
+    @Test
+    void testShippedAgentsTSVImports() throws Exception {
+        try (Connection conn = DriverManager.getConnection(testUrl); Statement stmt = conn.createStatement()) {
+            stmt.execute("INSERT INTO facilities (id) VALUES (3), (4), (5), (6)");
+        }
+        AgentManager manager = createManagerWithValidSchema();
+
+        assertEquals(10, manager.importTSV("data/agents.tsv", manager.getTableName(), tempDir.toString(), "test.db"));
+        assertEquals(1, manager.getRecords("name", "Ghost").size());
+    }
 }

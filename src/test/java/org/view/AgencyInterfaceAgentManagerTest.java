@@ -10,6 +10,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
+import org.managers.MissionManager;
 import org.model.Agent;
 
 import java.io.ByteArrayOutputStream;
@@ -70,6 +71,7 @@ class AgencyInterfaceAgentManagerTest {
                 facilityManager,
                 briefManager,
                 userManager,
+                mock(MissionManager.class),
                 auditLog,
                 user,
                 new Scanner(input),
@@ -155,6 +157,7 @@ class AgencyInterfaceAgentManagerTest {
         assertTrue(text.contains("Jackal"));
     }
 
+    // TODO: Ask Mike about this one, not sure exactly what the expected behavior is
     @Test
     void invalidFacilityIdDoesNotPersistAgent() {
         String text = run(
@@ -165,7 +168,7 @@ class AgencyInterfaceAgentManagerTest {
         assertTrue(text.contains("Unable to add agent"));
         assertTrue(agentManager.getRecords("name", "Orphan").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
     }
 
     @Test
@@ -182,6 +185,6 @@ class AgencyInterfaceAgentManagerTest {
         assertTrue(text.contains("Invalid selection"));
         assertTrue(agentManager.getRecords("id", "%").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
     }
 }

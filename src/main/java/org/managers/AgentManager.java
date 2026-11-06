@@ -181,13 +181,15 @@ public class AgentManager extends IDatabaseManager<Agent>
         while ((readText = reader.readLine()) != null)
         {
             // Each column should correspond with the requisite value, apart from id
-            String[] data = readText.split("\t");
-            
+            // -1 keeps empty columns so blank date of death / notes still line up
+            String[] data = readText.split("\t", -1);
+            if (readText.isBlank()) continue;
+
             String name = data[0];
             String dateOfBirth = data[1];
-            String dateOfDeath = data[2];
-            String notes = data[3];
-            int facilityId = Integer.parseInt(data[4]);
+            String dateOfDeath = data[2].isBlank() ? null : data[2];
+            String notes = data[3].isBlank() ? null : data[3];
+            int facilityId = Integer.parseInt(data[4].trim());
 
             this.addRecord(name, dateOfBirth, dateOfDeath, notes, facilityId) ;
             numRecords++;
@@ -206,7 +208,7 @@ public class AgentManager extends IDatabaseManager<Agent>
         try (Connection c = connect(); Statement s = c.createStatement()) {
             s.execute("CREATE TABLE IF NOT EXISTS %s (%s INTEGER PRIMARY KEY, %s TEXT NOT NULL, %s DATE NOT NULL, "
                     .formatted(this.tableName, this.columnNames[0], this.columnNames[1], this.columnNames[2])
-                    + "%s DATE, %s TEXT, %s INTEGER UNIQUE, FOREIGN KEY (%s) REFERENCES facilities (id) )"
+                    + "%s DATE, %s TEXT, %s INTEGER, FOREIGN KEY (%s) REFERENCES facilities (id) )"
                     .formatted(this.columnNames[3], this.columnNames[4], this.columnNames[5], this.columnNames[5]));
         } catch (SQLException e) {
             DebugHelper.debugPrintln(e.getMessage());
