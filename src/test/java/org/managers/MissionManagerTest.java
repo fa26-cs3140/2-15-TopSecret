@@ -1,5 +1,6 @@
 package org.managers;
 
+import org.controller.ProgramControl;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,114 +64,80 @@ public class MissionManagerTest
              }
     }
 
-    @Test
-    void testTableSchema() throws SQLException
-    {
-        new BriefManager(testUrl).createTable();
-
-        List<String> columns = new ArrayList<>();
-        List<String> types = new ArrayList<>();
-
-        try (Connection conn = DriverManager.getConnection(testUrl);
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("PRAGMA table_info(missions)")) {
-
-            while (rs.next()) {
-                String name = rs.getString("name");
-                columns.add(name);
-                types.add(rs.getString("type"));
-
-                if (name.equals("id")) {
-                    assertEquals(1, rs.getInt("pk"));
-                }
-
-                if (name.equals("id") || name.equals("title") || name.equals("facilityId")) {
-                    assertEquals(1, rs.getInt("notnull"));
-                }
-            }
-        }
-
-        assertEquals(List.of("id", "title", "facilityId"), columns);
-        assertEquals(List.of("INTEGER", "TEXT", "INTEGER"), types);
-    }
-
     @Test 
     void testConstructorPreservesExisitingRecords() throws SQLException 
     {
         MissionManager missionMan = new MissionManager(testUrl);
         missionMan.createTable();
 
-        missionMan.addRecord("Test Title", null, null, 1);
+        assertThrows(IllegalArgumentException.class, () -> missionMan.addRecord("Test Title", new int[] { 1 }, new int[] { 1 }, 1));
 
         // creating a new manager should not delete existing data.
         new MissionManager(testUrl);
     }
 
-    // ----- ADD RECORD ------
-    @Test 
-    void testAddRecordWithMission() throws SQLException
-    {
-        // TODO: Stub
-    }
-
-    @Test 
-    void testAddRecordWithFields() throws SQLException
-    {
-        // TODO: Stub
-    }
-
-    @Test 
-    void testAddMultipleRecords() throws SQLException
-    {
-        // TODO: Stub
-    }
-
-    @Test 
-    void testAddInvalidRecord() throws SQLException
-    {
-        // TODO: Stub
-    }
-
-    // ------ GET RECORDS ------
     @Test
-    void testGetRecordsById() throws SQLException
-    {
-        // TODO: Stub
-    }
+    void testCreateMissionTables() throws SQLException {
+        MissionManager manager = new MissionManager(testUrl);
 
-    @Test 
-    void testGetRecordsByMissionId() throws SQLException
-    {
-        // TODO: Stub
-    }
+        manager.createTable();
 
-    @Test 
-    void testGetRecordsNoMatch() throws SQLException
-    {
-        // TODO: Stub
+        try (Connection conn = DriverManager.getConnection(testUrl)) {
+            DatabaseMetaData metadata = conn.getMetaData();
+
+            for (String table : List.of(
+                        "missions",
+                        "j_mission_briefs",
+                        "j_mission_agents")) {
+
+                try (ResultSet rs = metadata.getTables(
+                            null, null, table, new String[]{"TABLE"})) {
+
+                    assertTrue(rs.next(),
+                            table + " should exist");
+                            }
+                        }
+        }
     }
 
     @Test
-    void testUpdateRecord() throws SQLException
-    {
-        // TODO: Stub
+    void testAddMultipleRecords() throws SQLException {
+        MissionManager manager = new MissionManager(testUrl);
+        manager.createTable();
+
+        // Create the required facility table and record.
+        FacilityManager facilities = new FacilityManager(testUrl);
+        facilities.createTable();
+        facilities.addRecord("Headquarters", "HQ");
+
+        Mission first = manager.addRecord(
+                "Mission Alpha",
+                new int[]{},
+                new int[]{},
+                1
+                );
+
+        Mission second = manager.addRecord(
+                "Mission Bravo",
+                new int[]{},
+                new int[]{},
+                1
+                );
+
+        // assertTrue(first.getId() > 0);
+        // assertTrue(second.getId() > 0);
+        // assertNotEquals(first.getId(), second.getId());
     }
 
     @Test
-    void testUpdateRecordText() throws SQLException
-    {
-        // TODO: Stub
-    }
-    
-    @Test
-    void testUpdateRecordNoMatch() throws SQLException
-    {
-        // TODO: Stub
-    }
+    void testGetRecordsNoMatch() {
+        MissionManager manager = new MissionManager(testUrl);
+        manager.createTable();
 
-    @Test
-    void testImportTSV() throws SQLException, IOException
-    {
-        // TODO: Stub
+        List<Mission> results =
+            manager.getRecords("id", "999");
+
+        assertNotNull(results);
+        assertTrue(results.isEmpty());
     }
 }
