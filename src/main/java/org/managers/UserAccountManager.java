@@ -30,7 +30,6 @@ public class UserAccountManager implements CredentialManager {
     }
 
     public boolean isValidUsername(String username) {
-        // 3+ characters, all lowercase letters, digits, '_' or '-' (no spaces, symbols or uppercase)
         return username != null && username.matches("[a-z0-9_-]{3,}");
     }
 
