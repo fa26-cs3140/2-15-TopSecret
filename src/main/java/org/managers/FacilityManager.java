@@ -20,7 +20,7 @@ public class FacilityManager extends IDatabaseManager<Facility>
     /**
      * Table Schema
      * CREATE TABLE facilities (id INTEGER PRIMARY KEY, 
-     * name TEXT NOT NULL, abbreviation TEXT NOT NULL, mission_id INTEGER UNIQUE)
+     * name TEXT NOT NULL, abbreviation TEXT NOT NULL, mission_id INTEGER)
      */
     private final String tableName = "facilities";
     private final String[] columnNames = { "id", "name", "abbreviation", "mission_id" };
@@ -192,7 +192,7 @@ public class FacilityManager extends IDatabaseManager<Facility>
             s.execute(
                     "CREATE TABLE IF NOT EXISTS %s (%s INTEGER PRIMARY KEY, %s TEXT NOT NULL, "
                     .formatted(this.tableName, this.columnNames[0], this.columnNames[1])
-                    + "%s TEXT NOT NULL, %s INTEGER UNIQUE)".formatted(this.columnNames[2], this.columnNames[3])
+                    + "%s TEXT NOT NULL, %s INTEGER)".formatted(this.columnNames[2], this.columnNames[3])
                     );
         } catch (SQLException e) {
             DebugHelper.debugPrintln(e.getMessage());
