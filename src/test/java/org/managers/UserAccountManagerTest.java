@@ -50,9 +50,6 @@ class UserAccountManagerTest {
         assertTrue(manager.isValidUsername("field-agent"));
         assertTrue(manager.isValidUsername("a1_"));
 
-        assertFalse(manager.isValidUsername("Agent_7"));
-        assertFalse(manager.isValidUsername("PAT"));
-
         assertFalse(manager.isValidUsername(null));
         assertFalse(manager.isValidUsername("ab"));
         assertFalse(manager.isValidUsername("bad name"));

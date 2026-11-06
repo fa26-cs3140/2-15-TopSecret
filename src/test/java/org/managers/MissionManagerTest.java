@@ -68,14 +68,14 @@ public class MissionManagerTest
                     assertEquals(1, rs.getInt("pk"));
                 }
 
-                if (name.equals("id") || name.equals("") || name.equals("text")) {
+                if (name.equals("id") || name.equals("title") || name.equals("facilityId")) {
                     assertEquals(1, rs.getInt("notnull"));
                 }
             }
         }
 
-        assertEquals(List.of("id", "title", "briefIds", "agentIds", "facilityId"), columns);
-        assertEquals(List.of("INTEGER", "TEXT", "INTEGER", "INTEGER", "INTEGER"), types);
+        assertEquals(List.of("id", "title", "facilityId"), columns);
+        assertEquals(List.of("INTEGER", "TEXT", "INTEGER"), types);
     }
 
     @Test 
