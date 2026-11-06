@@ -75,6 +75,7 @@ public class ProgramControl {
 
         // Then import the data from the relevant .tsv file as a .db
         this.createModelTables();
+        this.loadTestData();
 
         // -web starts the read-only web view instead of the terminal menu
         if (LaunchOptions.isWebMode(args))
@@ -237,5 +238,27 @@ public class ProgramControl {
         agentManager.createTable();
         facilityManager.createTable();
         missionManager.createTable();
+    }
+
+    // Loads the test data in data/*.tsv into any table that is still empty, so a fresh
+    // database has records. Facilities go first because agents reference them.
+    void loadTestData()
+    {
+        importIfEmpty(facilityManager, "data/facilities.tsv");
+        importIfEmpty(agentManager, "data/agents.tsv");
+        importIfEmpty(briefManager, "data/briefs.tsv");
+    }
+
+    private void importIfEmpty(IDatabaseManager<?> manager, String pathToTSV)
+    {
+        if (!manager.getRecords("id", "%").isEmpty()) return;
+        try
+        {
+            manager.importTSV(pathToTSV, manager.getTableName(), "data", databaseFile);
+        }
+        catch (IOException | RuntimeException e)
+        {
+            System.out.println("Could not load test data from " + pathToTSV + ": " + e.getMessage());
+        }
     }
 }
