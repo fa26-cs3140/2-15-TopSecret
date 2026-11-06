@@ -100,12 +100,24 @@ public final class HtmlPage {
      * Helper method: Only allows simple internal application paths
      */
     private static boolean isSafeInternalPath(String href) {
-        return href != null
-                && href.matches("/(?!/)[A-Za-z0-9_/-]*");
+        return href != null && href.matches("/(?!/)[A-Za-z0-9_/-]*");
     }
 
+    /**
+     * Converts record details into HTML paragraphs
+     */
     public static String paragraphs(String text) {
-        return "<pre>" + escape(text) + "</pre>";
+        if (text == null || text.isEmpty()) return "";
+
+        StringBuilder html = new StringBuilder();
+
+        for (String line : text.split("\\R")) {
+            html.append("<p>")
+                .append(escape(line))
+                .append("</p>\n");
+        }
+
+        return html.toString();
     }
 
     public static String loginForm(String error) {
