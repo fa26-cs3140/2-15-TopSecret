@@ -26,7 +26,8 @@ public class ProgramControlTest {
                 mock(AgentManager.class),
                 mock(FacilityManager.class),
                 mock(AuditLogManager.class),
-                mock(UserAccountManager.class)
+                mock(UserAccountManager.class),
+                mock(MissionManager.class)
         );
     }
 
@@ -134,7 +135,7 @@ public class ProgramControlTest {
 
     private ProgramControl controlWithAccounts(UserAccountManager accounts) {
         return new ProgramControl(mock(FileHandler.class), mock(BriefManager.class), mock(AgentManager.class),
-                mock(FacilityManager.class), mock(AuditLogManager.class), accounts);
+                mock(FacilityManager.class), mock(AuditLogManager.class), accounts, mock(MissionManager.class));
     }
 
     @Test
