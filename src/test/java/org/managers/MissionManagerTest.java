@@ -1,5 +1,7 @@
 package org.managers;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -7,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.model.Mission;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,14 +19,27 @@ import java.util.List;
 
 public class MissionManagerTest
 {
-    @TempDir
-    Path tempDir;
-
     private String testUrl;
 
     @BeforeEach
-    void setup() {
-        testUrl = "jdbc.sqlite:" + tempDir.resolve("test.db");
+    void setup() throws IOException {
+        Files.createDirectory(Path.of("mission_test"));
+        Files.createFile(Path.of("mission_test/test.db"));
+        testUrl = "jdbc:sqlite:" + "mission_test/test.db";
+    }
+
+    @AfterEach
+    void cleanup() throws IOException
+    {
+        File[] allFiles = Path.of("mission_test").toFile().listFiles();
+        
+        if (allFiles != null) {
+            for (File file : allFiles)
+                Files.delete(file.toPath());
+        }
+
+        Files.delete(Path.of("mission_test"));
+        
     }
 
     // Tests
