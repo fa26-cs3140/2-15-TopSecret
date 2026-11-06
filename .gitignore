@@ -7,3 +7,6 @@ build/
 
 # Per-user password files, created when accounts are made
 data/credentials-*.cip
+
+# macOS folder metadata
+.DS_Store
