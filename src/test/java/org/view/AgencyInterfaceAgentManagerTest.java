@@ -10,6 +10,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
+import org.managers.MissionManager;
 import org.model.Agent;
 
 import java.io.ByteArrayOutputStream;
@@ -70,6 +71,7 @@ class AgencyInterfaceAgentManagerTest {
                 facilityManager,
                 briefManager,
                 userManager,
+                mock(MissionManager.class),
                 auditLog,
                 user,
                 new Scanner(input),
