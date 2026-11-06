@@ -3,6 +3,7 @@ package org.controller;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
+import org.managers.MissionManager;
 import org.model.AuditLogEntry;
 import org.managers.AuditLogService;
 import org.model.RecordType;
@@ -35,6 +36,9 @@ class AppControllerTest {
     @Mock
     private FacilityManager facilityManager;
 
+    @Mock 
+    private MissionManager missionManager;
+
     @Mock
     private AuditLogService auditLog;
 
@@ -45,19 +49,19 @@ class AppControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new AppController(briefManager, agentManager, facilityManager, auditLog);
+        controller = new AppController(briefManager, agentManager, missionManager, facilityManager, auditLog);
     }
 
     @Test
     void constructorRejectsNullArguments() {
         assertThrows(IllegalArgumentException.class,
-                () -> new AppController(null, agentManager, facilityManager, auditLog));
+                () -> new AppController(null, agentManager, missionManager, facilityManager, auditLog));
         assertThrows(IllegalArgumentException.class,
-                () -> new AppController(briefManager, null, facilityManager, auditLog));
+                () -> new AppController(briefManager, null, missionManager,  facilityManager, auditLog));
         assertThrows(IllegalArgumentException.class,
-                () -> new AppController(briefManager, agentManager, null, auditLog));
+                () -> new AppController(briefManager, agentManager, missionManager, null, auditLog));
         assertThrows(IllegalArgumentException.class,
-                () -> new AppController(briefManager, agentManager, facilityManager, null));
+                () -> new AppController(briefManager, agentManager, missionManager, facilityManager, null));
     }
 
     @Test
