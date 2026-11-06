@@ -35,6 +35,26 @@ public class Mission {
         return this.agentIds;
     }
 
+    public String getBriefIdsAsString() {
+        String out = "[ ";
+        for (int i = 0; i < this.briefIds.length; i++)
+        {
+            out += this.briefIds[i];
+            if (i < this.briefIds.length - 1) out += ", ";
+        }
+        return out + " ]";
+    }
+
+    public String getAgentIdsAsString() {
+        String out = "[ ";
+        for (int i = 0; i < this.agentIds.length; i++)
+        {
+            out += this.agentIds[i];
+            if (i < this.agentIds.length - 1) out += ", ";
+        }
+        return out + " ]";
+    }
+
     public int getFacilityId() {
         return facilityId;
     }
