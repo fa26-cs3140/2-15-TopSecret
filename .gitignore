@@ -4,3 +4,6 @@ data/mission_database.db
 # Gradle build output and cache
 build/
 .gradle/
+
+# Per-user password files, created when accounts are made
+data/credentials-*.cip
