@@ -10,8 +10,12 @@ public class MissionTest {
 
         assertEquals(1, mission.getId());
         assertEquals("Test Name", mission.getTitle());
-        assertEquals(new int[] {1, 2, 3}, mission.getBriefIds());
-        assertEquals(new int[] {3, 5, 6}, mission.getAgentIds());
+        for (int i = 0; i < 3; i++)
+        {
+            assertEquals(new int[] {1, 2, 3}[i], mission.getBriefIds()[i]);
+            assertEquals(new int[] {3, 5, 6}[i], mission.getAgentIds()[i]);
+
+        }
         assertEquals("[ 1, 2, 3 ]", mission.getBriefIdsAsString());
         assertEquals("[ 3, 5, 6 ]", mission.getAgentIdsAsString());
         assertEquals(2, mission.getFacilityId());

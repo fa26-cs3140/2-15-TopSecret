@@ -156,8 +156,8 @@ class AgencyInterfaceAuditLogManagerTest {
 
         output.reset();
 
-        // Audit-log review is menu option 5, not 4.
-        String text = run(admin, "5\n0\n");
+        // Audit-log review is menu option 6, not 4.
+        String text = run(admin, "6\n0\n");
 
         assertTrue(text.contains("agent_7"));
         assertTrue(text.contains("READ"));
