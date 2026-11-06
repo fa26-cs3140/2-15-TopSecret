@@ -215,9 +215,10 @@ class AgencyInterfaceTest {
         assertTrue(text().contains("1. Briefs"));
         assertTrue(text().contains("2. Agents"));
         assertTrue(text().contains("3. Facilities"));
-        assertTrue(text().contains("4. Create User"));
-        assertTrue(text().contains("5. Review audit log"));
-        assertTrue(text().contains("6. Manage User Permissions"));
+        assertTrue(text().contains("4. Missions"));
+        assertTrue(text().contains("5. Create User"));
+        assertTrue(text().contains("6. Review audit log"));
+        assertTrue(text().contains("7. Manage User Permissions"));
         assertTrue(text().contains("0. Exit"));
     }
 
@@ -250,7 +251,7 @@ class AgencyInterfaceTest {
 
     @Test
     void standardUserCannotSelectAuditLog() {
-        createInterface(standard, "5\n0\n").run();
+        createInterface(standard, "6\n0\n").run();
 
         assertTrue(text().contains("Invalid selection"));
         verify(auditLog, never()).getAuditLog();
@@ -571,7 +572,7 @@ class AgencyInterfaceTest {
                 new AuditLogEntry(2, "agent_7", "CREATE", "AGENT", "11",
                         LocalDateTime.of(2026, 10, 22, 10, 15))));
 
-        createInterface(admin, "5\n0\n").run();
+        createInterface(admin, "6\n0\n").run();
 
         assertTrue(text().contains("pat"));
         assertTrue(text().contains("READ"));
@@ -587,7 +588,7 @@ class AgencyInterfaceTest {
     void emptyAuditLogShowsMessage() {
         when(auditLog.getAuditLog()).thenReturn(List.of());
 
-        createInterface(admin, "5\n0\n").run();
+        createInterface(admin, "6\n0\n").run();
 
         assertTrue(text().contains("No audit entries"));
     }
@@ -615,7 +616,7 @@ class AgencyInterfaceTest {
         when(userManager.isValidUsername(anyString())).thenAnswer(i -> i.getArgument(0).equals("ghost"));
         when(userManager.isValidPassword(anyString())).thenAnswer(i -> i.getArgument(0).equals("Secret1"));
 
-        createInterface(admin, "4\nGhost\nghost\nweak\nSecret1\n0\n").run();
+        createInterface(admin, "5\nGhost\nghost\nweak\nSecret1\n0\n").run();
 
         assertTrue(text().contains("Usernames need"));
         assertTrue(text().contains("Passwords need"));
@@ -630,7 +631,7 @@ class AgencyInterfaceTest {
         when(userManager.isValidPassword("Secret1")).thenReturn(true);
         when(userManager.createUser("ghost", false)).thenThrow(new IllegalArgumentException("Username already exists."));
 
-        createInterface(admin, "4\nghost\nSecret1\n0\n").run();
+        createInterface(admin, "5\nghost\nSecret1\n0\n").run();
 
         assertTrue(text().contains("Unable to create user: Username already exists."));
         verify(userManager, never()).createCredentials(any(), any());
@@ -684,9 +685,9 @@ class AgencyInterfaceTest {
         when(userManager.isValidPassword("NewPass1")).thenReturn(true);
         when(userManager.changePassword("agent_7", "NewPass1")).thenReturn(true);
 
-        createInterface(standard, "7\nSecret1\nNewPass1\n0\n").run();
+        createInterface(standard, "8\nSecret1\nNewPass1\n0\n").run();
 
-        assertTrue(text().contains("7. Change Password"));
+        assertTrue(text().contains("8. Change Password"));
         assertTrue(text().contains("Password changed."));
     }
 }

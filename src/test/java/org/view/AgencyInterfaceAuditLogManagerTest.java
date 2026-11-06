@@ -166,7 +166,7 @@ class AgencyInterfaceAuditLogManagerTest {
 
     @Test
     void emptyAuditLogShowsMessage() {
-        String text = run(admin, "5\n0\n");
+        String text = run(admin, "6\n0\n");
 
         assertTrue(text.contains("No audit entries"));
     }
