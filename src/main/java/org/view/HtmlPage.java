@@ -2,14 +2,60 @@ package org.view;
 
 import java.util.List;
 
-// Bare HTML template so the web view runs. Team C: build the real view here.
+/**
+ * HTML presentation for **read-only** web interface.
+ *
+ * AppController will supply the plain text record data used by
+ * the terminal. This class will use that to ONLY format HTML,
+ * not authentication or database access or HTTP responses.
+ */
 public final class HtmlPage {
 
     private HtmlPage() {
+        // Utility class -> not instantiated
     }
 
     public static String page(String title, String body, boolean loggedIn, boolean admin) {
-        return "<html><body>\n" + body + "\n</body></html>";
+        String safeTitle = escape(title);
+        StringBuilder html = new StringBuilder(); // StringBuilder used for convenience
+
+        // header always include Top Secret heading and navbar (after logging in)
+        html.append("<!DOCTYPE html>\n")
+                .append("<html lang=\"en\">\n")
+                .append("<head>\n")
+                .append("<meta charset=\"utf-8\">\n")
+                .append("<title>Top Secret - ")
+                .append(safeTitle)
+                .append("</title>\n")
+                .append("</head>\n<body>\n")
+                .append("<h1>Top Secret</h1>\n");
+
+        // Navbar (only available after login)
+        if (loggedIn) {
+            html.append("<nav aria-label=\"Main navigation\">\n")
+                    .append("<a href=\"/menu\">Menu</a> | ")
+                    .append("<a href=\"/briefs\">Briefs</a> | ")
+                    .append("<a href=\"/agents\">Agents</a> | ")
+                    .append("<a href=\"/facilities\">Facilities</a>");
+
+            // TODO: add Missions when the controller supports it
+
+            // Can review audit log if logged in as admin
+            if (admin) {
+                html.append(" | <a href=\"/audit\">Audit log</a>");
+            }
+
+            html.append(" | <a href=\"/logout\">Log out</a>\n")
+                    .append("</nav>\n<hr>\n");
+        }
+
+        html.append("<main>\n<h2>")
+                .append(safeTitle)
+                .append("</h2>\n")
+                .append(body == null ? "" : body)
+                .append("\n</main>\n</body>\n</html>\n");
+
+        return html.toString();
     }
 
     public static String list(String text, List<String> hrefs) {
