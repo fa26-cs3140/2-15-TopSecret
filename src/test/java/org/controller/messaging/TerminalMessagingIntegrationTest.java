@@ -10,7 +10,14 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 class TerminalMessagingIntegrationTest {
- private String run(String input,MessageService messages){var out=new ByteArrayOutputStream();var ui=new AgencyInterface(mock(AgentManager.class),mock(FacilityManager.class),mock(BriefManager.class),mock(UserAccountManager.class),mock(AuditLogService.class),new UserAccount("sender",false),new Scanner(input),new PrintStream(out));ui.enableMessaging(messages);ui.run();return out.toString();}
+ private String run(String input,MessageService messages)
+ {
+     var out=new ByteArrayOutputStream();
+     var ui=new AgencyInterface(mock(AgentManager.class),mock(FacilityManager.class),mock(BriefManager.class),mock(UserAccountManager.class), mock(MissionManager.class),mock(AuditLogService.class),new UserAccount("sender",false),new Scanner(input),new PrintStream(out));
+     ui.enableMessaging(messages);
+     ui.run();
+     return out.toString();
+ }
  @Test void sendsMultilineAndDisplaysOwnInbox(){var s=mock(MessageService.class);when(s.getAgents()).thenReturn(List.of(new Agent(1,"Ghost","1990-01-01",null,null,1)));
   var m=new Message(1,"sender",1,"Ghost","line one\nline two",LocalDateTime.now());when(s.sendMessage(1,m.getBody())).thenReturn(m);when(s.getInbox()).thenReturn(List.of(m));
   String output=run("8\n1\nline one\nline two\n.\n9\n0\n",s);assertTrue(output.contains("Message sent to Ghost"));assertTrue(output.contains(m.getBody()));verify(s).sendMessage(1,m.getBody());}
