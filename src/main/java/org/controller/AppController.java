@@ -66,8 +66,9 @@ public class AppController {
                     .map(f -> List.of("Name: " + f.getName(), "Abbreviation: " + f.getAbbreviation()))
                     .orElse(null);
             case MISSION -> missionManager.getRecords("id", "%").stream().filter(m -> m.getId() == id).findFirst()
-                    .map(m -> List.of("Title: " + m.getTitle(), 
-                                      "Briefs: " + Arrays.stream(briefManager.getRecords(""));
+                    .map(m -> List.of("Title: " + m.getTitle(), "Brief Ids: " + m.getBriefIdsAsString(), 
+                                      "Agent Ids: " + m.getAgentIdsAsString(), "Facility Id: " + m.getFacilityId()))
+                    .orElse(null);
         };
         if (details == null) {
             return "No " + type.getSingular() + " found with ID " + id + ".";
