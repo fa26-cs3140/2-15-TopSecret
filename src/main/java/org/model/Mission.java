@@ -11,6 +11,9 @@ public class Mission {
         if (id <= 0) {
             throw new IllegalArgumentException("Mision ID must be positive");
         }
+        if (facilityId <= 0) {
+            throw new IllegalArgumentException("Facility ID msut be positive");
+        }
 
         this.id = id;
         this.title = title;
