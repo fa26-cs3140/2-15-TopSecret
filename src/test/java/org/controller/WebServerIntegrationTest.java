@@ -3,6 +3,7 @@ package org.controller;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
+import org.managers.MissionManager;
 import org.managers.AuditLogService;
 import org.model.UserAccount;
 import org.managers.UserAccountManager;
@@ -44,14 +45,14 @@ class WebServerIntegrationTest {
         BriefManager briefs = mock(BriefManager.class);
         when(briefs.getRecords("id", "%")).thenReturn(List.of(
                 new Brief(1, "Operation <Sandtrap>", "1970-11-03", "Bug the pouch.", null)));
-        AppController controller = new AppController(briefs, mock(AgentManager.class),
+        AppController controller = new AppController(briefs, mock(AgentManager.class), mock(MissionManager.class),
                 mock(FacilityManager.class), mock(AuditLogService.class));
         server = new WebServer(controller, accounts, new SessionManager(), TEST_PORT);
         server.start();
     }
 
     private static AppController newController() {
-        return new AppController(mock(BriefManager.class), mock(AgentManager.class),
+        return new AppController(mock(BriefManager.class), mock(AgentManager.class), mock(MissionManager.class),
                 mock(FacilityManager.class), mock(AuditLogService.class));
     }
 
