@@ -6,6 +6,7 @@ import org.managers.AuditLogService;
 import org.managers.AgentManager;
 import org.managers.FacilityManager;
 import org.managers.BriefManager;
+import org.managers.MissionManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +54,9 @@ class AgencyInterfaceTest {
     @Mock
     private AuditLogService auditLog;
 
+    @Mock
+    private MissionManager missionManager;
+
     private ByteArrayOutputStream output;
 
     private final UserAccount admin = new UserAccount("pat", true);
@@ -69,6 +73,7 @@ class AgencyInterfaceTest {
                 facilityManager,
                 briefManager,
                 userManager,
+                missionManager,
                 auditLog,
                 user,
                 new Scanner(input),
@@ -97,6 +102,7 @@ class AgencyInterfaceTest {
                         facilityManager,
                         briefManager,
                         userManager,
+                        missionManager,
                         auditLog,
                         admin,
                         new Scanner(""),
@@ -112,6 +118,7 @@ class AgencyInterfaceTest {
                         facilityManager,
                         null,
                         userManager,
+                        missionManager,
                         auditLog,
                         admin,
                         new Scanner(""),
@@ -127,6 +134,7 @@ class AgencyInterfaceTest {
                         null,
                         briefManager,
                         userManager,
+                        missionManager,
                         auditLog,
                         admin,
                         new Scanner(""),
@@ -141,6 +149,7 @@ class AgencyInterfaceTest {
                 facilityManager,
                 briefManager,
                 userManager,
+                missionManager,
                 null,
                 admin,
                 new Scanner(""),
@@ -156,6 +165,7 @@ class AgencyInterfaceTest {
                 facilityManager,
                 briefManager,
                 userManager,
+                missionManager,
                 auditLog,
                 null,
                 new Scanner(""),
@@ -171,6 +181,7 @@ class AgencyInterfaceTest {
                 facilityManager,
                 briefManager,
                 userManager,
+                missionManager,
                 auditLog,
                 admin,
                 null,
@@ -186,6 +197,7 @@ class AgencyInterfaceTest {
                 facilityManager,
                 briefManager,
                 userManager,
+                missionManager,
                 auditLog,
                 admin,
                 new Scanner(""),
@@ -203,9 +215,10 @@ class AgencyInterfaceTest {
         assertTrue(text().contains("1. Briefs"));
         assertTrue(text().contains("2. Agents"));
         assertTrue(text().contains("3. Facilities"));
-        assertTrue(text().contains("4. Create User"));
-        assertTrue(text().contains("5. Review audit log"));
-        assertTrue(text().contains("6. Manage User Permissions"));
+        assertTrue(text().contains("4. Missions"));
+        assertTrue(text().contains("5. Create User"));
+        assertTrue(text().contains("6. Review audit log"));
+        assertTrue(text().contains("7. Manage User Permissions"));
         assertTrue(text().contains("0. Exit"));
     }
 
@@ -238,7 +251,7 @@ class AgencyInterfaceTest {
 
     @Test
     void standardUserCannotSelectAuditLog() {
-        createInterface(standard, "5\n0\n").run();
+        createInterface(standard, "6\n0\n").run();
 
         assertTrue(text().contains("Invalid selection"));
         verify(auditLog, never()).getAuditLog();
@@ -324,7 +337,7 @@ class AgencyInterfaceTest {
         createInterface(standard, "1\n2\n99\n0\n0\n").run();
 
         assertTrue(text().contains("No brief found"));
-        verify(auditLog, never()).log(any(), any(), any(), any());
+        verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());
     }
 
     @Test
@@ -332,7 +345,7 @@ class AgencyInterfaceTest {
         createInterface(standard, "1\n2\nabc\n0\n0\n").run();
 
         assertTrue(text().contains("Invalid ID"));
-        verify(auditLog, never()).log(any(), any(), any(), any());
+        verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());
     }
 
     @Test
@@ -375,7 +388,7 @@ class AgencyInterfaceTest {
         createInterface(admin, "1\n3\nBad Brief\nNovember 3\nText\n0\n0\n").run();
 
         assertTrue(text().contains("Unable to add brief"));
-        verify(auditLog, never()).log(any(), any(), any(), any());
+        verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());
     }
 
     // ---------- Agents ----------
@@ -434,7 +447,7 @@ class AgencyInterfaceTest {
         createInterface(standard, "2\n2\n4\n0\n0\n").run();
 
         assertTrue(text().contains("No agent found"));
-        verify(auditLog, never()).log(any(), any(), any(), any());
+        verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());
     }
 
     @Test
@@ -468,7 +481,7 @@ class AgencyInterfaceTest {
 
         assertTrue(text().contains("Invalid ID"));
         verify(agentManager, never()).addRecord(any(), any(), any(), any(), anyInt());
-        verify(auditLog, never()).log(any(), any(), any(), any());
+        verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());
     }
 
     @Test
@@ -479,7 +492,7 @@ class AgencyInterfaceTest {
         createInterface(admin, "2\n3\nJackal\n1991-02-11\n\n\n99\n0\n0\n").run();
 
         assertTrue(text().contains("Unable to add agent"));
-        verify(auditLog, never()).log(any(), any(), any(), any());
+        verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());
     }
 
     // ---------- Facilities ----------
@@ -546,7 +559,7 @@ class AgencyInterfaceTest {
         createInterface(admin, "3\n3\n\nFP\n0\n0\n").run();
 
         assertTrue(text().contains("Unable to add facility"));
-        verify(auditLog, never()).log(any(), any(), any(), any());
+        verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());
     }
 
     // ---------- Audit log ----------
@@ -559,7 +572,7 @@ class AgencyInterfaceTest {
                 new AuditLogEntry(2, "agent_7", "CREATE", "AGENT", "11",
                         LocalDateTime.of(2026, 10, 22, 10, 15))));
 
-        createInterface(admin, "5\n0\n").run();
+        createInterface(admin, "6\n0\n").run();
 
         assertTrue(text().contains("pat"));
         assertTrue(text().contains("READ"));
@@ -575,7 +588,7 @@ class AgencyInterfaceTest {
     void emptyAuditLogShowsMessage() {
         when(auditLog.getAuditLog()).thenReturn(List.of());
 
-        createInterface(admin, "5\n0\n").run();
+        createInterface(admin, "6\n0\n").run();
 
         assertTrue(text().contains("No audit entries"));
     }
@@ -603,7 +616,7 @@ class AgencyInterfaceTest {
         when(userManager.isValidUsername(anyString())).thenAnswer(i -> i.getArgument(0).equals("ghost"));
         when(userManager.isValidPassword(anyString())).thenAnswer(i -> i.getArgument(0).equals("Secret1"));
 
-        createInterface(admin, "4\nGhost\nghost\nweak\nSecret1\n0\n").run();
+        createInterface(admin, "5\nGhost\nghost\nweak\nSecret1\n0\n").run();
 
         assertTrue(text().contains("Usernames need"));
         assertTrue(text().contains("Passwords need"));
@@ -618,7 +631,7 @@ class AgencyInterfaceTest {
         when(userManager.isValidPassword("Secret1")).thenReturn(true);
         when(userManager.createUser("ghost", false)).thenThrow(new IllegalArgumentException("Username already exists."));
 
-        createInterface(admin, "4\nghost\nSecret1\n0\n").run();
+        createInterface(admin, "5\nghost\nSecret1\n0\n").run();
 
         assertTrue(text().contains("Unable to create user: Username already exists."));
         verify(userManager, never()).createCredentials(any(), any());
@@ -672,9 +685,9 @@ class AgencyInterfaceTest {
         when(userManager.isValidPassword("NewPass1")).thenReturn(true);
         when(userManager.changePassword("agent_7", "NewPass1")).thenReturn(true);
 
-        createInterface(standard, "7\nSecret1\nNewPass1\n0\n").run();
+        createInterface(standard, "8\nSecret1\nNewPass1\n0\n").run();
 
-        assertTrue(text().contains("7. Change Password"));
+        assertTrue(text().contains("8. Change Password"));
         assertTrue(text().contains("Password changed."));
     }
 }

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
+import org.managers.MissionManager;
 import org.model.Facility;
 
 import java.io.ByteArrayOutputStream;
@@ -68,6 +69,7 @@ class AgencyInterfaceFacilityManagerTest {
                 facilityManager,
                 briefManager,
                 userManager,
+                mock(MissionManager.class),
                 auditLog,
                 user,
                 new Scanner(input),
@@ -143,7 +145,7 @@ class AgencyInterfaceFacilityManagerTest {
 
         assertTrue(facilityManager.getRecords("name", "").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
     }
 
     @Test
@@ -161,6 +163,6 @@ class AgencyInterfaceFacilityManagerTest {
 
         assertTrue(facilityManager.getRecords("id", "%").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
     }
 }
