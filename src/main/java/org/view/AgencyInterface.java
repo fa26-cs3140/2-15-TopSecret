@@ -95,7 +95,7 @@ public class AgencyInterface {
             output.println("7. Manage User Permissions");
         }
         output.println("8. Change Password");
-        if (messages != null) output.println("9. Send an agent message\n10. My messages");
+        if (messages != null) output.println("9. My messages\n10. Send an agent message");
         output.print("0. Exit\nSelect an option: ");
     }
 
