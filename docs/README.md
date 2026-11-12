@@ -1,7 +1,7 @@
 # Documentation index
 
-- [Team D: messaging, accounts, audit, schemas and verification](team-d/README.md)
-- [Team D current class diagram, ERD and terminal wireframes](team-d/TeamD-Messaging-Architecture.pdf)
+- [Team D: model, sessions, accounts, audit, and verification](team-d/README.md)
+- [Team D class diagram, ERD, and wireframes](team-d/DESIGN.md)
 - [Team B controller design](HW6-TeamB-Controller-uml.txt)
 - [Team B work plan](HW6-TeamB-WorkPlan.txt)
 - [Shared model notes](data-models/DataModelOverview.txt)

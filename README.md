@@ -22,12 +22,13 @@ java -jar build/libs/TopSecret.jar -web
 ```
 
 The web view listens at http://localhost:3002/. Accounts must already exist.
-The browser login uses session cookies. Web views are read-only, with plain HTML;
-terminal menus own creation and editing. Agent messages remain terminal-only.
+The browser login uses session cookies. The server expires a token after 30
+minutes of inactivity and refreshes activity on an authenticated request.
+The web view displays records; the Homework 7 edit forms are planned for Week 2.
 
 ## Agent messaging
 
-After terminal login, choose **8. Send an agent message**, select an existing agent
+After terminal login, choose **10. Send an agent message**, select an existing agent
 by ID, and write the message. A line containing `.` sends; `/cancel` cancels.
 Choose **9. My messages** to view messages addressed to your username, matched
 case-insensitively to the selected agent's name. No admin privileges are needed,
@@ -35,7 +36,7 @@ and admin status does not grant access to another user's inbox.
 
 Messages may be sent before the recipient account exists. For example, a message
 to agent Ghost becomes visible when the `ghost` account is created and logs in.
-Sample agents must be created/imported; startup does not automatically load them.
+On startup, the app attempts to load the sample TSVs into empty tables.
 
 ## Source layout
 
@@ -52,17 +53,14 @@ Sample agents must be created/imported; startup does not automatically load them
 ./gradlew test unitTest integrationTest jacocoTestReport jacocoUnitTestReport build
 ```
 
-The complete suite runs with `test`; `unitTest` and `integrationTest` also run
-separately. Team D messaging and logout-test corrections are included here.
-Mission changes have been removed from this PR: the shared MissionTest still
-calls an outdated constructor and blocks compilation of the full test suite.
-The earlier 322-test passing result included those removed fixes and is not a
-current full-suite result. See the Team D notes for verification scope.
+The complete suite runs with `test`. The `unitTest` and `integrationTest`
+tasks also run separately. See the [Team D verification notes](docs/team-d/VERIFICATION.md)
+for the Homework 7 checkpoint results.
 
 ## Documentation
 
 See the [documentation index](docs/README.md) for current component references.
 [Team D documentation](docs/team-d/README.md) includes messaging, account/audit
-schemas, regression fixes, test evidence, and current PDF class/ERD/wireframes.
+schemas, the prioritized backlog, test evidence, and current design diagrams.
 Older Team D plans and duplicate diagrams were removed; Git retains their history.
 Shared component documentation remains subject to its owners' refactor review.
