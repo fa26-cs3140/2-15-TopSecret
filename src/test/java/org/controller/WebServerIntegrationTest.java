@@ -17,6 +17,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,6 +31,8 @@ class WebServerIntegrationTest {
 
     private UserAccountManager accounts;
     private WebServer server;
+    private SessionManager sessions;
+    private Clock clock;
     private final HttpClient client = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.NEVER)
             .build();
@@ -51,7 +55,10 @@ class WebServerIntegrationTest {
                 new Mission(4, "Joint Op", new int[]{1}, new int[]{2}, 1)));
         AppController controller = new AppController(briefs, mock(AgentManager.class), missions,
                 mock(FacilityManager.class), mock(AuditLogService.class));
-        server = new WebServer(controller, accounts, new SessionManager(), TEST_PORT);
+        clock = mock(Clock.class);
+        when(clock.instant()).thenReturn(Instant.EPOCH);
+        sessions = new SessionManager(clock);
+        server = new WebServer(controller, accounts, sessions, TEST_PORT);
         server.start();
     }
 
@@ -154,6 +161,21 @@ class WebServerIntegrationTest {
         get("/logout", cookie);
 
         assertEquals(303, get("/menu", cookie).statusCode());
+    }
+
+    @Test
+    void expiredAndRevokedCookiesRedirectOnTheNextRequest() throws Exception {
+        String idleCookie = sessionCookie(login("agent7", "Agent77"));
+        when(clock.instant()).thenReturn(Instant.EPOCH.plusSeconds(30 * 60));
+        assertEquals(303, get("/menu", idleCookie).statusCode());
+
+        String revokedCookie = sessionCookie(login("agent7", "Agent77"));
+        String token = SessionManager.tokenFromCookieHeader(revokedCookie);
+        sessions.revokeSession(new UserAccount("pat", true), token);
+
+        HttpResponse<String> response = get("/menu", revokedCookie);
+        assertEquals(303, response.statusCode());
+        assertEquals("/", response.headers().firstValue("Location").orElseThrow());
     }
 
     @Test
