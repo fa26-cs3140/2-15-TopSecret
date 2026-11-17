@@ -10,6 +10,7 @@ import org.model.RecordType;
 import org.model.UserAccount;
 
 import java.util.List;
+import java.util.Map;
 
 // Navigation logic shared by the terminal and web interfaces.
 // Methods return plain text; the terminal prints it and the web view wraps it in HTML.
@@ -90,6 +91,37 @@ public class AppController {
                 .map(e -> e.getTimestamp() + " | " + e.getUsername() + " | " + e.getAction()
                         + " | " + e.getContentType() + " " + e.getContentIdentifier())
                 .toList());
+    }
+
+    // Only administrators may create or edit records.
+    public boolean canEdit(UserAccount user) {
+        return user != null && user.isAdmin();
+    }
+
+    // Current values of a record keyed by RecordForms field name, used to fill the edit form.
+    // Returns null when no record has that ID.
+    public Map<String, String> formValues(RecordType type, int id) {
+        throw new UnsupportedOperationException("HW7 week 2: load values for the edit form");
+    }
+
+    // Creates a record from submitted form values, logs CREATE, and returns the new record's ID.
+    // Throws SecurityException for non-admins and IllegalArgumentException for invalid values.
+    public int createRecord(RecordType type, Map<String, String> values, UserAccount user) {
+        requireEditor(user);
+        throw new UnsupportedOperationException("HW7 week 2: create records from the web form");
+    }
+
+    // Saves submitted form values over an existing record and logs UPDATE.
+    // Throws SecurityException for non-admins and IllegalArgumentException for invalid values or a missing ID.
+    public void updateRecord(RecordType type, int id, Map<String, String> values, UserAccount user) {
+        requireEditor(user);
+        throw new UnsupportedOperationException("HW7 week 2: update records from the web form");
+    }
+
+    private void requireEditor(UserAccount user) {
+        if (!canEdit(user)) {
+            throw new SecurityException("Access denied. Only administrators can create or edit records.");
+        }
     }
 
     private static String orNA(String value) {

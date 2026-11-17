@@ -2,8 +2,8 @@
 
 - [Team D: messaging, accounts, audit, schemas and verification](team-d/README.md)
 - [Team D current class diagram, ERD and terminal wireframes](team-d/TeamD-Messaging-Architecture.pdf)
-- [Team B controller design](HW6-TeamB-Controller-uml.txt)
-- [Team B work plan](HW6-TeamB-WorkPlan.txt)
+- [Class diagram for the current code (HW7)](HW7-ClassDiagram.pdf), regenerated with [tools/make_class_diagram.py](tools/make_class_diagram.py)
+- [Team B work plan, backlog and refactoring list (HW7)](HW7-TeamB-WorkPlan.txt)
 - [Shared model notes](data-models/DataModelOverview.txt)
 
 Team D documentation is consolidated under a stable component directory rather

@@ -9,6 +9,7 @@ import org.managers.AuditLogService;
 import org.model.RecordType;
 import org.model.UserAccount;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -19,6 +20,7 @@ import org.model.Facility;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -133,5 +135,77 @@ class AppControllerTest {
     void standardUserCannotSeeAuditLog() {
         assertTrue(controller.auditLog(standard).contains("Access denied"));
         verify(auditLog, never()).getAuditLog();
+    }
+
+    // ---- HW7 editing ----
+
+    @Test
+    void onlyAdminsCanEdit() {
+        assertTrue(controller.canEdit(admin));
+        assertFalse(controller.canEdit(standard));
+        assertFalse(controller.canEdit(null));
+    }
+
+    @Test
+    void standardUserCannotCreateOrUpdate() {
+        Map<String, String> values = Map.of("title", "Op", "date", "2026-01-01", "text", "Go");
+
+        assertThrows(SecurityException.class, () -> controller.createRecord(RecordType.BRIEF, values, standard));
+        assertThrows(SecurityException.class, () -> controller.updateRecord(RecordType.BRIEF, 1, values, standard));
+        assertThrows(SecurityException.class, () -> controller.createRecord(RecordType.BRIEF, values, null));
+        verifyNoInteractions(briefManager, auditLog);
+    }
+
+    // Drafted in week 1; enabled in week 2. Manager calls may change to Team D's create/update API.
+    @Test
+    @Disabled("HW7 week 2: createRecord not implemented yet")
+    void adminCreatesBriefAndLogsCreate() {
+        when(briefManager.addRecord("Op Nightfall", "2026-01-01", "Watch the port."))
+                .thenReturn(new Brief(101, "Op Nightfall", "2026-01-01", "Watch the port.", null));
+
+        int id = controller.createRecord(RecordType.BRIEF,
+                Map.of("title", "Op Nightfall", "date", "2026-01-01", "text", "Watch the port."), admin);
+
+        assertEquals(101, id);
+        verify(auditLog).log("pat", "CREATE", "BRIEF", "101");
+    }
+
+    @Test
+    @Disabled("HW7 week 2: createRecord not implemented yet")
+    void createRejectsMissingRequiredField() {
+        assertThrows(IllegalArgumentException.class,
+                () -> controller.createRecord(RecordType.BRIEF, Map.of("title", "Op", "text", "Go"), admin));
+        verifyNoInteractions(auditLog);
+    }
+
+    @Test
+    @Disabled("HW7 week 2: updateRecord not implemented yet")
+    void adminUpdatesAgentAndLogsUpdate() {
+        when(agentManager.getRecords("id", "%"))
+                .thenReturn(List.of(new Agent(2, "Ghost", "1992-11-22", null, null, 2)));
+
+        controller.updateRecord(RecordType.AGENT, 2, Map.of("name", "Ghost", "dateOfBirth", "1992-11-22",
+                "dateOfDeath", "", "notes", "Back in the field", "facilityId", "3"), admin);
+
+        verify(auditLog).log("pat", "UPDATE", "AGENT", "2");
+    }
+
+    @Test
+    @Disabled("HW7 week 2: updateRecord not implemented yet")
+    void updateRejectsUnknownId() {
+        when(agentManager.getRecords("id", "%")).thenReturn(List.of());
+
+        assertThrows(IllegalArgumentException.class, () -> controller.updateRecord(RecordType.AGENT, 99,
+                Map.of("name", "X", "dateOfBirth", "1990-01-01", "facilityId", "1"), admin));
+    }
+
+    @Test
+    @Disabled("HW7 week 2: formValues not implemented yet")
+    void formValuesReturnCurrentRecordFields() {
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA")));
+
+        assertEquals(Map.of("name", "Blackwood Annex", "abbreviation", "BA"),
+                controller.formValues(RecordType.FACILITY, 1));
+        assertNull(controller.formValues(RecordType.FACILITY, 9));
     }
 }
