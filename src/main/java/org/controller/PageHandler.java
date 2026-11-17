@@ -71,7 +71,8 @@ public class PageHandler implements HttpHandler {
         }
     }
 
-    private static RecordType typeFor(String segment) {
+    // Record type for a URL segment such as "briefs"; null when the segment is not a record type.
+    static RecordType typeFor(String segment) {
         return switch (segment) {
             case "briefs" -> RecordType.BRIEF;
             case "agents" -> RecordType.AGENT;
