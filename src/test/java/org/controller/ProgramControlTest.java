@@ -191,4 +191,26 @@ public class ProgramControlTest {
         assertEquals(3013, server.getPort());
         server.stop();
     }
+
+    @Test
+    void runPreparesDatabaseAndStopsWhenWebViewCannotStart() throws Exception {
+        FileHandler files = mock(FileHandler.class);
+        FacilityManager facilities = mock(FacilityManager.class);
+        MissionManager missions = mock(MissionManager.class);
+        UserAccountManager accounts = mock(UserAccountManager.class);
+        when(files.getAvailableFiles()).thenReturn(List.of());
+        when(accounts.hasUsers()).thenReturn(false);
+
+        new ProgramControl(files, mock(BriefManager.class), mock(AgentManager.class), facilities,
+                mock(AuditLogManager.class), accounts, missions).run(new String[]{"-web"});
+
+        verify(files).writeFile("mission_database.db", "");
+        verify(missions).createTable();
+        verify(facilities).importTSV(eq("data/facilities.tsv"), any(), eq("data"), eq("mission_database.db"));
+    }
+
+    @Test
+    void defaultConstructorUsesRepositoryData() {
+        assertDoesNotThrow(() -> new ProgramControl());
+    }
 }

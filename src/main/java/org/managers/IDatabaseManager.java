@@ -2,6 +2,7 @@ package org.managers;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class IDatabaseManager<T>
@@ -96,8 +97,10 @@ public abstract class IDatabaseManager<T>
     protected int update(String sql, Object... values)
     {
         try (Connection c = connect(); PreparedStatement ps = c.prepareStatement(sql)) {
-            int rowsAffected = ps.executeUpdate();
-            return rowsAffected;
+            for (int i = 0; i < values.length; i++) {
+                ps.setObject(i + 1, values[i]);
+            }
+            return ps.executeUpdate();
         }
         catch (SQLException e)
         {
@@ -105,4 +108,20 @@ public abstract class IDatabaseManager<T>
         }
     }
 
+    /**
+     * Shared body of updateRecord: sets changeColumn to value on rows where checkColumn LIKE key.
+     * Values are bound as parameters (a quote in user input cannot break the query); column
+     * names cannot be bound, so they must be one of getColumnNames(). A null value stores NULL.
+     *
+     * @return true when at least one row changed
+     */
+    protected Boolean updateColumn(String checkColumn, String key, String changeColumn, String value)
+    {
+        List<String> columns = Arrays.asList(getColumnNames());
+        if (!columns.contains(checkColumn) || !columns.contains(changeColumn)) {
+            throw new IllegalArgumentException("Unknown column for " + getTableName() + ".");
+        }
+        return update("UPDATE " + getTableName() + " SET " + changeColumn + " = ? WHERE " + checkColumn + " LIKE ?",
+                      value, key) > 0;
+    }
 }

@@ -2,7 +2,6 @@ package org.controller;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.managers.AgentManager;
 import org.managers.AuditLogService;
@@ -24,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 // Web create/edit workflow through a real server on a test port (3002 stays free for the app).
-// Week 1: drafted tests for the week 2 workflow are @Disabled.
 class EditWorkflowIntegrationTest {
 
     private static final int TEST_PORT = 3014;
@@ -95,7 +93,6 @@ class EditWorkflowIntegrationTest {
     }
 
     @Test
-    @Disabled("HW7 week 2: EditHandler not wired into PageHandler yet")
     void adminSeesEmptyNewForm() throws Exception {
         HttpResponse<String> response = get("/briefs/new", login("pat", "Secret1"));
 
@@ -106,7 +103,6 @@ class EditWorkflowIntegrationTest {
     }
 
     @Test
-    @Disabled("HW7 week 2: EditHandler not wired into PageHandler yet")
     void standardUserIsDeniedEditing() throws Exception {
         String cookie = login("agent7", "Agent77");
 
@@ -117,10 +113,8 @@ class EditWorkflowIntegrationTest {
     }
 
     @Test
-    @Disabled("HW7 week 2: EditHandler not wired into PageHandler yet")
     void validCreateRedirectsToNewRecord() throws Exception {
-        when(briefs.addRecord("Op Nightfall", "2026-01-01", "Watch the port."))
-                .thenReturn(new Brief(101, "Op Nightfall", "2026-01-01", "Watch the port.", null));
+        when(briefs.addRecord(any(Brief.class))).thenReturn(new Brief(101, "Op Nightfall", "2026-01-01", "Watch the port.", null));
 
         HttpResponse<String> response = post("/briefs/new",
                 "title=Op+Nightfall&date=2026-01-01&text=Watch+the+port.", login("pat", "Secret1"));
@@ -131,7 +125,6 @@ class EditWorkflowIntegrationTest {
     }
 
     @Test
-    @Disabled("HW7 week 2: EditHandler not wired into PageHandler yet")
     void invalidCreateKeepsTypedValuesAndShowsError() throws Exception {
         HttpResponse<String> response = post("/briefs/new", "title=Op+Nightfall&date=not-a-date&text=Go",
                 login("pat", "Secret1"));
@@ -143,7 +136,6 @@ class EditWorkflowIntegrationTest {
     }
 
     @Test
-    @Disabled("HW7 week 2: EditHandler not wired into PageHandler yet")
     void editFormIsFilledWithCurrentValues() throws Exception {
         HttpResponse<String> response = get("/facilities/1/edit", login("pat", "Secret1"));
 
@@ -154,13 +146,11 @@ class EditWorkflowIntegrationTest {
     }
 
     @Test
-    @Disabled("HW7 week 2: EditHandler not wired into PageHandler yet")
     void editingUnknownRecordIsNotFound() throws Exception {
         assertEquals(404, get("/facilities/99/edit", login("pat", "Secret1")).statusCode());
     }
 
     @Test
-    @Disabled("HW7 week 2: EditHandler not wired into PageHandler yet")
     void validEditRedirectsToRecordAndLogsUpdate() throws Exception {
         HttpResponse<String> response = post("/facilities/1/edit", "name=Blackwood+Annex&abbreviation=BWA",
                 login("pat", "Secret1"));
@@ -168,5 +158,17 @@ class EditWorkflowIntegrationTest {
         assertEquals(303, response.statusCode());
         assertEquals("/facilities/1", response.headers().firstValue("Location").orElseThrow());
         verify(audit).log("pat", "UPDATE", "FACILITY", "1");
+    }
+
+    @Test
+    void onlyAdminsSeeNewAndEditLinks() throws Exception {
+        String admin = login("pat", "Secret1");
+        String agent = login("agent7", "Agent77");
+
+        assertTrue(get("/facilities", admin).body().contains("href=\"/facilities/new\""));
+        assertTrue(get("/facilities/1", admin).body().contains("href=\"/facilities/1/edit\""));
+        assertFalse(get("/facilities/99", admin).body().contains("/edit\""));
+        assertFalse(get("/facilities", agent).body().contains("/new\""));
+        assertFalse(get("/facilities/1", agent).body().contains("/edit\""));
     }
 }

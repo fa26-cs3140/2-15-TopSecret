@@ -1,49 +1,176 @@
 package org.model.messaging;
 
-import java.sql.*;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-/** Additive persistence; requires the shared users and agents tables. */
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * SQLite implementation of MessageStore.
+ * Stores messages in the shared database containing users and agents.
+ */
 public final class SqliteMessageStore implements MessageStore {
+
+    private static final String SCHEMA_PATH = "/org/model/messaging/schema.sql";
+
+    private static final String INSERT_MESSAGE = """
+            INSERT INTO agent_messages (
+                sender_username,
+                recipient_agent_id,
+                recipient_name,
+                body,
+                sent_at
+            )
+            SELECT ?, id, name, ?, ?
+            FROM agents
+            WHERE id = ? AND name = ?
+            """;
+
+    private static final String SELECT_INBOX = """
+            SELECT *
+            FROM agent_messages
+            WHERE recipient_name = ? COLLATE NOCASE
+            ORDER BY id
+            """;
+
     private final String url;
+
     public SqliteMessageStore(String url) {
-        if (url == null || url.isBlank()) throw new IllegalArgumentException("Database URL required.");
+        if (url == null || url.isBlank())
+            throw new IllegalArgumentException("Database URL required.");
+
         this.url = url;
-        try (var resource = getClass().getResourceAsStream("/org/model/messaging/schema.sql");
-             var c = connect(); var s = c.createStatement()) {
-            if (resource == null) throw new IllegalStateException("Missing message schema.");
-            for (String sql : new String(resource.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8).split(";"))
-                if (!sql.isBlank()) s.execute(sql);
-        } catch (java.io.IOException | SQLException e) { throw new IllegalStateException("Cannot initialize messages.", e); }
+        initializeSchema();
     }
-    private Connection connect() throws SQLException {
-        var c = DriverManager.getConnection(url);
-        try (var s = c.createStatement()) { s.execute("PRAGMA foreign_keys=ON"); }
-        catch (SQLException e) { c.close(); throw e; }
-        return c;
-    }
-    @Override public Message save(Message m) {
-        if (m == null || m.getId() != 0) throw new IllegalArgumentException("An unsaved message is required.");
-        // Resolve the recipient snapshot inside SQL, rather than trusting client-provided names.
-        String sql = "INSERT INTO agent_messages(sender_username,recipient_agent_id,recipient_name,body,sent_at) "
-                + "SELECT ?,id,name,?,? FROM agents WHERE id=? AND name=?";
-        try (var c = connect(); var p = c.prepareStatement(sql)) {
-            p.setString(1,m.getSenderUsername()); p.setString(2,m.getBody());
-            p.setString(3,m.getSentAt().toString()); p.setInt(4,m.getRecipientAgentId()); p.setString(5,m.getRecipientName());
-            if (p.executeUpdate()!=1) throw new IllegalArgumentException("Agent no longer exists or was renamed. Please select again.");
-            try(var s=c.createStatement();var rs=s.executeQuery("SELECT last_insert_rowid()")) {
-                rs.next(); return new Message(rs.getLong(1),m.getSenderUsername(),m.getRecipientAgentId(),m.getRecipientName(),m.getBody(),m.getSentAt());
+
+    /**
+     * Helper: Initializes the messaging table using the SQL schema resource.
+     */
+    private void initializeSchema() {
+        try (var resource = getClass().getResourceAsStream(SCHEMA_PATH);
+             Connection connection = connect();
+             Statement statement = connection.createStatement()) {
+
+            if (resource == null)
+                throw new IllegalStateException("Missing message schema.");
+
+            String schema = new String(resource.readAllBytes(), StandardCharsets.UTF_8);
+
+            for (String sql : schema.split(";")) {
+                if (!sql.isBlank())
+                    statement.execute(sql);
             }
-        } catch(SQLException e) {throw new IllegalStateException("Unable to save message.",e);}
+
+        } catch (java.io.IOException | SQLException e) {
+            throw new IllegalStateException("Cannot initialize messages.", e);
+        }
     }
-    @Override public List<Message> findForRecipient(String name) {
-        if(name==null || name.isBlank()) throw new IllegalArgumentException("Recipient required.");
-        try(var c=connect();var p=c.prepareStatement("SELECT * FROM agent_messages WHERE recipient_name=? COLLATE NOCASE ORDER BY id")) {
-            p.setString(1,name);var result=new ArrayList<Message>();
-            try(var rs=p.executeQuery()) {while(rs.next()) result.add(new Message(rs.getLong("id"),rs.getString("sender_username"),
-                    rs.getInt("recipient_agent_id"),rs.getString("recipient_name"),rs.getString("body"),LocalDateTime.parse(rs.getString("sent_at"))));}
-            return List.copyOf(result);
-        } catch(SQLException e) {throw new IllegalStateException("Unable to read messages.",e);}
+
+    /** Helper: Opens a database connection with foreign key enforcement enabled. */
+    private Connection connect() throws SQLException {
+        Connection connection = DriverManager.getConnection(url);
+
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("PRAGMA foreign_keys=ON");
+        } catch (SQLException e) {
+            connection.close();
+            throw e;
+        }
+
+        return connection;
+    }
+    @Override
+    public Message save (Message message) {
+        if (message == null || message.getId() != 0)
+            throw new IllegalArgumentException("An unsaved message is required.");
+
+        // Resolve the recipient snapshot inside SQL, rather than trusting client-provided names.
+        try (Connection connection = connect();
+             PreparedStatement statement = connection.prepareStatement(INSERT_MESSAGE)) {
+
+            statement.setString(1, message.getSenderUsername());
+            statement.setString(2, message.getBody());
+            statement.setString(3, message.getSentAt().toString());
+            statement.setInt(4, message.getRecipientAgentId());
+            statement.setString(5, message.getRecipientName());
+
+            int rowsInserted = statement.executeUpdate();
+
+            if (rowsInserted != 1) {
+                throw new IllegalArgumentException(
+                        "Agent no longer exists or was renamed. Please select again."
+                );
+            }
+
+            long messageId = getLastInsertedId(connection);
+
+            return new Message(
+                    messageId,
+                    message.getSenderUsername(),
+                    message.getRecipientAgentId(),
+                    message.getRecipientName(),
+                    message.getBody(),
+                    message.getSentAt()
+            );
+
+        } catch (SQLException e) {
+            throw new IllegalStateException("Unable to save message.", e);
+        }
+    }
+
+    /** Helper: Retrieves the ID of the most recently inserted record */
+    private long getLastInsertedId(Connection connection) throws SQLException {
+        try (Statement statement = connection.createStatement();
+             ResultSet result = statement.executeQuery("SELECT last_insert_rowid()")) {
+
+            result.next();
+            return result.getLong(1);
+        }
+    }
+
+    @Override
+    public List<Message> findForRecipient(String name) {
+        if (name==null || name.isBlank())
+            throw new IllegalArgumentException("Recipient required.");
+
+        List<Message> messages = new ArrayList<>();
+
+        try (Connection connection = connect();
+             PreparedStatement statement = connection.prepareStatement(SELECT_INBOX)) {
+
+            statement.setString(1, name);
+
+            try (ResultSet result = statement.executeQuery()) {
+                while (result.next()) {
+                    messages.add(readMessage(result));
+                }
+            }
+
+            return List.copyOf(messages);
+
+        } catch (SQLException e) {
+            throw new IllegalStateException("Unable to read messages.", e);
+        }
+    }
+
+    /** Helper: Converts a database result row into a Message object */
+    private Message readMessage(ResultSet result) throws SQLException {
+        return new Message(
+                result.getLong("id"),
+                result.getString("sender_username"),
+                result.getInt("recipient_agent_id"),
+                result.getString("recipient_name"),
+                result.getString("body"),
+                LocalDateTime.parse(result.getString("sent_at"))
+        );
     }
 }
