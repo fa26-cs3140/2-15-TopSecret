@@ -77,6 +77,18 @@ link, shown only to admins.
   - Refactoring items below.
   - Final class diagram and a system test from a fresh clone.
 
+  Status (end of week 2): all of the above done. Every B class has 100% method coverage.
+  Backlog items 3 and 5 were fixed here because web editing depends on them:
+    - IDatabaseManager.update now binds values; every manager's updateRecord uses one shared,
+      injection-safe updateColumn (column names checked against getColumnNames()).
+    - MissionManager accepts missions with no briefs or agents, and replaceAssignments lets an
+      edited mission change its briefs and agents in one transaction.
+  Refactoring items 1, 2, 3 and 5 are done (PageHandler routes split, one lookup per record type,
+  form parsing moved to WebServer, AppController rejects a null MissionManager).
+  Items 4 and 6 (ProgramControl.run split, old cipher code) remain; run() is now covered by a test.
+  When Team A adds countries (RecordType.COUNTRY), RecordForms and AppController need a COUNTRY case;
+  the compiler will flag every switch that needs one.
+
 
 5. Backlog from team code review
 --------------------------------

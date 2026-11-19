@@ -7,7 +7,10 @@ import org.managers.UserAccountManager;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 // HTTP server for the read-only web view, started with the -web switch.
 public class WebServer {
@@ -76,5 +79,23 @@ public class WebServer {
         exchange.getResponseHeaders().set("Location", location);
         exchange.sendResponseHeaders(303, -1);
         exchange.close();
+    }
+
+    // Reads and decodes an application/x-www-form-urlencoded request body.
+    static Map<String, String> readForm(HttpExchange exchange) throws IOException {
+        return parseForm(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+    }
+
+    // "a=1&b=x+y" -> {a=1, b=x y}; pairs without '=' are ignored.
+    static Map<String, String> parseForm(String body) {
+        Map<String, String> values = new HashMap<>();
+        for (String pair : body.split("&")) {
+            String[] parts = pair.split("=", 2);
+            if (parts.length == 2) {
+                values.put(URLDecoder.decode(parts[0], StandardCharsets.UTF_8),
+                        URLDecoder.decode(parts[1], StandardCharsets.UTF_8));
+            }
+        }
+        return values;
     }
 }

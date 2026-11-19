@@ -4,16 +4,27 @@ import org.managers.AgentManager;
 import org.managers.AuditLogService;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
+import org.managers.IDatabaseManager;
 import org.managers.MissionManager;
+import org.model.Agent;
 import org.model.AuditLogEntry;
+import org.model.Brief;
+import org.model.Facility;
+import org.model.Mission;
 import org.model.RecordType;
 import org.model.UserAccount;
+import org.view.FormField;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-// Navigation logic shared by the terminal and web interfaces.
-// Methods return plain text; the terminal prints it and the web view wraps it in HTML.
+// Control logic shared by the terminal and web interfaces.
+// Read methods return plain text; the terminal prints it and the web view wraps it in HTML.
+// Create/update methods take form values keyed by RecordForms field names.
 public class AppController {
 
     private final BriefManager briefManager;
@@ -24,7 +35,8 @@ public class AppController {
 
     public AppController(BriefManager briefManager, AgentManager agentManager, MissionManager missionManager,
                          FacilityManager facilityManager, AuditLogService auditLog) {
-        if (briefManager == null || agentManager == null || facilityManager == null || auditLog == null) {
+        if (briefManager == null || agentManager == null || missionManager == null || facilityManager == null
+                || auditLog == null) {
             throw new IllegalArgumentException("Arguments cannot be null.");
         }
         this.briefManager = briefManager;
@@ -54,28 +66,23 @@ public class AppController {
 
     // Record details, one property per line. Records a READ audit entry when found.
     public String readRecord(RecordType type, int id, UserAccount user) {
-        List<String> details = switch (type) {
-            case BRIEF -> briefManager.getRecords("id", "%").stream().filter(b -> b.getId() == id).findFirst()
-                    .map(b -> List.of("Title: " + b.getTitle(), "Date: " + b.getDate(), "Text: " + b.getText()))
-                    .orElse(null);
-            case AGENT -> agentManager.getRecords("id", "%").stream().filter(a -> a.getId() == id).findFirst()
-                    .map(a -> List.of("Name: " + a.getName(), "Date of birth: " + a.getDateOfBirth(),
-                            "Date of death: " + orNA(a.getDateOfDeath()), "Notes: " + orNA(a.getNotes()),
-                            "Facility ID: " + a.getFacilityId()))
-                    .orElse(null);
-            case FACILITY -> facilityManager.getRecords("id", "%").stream().filter(f -> f.getId() == id).findFirst()
-                    .map(f -> List.of("Name: " + f.getName(), "Abbreviation: " + f.getAbbreviation()))
-                    .orElse(null);
-            case MISSION -> missionManager.getRecords("id", "%").stream().filter(m -> m.getId() == id).findFirst()
-                    .map(m -> List.of("Title: " + m.getTitle(), "Brief Ids: " + m.getBriefIdsAsString(), 
-                                      "Agent Ids: " + m.getAgentIdsAsString(), "Facility Id: " + m.getFacilityId()))
-                    .orElse(null);
+        Optional<List<String>> details = switch (type) {
+            case BRIEF -> brief(id).map(b -> List.of("Title: " + b.getTitle(), "Date: " + b.getDate(),
+                    "Text: " + b.getText()));
+            case AGENT -> agent(id).map(a -> List.of("Name: " + a.getName(), "Date of birth: " + a.getDateOfBirth(),
+                    "Date of death: " + orNA(a.getDateOfDeath()), "Notes: " + orNA(a.getNotes()),
+                    "Facility ID: " + a.getFacilityId()));
+            case FACILITY -> facility(id).map(f -> List.of("Name: " + f.getName(),
+                    "Abbreviation: " + f.getAbbreviation()));
+            case MISSION -> mission(id).map(m -> List.of("Title: " + m.getTitle(),
+                    "Brief Ids: " + m.getBriefIdsAsString(), "Agent Ids: " + m.getAgentIdsAsString(),
+                    "Facility Id: " + m.getFacilityId()));
         };
-        if (details == null) {
+        if (details.isEmpty()) {
             return "No " + type.getSingular() + " found with ID " + id + ".";
         }
         auditLog.log(user.getUsername(), "READ", type.name(), String.valueOf(id));
-        return String.join("\n", details);
+        return String.join("\n", details.get());
     }
 
     // One line per audit entry for admins; an access-denied message for everyone else.
@@ -99,28 +106,186 @@ public class AppController {
     }
 
     // Current values of a record keyed by RecordForms field name, used to fill the edit form.
-    // Returns null when no record has that ID.
+    // Returns null when no record has that ID. Missing optional values are empty strings.
     public Map<String, String> formValues(RecordType type, int id) {
-        throw new UnsupportedOperationException("HW7 week 2: load values for the edit form");
+        Optional<Map<String, String>> values = switch (type) {
+            case BRIEF -> brief(id).map(b -> values("title", b.getTitle(), "date", b.getDate(), "text", b.getText()));
+            case AGENT -> agent(id).map(a -> values("name", a.getName(), "dateOfBirth", a.getDateOfBirth(),
+                    "dateOfDeath", a.getDateOfDeath(), "notes", a.getNotes(),
+                    "facilityId", String.valueOf(a.getFacilityId())));
+            case FACILITY -> facility(id).map(f -> values("name", f.getName(), "abbreviation", f.getAbbreviation()));
+            case MISSION -> mission(id).map(m -> values("title", m.getTitle(),
+                    "facilityId", String.valueOf(m.getFacilityId()),
+                    "briefIds", joinIds(m.getBriefIds()), "agentIds", joinIds(m.getAgentIds())));
+        };
+        return values.orElse(null);
     }
 
     // Creates a record from submitted form values, logs CREATE, and returns the new record's ID.
     // Throws SecurityException for non-admins and IllegalArgumentException for invalid values.
     public int createRecord(RecordType type, Map<String, String> values, UserAccount user) {
         requireEditor(user);
-        throw new UnsupportedOperationException("HW7 week 2: create records from the web form");
+        Map<String, String> v = cleaned(type, values);
+        // The model constructors validate (dates, blanks); ID 1 is a placeholder until the database assigns one.
+        int id = switch (type) {
+            case BRIEF -> briefManager.addRecord(new Brief(1, v.get("title"), v.get("date"), v.get("text"), null))
+                    .getId();
+            case AGENT -> agentManager.addRecord(new Agent(1, v.get("name"), v.get("dateOfBirth"),
+                    v.get("dateOfDeath"), v.get("notes"), facilityId(v))).getId();
+            case FACILITY -> facilityManager.addRecord(new Facility(1, v.get("name"), v.get("abbreviation"))).getId();
+            case MISSION -> missionManager.addRecord(new Mission(1, v.get("title"), briefIds(v), agentIds(v),
+                    facilityId(v))).getId();
+        };
+        auditLog.log(user.getUsername(), "CREATE", type.name(), String.valueOf(id));
+        return id;
     }
 
     // Saves submitted form values over an existing record and logs UPDATE.
     // Throws SecurityException for non-admins and IllegalArgumentException for invalid values or a missing ID.
     public void updateRecord(RecordType type, int id, Map<String, String> values, UserAccount user) {
         requireEditor(user);
-        throw new UnsupportedOperationException("HW7 week 2: update records from the web form");
+        if (formValues(type, id) == null) {
+            throw new IllegalArgumentException("No " + type.getSingular() + " found with ID " + id + ".");
+        }
+        Map<String, String> v = cleaned(type, values);
+        // Build the model object first so invalid values are rejected before anything is saved.
+        switch (type) {
+            case BRIEF -> {
+                new Brief(id, v.get("title"), v.get("date"), v.get("text"), null);
+                save(briefManager, id, v, "title", "date", "text");
+            }
+            case AGENT -> {
+                new Agent(id, v.get("name"), v.get("dateOfBirth"), v.get("dateOfDeath"), v.get("notes"), facilityId(v));
+                save(agentManager, id, v, "name", "dateOfBirth", "dateOfDeath", "notes", "facilityId");
+            }
+            case FACILITY -> {
+                new Facility(id, v.get("name"), v.get("abbreviation"));
+                save(facilityManager, id, v, "name", "abbreviation");
+            }
+            case MISSION -> {
+                Mission mission = new Mission(id, v.get("title"), briefIds(v), agentIds(v), facilityId(v));
+                save(missionManager, id, v, "title", "facilityId");
+                missionManager.replaceAssignments(id, mission.getBriefIds(), mission.getAgentIds());
+            }
+        }
+        auditLog.log(user.getUsername(), "UPDATE", type.name(), String.valueOf(id));
     }
 
     private void requireEditor(UserAccount user) {
         if (!canEdit(user)) {
             throw new SecurityException("Access denied. Only administrators can create or edit records.");
+        }
+    }
+
+    // ---- lookups ----
+
+    private Optional<Brief> brief(int id) {
+        return briefManager.getRecords("id", "%").stream().filter(b -> b.getId() == id).findFirst();
+    }
+
+    private Optional<Agent> agent(int id) {
+        return agentManager.getRecords("id", "%").stream().filter(a -> a.getId() == id).findFirst();
+    }
+
+    private Optional<Facility> facility(int id) {
+        return facilityManager.getRecords("id", "%").stream().filter(f -> f.getId() == id).findFirst();
+    }
+
+    private Optional<Mission> mission(int id) {
+        return missionManager.getRecords("id", "%").stream().filter(m -> m.getId() == id).findFirst();
+    }
+
+    // ---- form value helpers ----
+
+    // Trimmed values for the type's fields, blanks as null. Throws when a required field is blank.
+    private static Map<String, String> cleaned(RecordType type, Map<String, String> values) {
+        Map<String, String> cleaned = new LinkedHashMap<>();
+        for (FormField field : RecordForms.fieldsFor(type)) {
+            String raw = values == null ? null : values.get(field.name());
+            String value = raw == null || raw.isBlank() ? null : raw.trim();
+            if (value == null && field.required()) {
+                throw new IllegalArgumentException(field.label() + " is required.");
+            }
+            cleaned.put(field.name(), value);
+        }
+        return cleaned;
+    }
+
+    // Facility ID from the form; must name an existing facility.
+    private int facilityId(Map<String, String> v) {
+        int id = parseId(v.get("facilityId"), "Facility ID");
+        if (facility(id).isEmpty()) {
+            throw new IllegalArgumentException("No facility found with ID " + id + ".");
+        }
+        return id;
+    }
+
+    private int[] briefIds(Map<String, String> v) {
+        int[] ids = parseIds(v.get("briefIds"), "Brief IDs");
+        for (int id : ids) {
+            if (brief(id).isEmpty()) {
+                throw new IllegalArgumentException("No brief found with ID " + id + ".");
+            }
+        }
+        return ids;
+    }
+
+    private int[] agentIds(Map<String, String> v) {
+        int[] ids = parseIds(v.get("agentIds"), "Agent IDs");
+        for (int id : ids) {
+            if (agent(id).isEmpty()) {
+                throw new IllegalArgumentException("No agent found with ID " + id + ".");
+            }
+        }
+        return ids;
+    }
+
+    private static int parseId(String text, String label) {
+        try {
+            int id = Integer.parseInt(text.trim());
+            if (id > 0) {
+                return id;
+            }
+        } catch (NumberFormatException ignored) {
+            // falls through to the error below
+        }
+        throw new IllegalArgumentException(label + " must be a positive whole number.");
+    }
+
+    // "1, 2,3" -> {1, 2, 3}; blank -> {}. Duplicates are kept once.
+    private static int[] parseIds(String text, String label) {
+        if (text == null) {
+            return new int[0];
+        }
+        List<Integer> ids = new ArrayList<>();
+        for (String part : text.split(",")) {
+            if (!part.isBlank()) {
+                int id = parseId(part, label);
+                if (!ids.contains(id)) {
+                    ids.add(id);
+                }
+            }
+        }
+        return ids.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    private static String joinIds(int[] ids) {
+        return String.join(", ", Arrays.stream(ids).mapToObj(String::valueOf).toList());
+    }
+
+    // Ordered map from alternating name/value pairs; null values become "".
+    private static Map<String, String> values(String... pairs) {
+        Map<String, String> map = new LinkedHashMap<>();
+        for (int i = 0; i < pairs.length; i += 2) {
+            map.put(pairs[i], pairs[i + 1] == null ? "" : pairs[i + 1]);
+        }
+        return map;
+    }
+
+    // Writes each named form value to its column of the record with this ID.
+    private static void save(IDatabaseManager<?> manager, int id, Map<String, String> v, String... fields) {
+        for (String field : fields) {
+            manager.updateRecord("id", String.valueOf(id), field, v.get(field));
         }
     }
 

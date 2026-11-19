@@ -1,6 +1,5 @@
 package org.view;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -8,8 +7,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-// Drafted in week 1; enabled in week 2 when FormView.form is implemented.
-@Disabled("HW7 week 2: FormView.form not implemented yet")
 class FormViewTest {
 
     private static final List<FormField> FIELDS = List.of(
