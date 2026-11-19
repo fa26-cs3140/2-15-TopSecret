@@ -2,8 +2,8 @@
 
 ## Class diagram
 
-Solid relationships below reflect the current branch. Dashed arrows identify
-Week 2 wiring and adapters.
+The class diagram reflects the implemented record editing, related records,
+search, and session administration paths.
 
 ```mermaid
 classDiagram
@@ -35,7 +35,7 @@ classDiagram
         +create(record, AuditEvent) int
         +update(id, record, AuditEvent) boolean
     }
-    class SqliteEditStore["Planned SQLite edit store"]
+    class SqliteRecordStore
     class AuditLogEntry
     class RecordSearch {
         +find(String) List~Match~
@@ -66,11 +66,11 @@ classDiagram
     RecordRelationships --> AgencyManagers
     RecordRelationships ..> RelatedRecord : returns
     RecordSearch --> AgencyManagers
-    AppController ..> RecordRelationships : Week 2
-    AppController ..> RecordEditor : Week 2
-    SqliteEditStore ..|> EditStore : Week 2
-    AgencyInterface ..> RecordSearch : Week 2
-    AgencyInterface ..> SessionManager : Week 2
+    AppController --> RecordRelationships
+    AppController --> RecordEditor
+    SqliteRecordStore ..|> EditStore
+    AgencyInterface --> RecordSearch
+    AgencyInterface --> SessionManager
 ```
 
 For an edit, the authenticated controller sends a complete validated model to
@@ -164,13 +164,13 @@ erDiagram
 different tables or account actions. Tokens and their last-activity times
 are in-memory server state. Passwords live in separate ciphered files.
 
-## Web detail wireframe (Week 2)
+## Web detail wireframe
 
 ```text
 [Menu]  [Facilities]  [Agents]  [Missions]  [Briefs]  [Log out]
 Facility · Blackwood Annex                           [Edit]
 Abbreviation  BA
-Country       [United States]
+Country       [Team A country integration pending]
 Agents        [Vanguard]   [Ghost]
 Missions      [Recon]
 ```
@@ -180,23 +180,30 @@ unassigned group can display “None.” Agent detail links to its facility and
 missions, Mission detail links to its facility, briefs, and agents, and
 Brief detail links to its assigned missions.
 
-## Terminal wireframes (Week 2)
+## Terminal wireframes
 
 ```text
 Search records
 Text: nightbird
 Agent 12  Mira
-Enter another query, or press Enter to go back.
+Returns to the main menu after listing results.
 ```
 
 ```text
 Manage web sessions (administrator)
 Username   Token                   Last activity (UTC)
 ghost      <full session token>    2026-11-12T20:29:00Z
-1. Refresh list
-2. Revoke a session by token
-0. Back
+Token to revoke, r to refresh, or Enter to return:
 ```
 
 The session screen lists active tokens without refreshing their activity.
 After revocation, the next browser request using that token goes to login.
+
+## Current country dependency
+
+The shared branch contains an unfinished `Country` class, without a country
+manager, database table, facility foreign key, or country route. Country
+links and country text search depend on Team A completing that feature.
+The proposed country table and relationship above identify the integration
+point. The implemented relationship service currently resolves facilities,
+agents, missions, and briefs from the existing tables.

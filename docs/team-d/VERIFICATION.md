@@ -1,54 +1,64 @@
 # Homework 7 verification
 
-## Week 1 automated checks
+## Automated results
 
-Run from the repository root:
+Executed with Java 26 and the repository's Gradle wrapper:
 
 ```sh
-./gradlew test build unitTest integrationTest jacocoTestReport
+./gradlew test build unitTest integrationTest jacocoTestReport jacocoUnitTestReport
 ```
 
 | Check | Result |
 | --- | --- |
-| Full test suite | 347 passed; zero failures or skips |
-| Separate unit task | 304 passed |
-| Separate integration task | 43 passed |
-| Gradle build | Passed |
-| Project method coverage | 313 of 339 methods, 92.3% |
-| New Team D code and changed session manager | All JaCoCo-counted methods exercised by the combined suite |
+| Full test suite | 412 passed, zero failures, zero errors, zero skips |
+| Separate unit task | 348 passed |
+| Separate integration task | 64 passed |
+| Gradle build and packaged JAR | Passed |
+| Project method coverage, complete suite | 389 / 412 methods, 94.4% |
+| Project method coverage, unit task | 351 / 412 methods, 85.2% |
+| New Team D services, link view, and session manager | 100% method coverage in both the isolated unit task and complete suite |
 
-The existing Gradle task filters determine which suites run separately.
-The new SQLite relationship and HTTP tests run with the integration task.
-JaCoCo counts a method as covered when it executes at least one instruction;
-this does not establish coverage of every path.
+The Team D coverage statement includes RecordEditor and AuditEvent,
+SqliteRecordStore, RecordSearch, RecordRelationships, RelatedRecordView,
+and SessionManager. JaCoCo-generated record filtering applies. Method coverage
+measures whether a method executes; the acceptance cases below exercise
+failure paths and complete workflows as well.
 
-## Week 1 packaged application check
+Unit tests use Mockito for record stores, account services, and the JDBC
+transaction protocol. Integration tests use temporary SQLite databases and
+real HTTP servers. The existing Gradle task filters determine the separate
+suite membership. Tests use the normal application constructors and routes.
 
-The built JAR passed a smoke test in a temporary data directory: first-account
-creation, a per-user ciphered credential file, the corrected messaging menu
-labels, browser login, authenticated navigation, record listing, and logout.
-Timeout and token revocation were exercised by the automated HTTP tests using
-a controlled clock.
+The uncovered project methods are in TopSecret, MissionManager, FileHandler,
+Country, SearchResult, AgencyInterface, HtmlPage, and DebugHelper. The complete
+project has further work to reach the assignment's 100% method target.
 
-## Week 2 acceptance and system test
+## Acceptance cases exercised
 
-Run each scenario against a fresh database, and rerun against a database
-created before the changes. Each teammate should run the packaged app ahead
-of the final deadline.
+- Create and edit briefs, agents, facilities, and missions over HTTP.
+- Preserve generated IDs, optional nulls, apostrophes, and multiline content.
+- Replace mission assignments, including empty lists.
+- Persist username, action, content type, record ID, and timestamp in audit.
+- Roll back scalar values, assignments, and creation after a forced audit failure.
+- Reject standard-user POSTs and revoke a demoted administrator's edit access.
+- Render related links in every current record direction and escape labels.
+- Return 404 for missing details without recording a READ event.
+- Search all current record text fields through the terminal menu.
+- Refresh active sessions beyond their original lifetime and expire them at
+  the exact 30-minute idle boundary.
+- List and revoke a live token through the authenticated terminal.
+- Preserve separate ciphered password files and invalidate an old password
+  after replacement.
 
-| Scenario | Pass condition |
-| --- | --- |
-| Admin creates each supported record from an empty form | New values persist, and exactly one CREATE entry has the actor, type, new ID, and timestamp |
-| Admin edits each supported record from a prefilled form | Saved fields and associations survive restart; one UPDATE audit event identifies the same record |
-| Invalid edit or forced audit failure | No record or relationship changes commit, no audit event persists, and the form reports the problem |
-| Unknown ID or standard user's edit request | No changes and no CREATE/UPDATE audit rows |
-| Apostrophes and multiline text in an edit | Content is stored literally; HTML output is escaped |
-| Related records | Every displayed link opens the correct record; changing a country updates the name shown at its facilities |
-| Terminal search | Match every content text field, including country data; punctuation is literal and empty queries return no matches |
-| Web timeout | A request before minute 30 refreshes activity; after 30 idle minutes the next request goes to login |
-| Terminal session administration | Admin sees username, token, and last activity; revoking one token signs out only that browser on its next request; standard users are denied |
-| Existing account and messaging paths | Separate passwords still work, previous passwords fail after a change, and inboxes stay isolated |
+## Packaged application system test
 
-The transactional write, country, clickable relationship, and terminal menu
-scenarios are Week 2 acceptance checks. The current tests exercise the Week 1
-contracts, existing routes, and implemented idle timeout.
+Ran the built JAR against a temporary copy of the data directory. Created an
+administrator through the terminal, restarted in `-web-admin` mode, logged in
+over HTTP, created/read/edited a brief, and inspected the persisted audit
+fields. Listed and revoked that live token through terminal option 12. Its
+next HTTP request redirected to login. Terminal option 11 found the edited
+body, and terminal exit stopped the server cleanly. The process exited with 0.
+
+Country links, country search, and the country's own editing path require Team
+A's unfinished feature. Web messaging and read flags require Team C's feature.
+Those shared dependencies are listed in the PR and WORK-PLAN.md.

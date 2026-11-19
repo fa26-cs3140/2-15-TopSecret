@@ -1,44 +1,48 @@
-# Homework 7 model and session backlog
+# Homework 7 model and session work
 
-Reviewed the shared branch at `568d4ee` against the assignment. The baseline
-passed 322 tests with 271 of 299 methods covered by JaCoCo. The green baseline
-still had workflow gaps that existing tests did not exercise.
+The Week 1 commits contain the design and test contracts. The Week 2 branch
+integrates the latest shared web edit workflow and completes Team D's services
+for the available content types.
 
-| Priority | Finding and action | Owner / state |
-| --- | --- | --- |
-| P0 | The terminal displayed Send and Inbox in reverse. Cancellation and storage-error tests still chose the password menu. Align labels with the existing actions and verify the tests reach messaging. | D, fixed |
-| P0 | Browser tokens currently need a 30-minute idle limit and a way for admins to revoke them. Use the existing session manager and test the exact deadline and HTTP redirects with an injected clock. | D, expiry and manager operations tested |
-| P0 | Record managers build legacy update SQL from string inputs. The web write path needs typed inputs, exact IDs, parameter binding, validation, and one transaction for the content change and audit row. | D, contract and unit tests ready; SQLite stores in Week 2 |
-| P1 | A terminal process started separately from `-web` cannot see the running server's in-memory tokens. Add an opt-in launch mode that keeps the admin terminal and the web server in one process and injects the same session manager. | D with B, Week 2 wiring |
-| P1 | Detail pages display plain text, including raw relation IDs. Supply typed related rows and render safe links. Keep the READ audit tied to the record actually opened. | D with B, model tested; HTML wiring in Week 2 |
-| P1 | Terminal search was lost in the MVC refactor. Search all text properties of the current records and add the new country fields when Team A's model is available. | D, current fields tested; menu and country integration in Week 2 |
-| P1 | Mission brief assignments are persisted in `j_mission_briefs`; `briefs.mission_id` is legacy. Keep one source for the new write/read paths and check existing data before any migration. Existing mission creation also needs a test for empty relation lists. | D with shared model owner, Week 2 |
-| P2 | Web detail routing currently uses a plain-text not-found message and can return 200 for missing records. Give the view a typed result, return 404 for missing IDs, and share link rendering with list pages. | D with B, Week 2 |
-| P2 | The older `SearchResult` class is unused, and some inherited test methods and classes lack coverage. Recheck call sites before removing dead code and use JaCoCo to prioritize remaining tests. | D / team, Week 2 |
-| P2 | The documentation index still contains older teammate diagrams. Consolidate the current shared class diagram, ERD, and wireframe with their owners before submission. | Team, Week 2 |
+## Completed backlog
 
-## Integration agreements to review at check-in
+| Item | Implementation and validation |
+| --- | --- |
+| Terminal messaging options | Corrected Send/Inbox labels and repaired regression tests that entered the password menu |
+| Content edits and audit | Typed model validation, exact-ID prepared writes, one transaction for content, mission relations, and CREATE/UPDATE audit |
+| Failed writes | SQLite trigger tests force audit failure and verify rollback of scalar fields, associations, and creation |
+| Related records | Facility, agent, mission, and brief detail pages display escaped links to related records |
+| Missing record | Web details return 404 and leave audit history unchanged |
+| Search | Option 11 searches all text fields of the current content models, with literal punctuation and case-insensitive matching |
+| Session idle timeout | Active requests refresh activity; sessions expire at 30 minutes of inactivity |
+| Session permissions | Production session lookup reloads account permissions and rejects deleted accounts |
+| Session administration | Option 12 in the authenticated `-web-admin` terminal lists and revokes the live server's tokens |
+| Tests and system check | Separate unit/integration tasks, full Gradle build, HTTP/SQLite acceptance tests, packaged-JAR system test |
+| Documentation | Updated diagrams and current instructions; regenerated the shared class PDF from compiled classes |
 
-- **Team A:** Confirm the country model, display label, route, and facility
-  foreign key before adding them to the relationship and search contracts.
-  Preserve existing facilities when migrating. Do not invent country IDs.
-- **Team B:** Pass validated model values to `RecordEditor` and use the actor
-  supplied by authenticated session lookup. The editor returns a generated
-  ID on creation and false for a missing update target. Render `RelatedRecord`
-  values as escaped links built from the record type and integer ID.
-- **Team C:** Web messages and read flags use the existing recipient privacy
-  rules. Keep message data out of record search and record-edit auditing.
-- **Team D:** Use the current web process's session manager for terminal list
-  and revoke. Require a current admin account at the terminal action.
-  Recheck current account permissions in the web auth path before allowing
-  edits, so a revoked admin role does not survive in a cached session account.
-  Keep tokens out of HTML, SQLite, and audit entries.
+## Shared prerequisites and remaining submission work
 
-## Week 2 order
+1. **Team A country feature.** The shared `Country` class is unfinished.
+   There is no country store, table, facility FK, or route. Once Team A supplies
+   them, integrate countries into related-record links, terminal search, and
+   the typed transactional edit path. The ERD marks that relationship as planned.
+2. **Team C web messaging.** The shared branch still has terminal messaging.
+   The Homework 7 web center and read indicators belong to Team C.
+3. **Whole-project coverage.** Team D's record services, link view, and session
+   manager have 100% JaCoCo method coverage in the isolated unit suite. The
+   complete project still has uncovered inherited methods, including the
+   unfinished Country class. See VERIFICATION.md for measured totals.
+4. **Shared document cleanup.** Older Team A/C and legacy component documents
+   remain in the repository. Their owners should reconcile them with the
+   final countries, messaging, and view implementation before submission.
+5. **Team review and system tests.** Review the integration PR and have each
+   teammate run the final combined application before the deadline.
 
-1. Confirm the country contract, edit inputs, and launch mode with A and B.
-2. Implement and test the transactional SQLite write path before enabling web
-   forms. Verify no audit row or partial relationship update survives failure.
-3. Wire related links, terminal search, and the terminal session commands.
-4. Run the system checklist, close uncovered methods, and consolidate the
-   shared documentation before submission.
+## Compatibility changes
+
+Team B's forms and routes remain the normal editing entry points. AppController
+now delegates complete writes to Team D's transactional store. Controller unit
+tests inject a mock of that store and check the submitted audit metadata.
+PageHandler adds related links and returns 404 for missing details. ProgramControl
+shares a session manager between the terminal and web server in `-web-admin`
+mode. The shared MissionManager implementation is retained.

@@ -1,6 +1,6 @@
 # Top Secret
 
-UVA CS 3140 team application with a terminal interface and a read-only HTML view.
+UVA CS 3140 team application with a terminal interface and an authenticated HTML view with administrator record editing.
 
 ## Build and run
 
@@ -24,7 +24,18 @@ java -jar build/libs/TopSecret.jar -web
 The web view listens at http://localhost:3002/. Accounts must already exist.
 The browser login uses session cookies. The server expires a token after 30
 minutes of inactivity and refreshes activity on an authenticated request.
-The web view displays records; the Homework 7 edit forms are planned for Week 2.
+Administrators can create and edit records over the web. Each content change and
+its audit entry commit together. Detail pages link to related agency records.
+
+To administer the running server from the terminal, start both in one process:
+
+```sh
+java -jar build/libs/TopSecret.jar -web-admin
+```
+
+After terminal login, option 11 searches agency records. Administrators can use
+option 12 to list active web tokens and revoke one. The server stops when this
+terminal exits.
 
 ## Agent messaging
 
@@ -55,7 +66,7 @@ On startup, the app attempts to load the sample TSVs into empty tables.
 
 The complete suite runs with `test`. The `unitTest` and `integrationTest`
 tasks also run separately. See the [Team D verification notes](docs/team-d/VERIFICATION.md)
-for the Homework 7 checkpoint results.
+for the Homework 7 test results and remaining shared dependencies.
 
 ## Documentation
 

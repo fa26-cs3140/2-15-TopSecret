@@ -1,43 +1,83 @@
 # Team D model and access control
 
-Homework 7 assigns Team D the model, related records, terminal search, audit
-logging for record changes, and web session administration. This branch covers
-the Week 1 review, design, tests, and stubs. The shared checkpoint starts at
-`568d4ee` on `NewDatabaseManagerRefactor`.
+Team D's Homework 7 work provides audited content persistence, related-record
+navigation, terminal search, and web session administration. The feature branch
+is `team-d-hw7-week2`, based on the shared `NewDatabaseManagerRefactor` branch
+and preserving the Week 1 commits.
 
-- [Prioritized backlog and team handoff](WORK-PLAN.md)
-- [Class diagram, ERD, and wireframes](DESIGN.md)
-- [Verification and system test checklist](VERIFICATION.md)
+- [Current design, ERD, and wireframes](DESIGN.md)
+- [Completed work and remaining team dependencies](WORK-PLAN.md)
+- [Test results and coverage](VERIFICATION.md)
 
-## Current behavior
+## Running the application
 
-A browser signs in through the existing web login. Its cookie is still a
-browser-session cookie. The server expires the token after 30 minutes of
-inactivity, and a request with an active token refreshes its last activity.
-Logout and revocation remove the token. Session state lives in the web server
-process and is cleared on restart. Administrator checks on session listing and
-revocation are in `SessionManager`; the terminal management menu is planned
-for Week 2.
+Build with `./gradlew build`, then run from the repository root.
 
-In the terminal, **9. My messages** opens the authenticated account's inbox
-and **10. Send an agent message** sends to an agent. Enter `.` on its own line
-to send or `/cancel` to cancel. Recipient names are matched against the
-authenticated username, ignoring case. Team C owns the web messaging center
-and its read indicators for Homework 7.
+```sh
+java -jar build/libs/TopSecret.jar
+java -jar build/libs/TopSecret.jar -web
+java -jar build/libs/TopSecret.jar -web-admin
+```
 
-## Data boundaries
+The default mode opens the authenticated terminal. `-web` starts the web
+interface on port 3002 after accounts exist. `-web-admin` authenticates the
+terminal user and starts the web server in the same process. The server stops
+when that terminal exits. Accounts and passwords are managed through the
+existing terminal workflow.
 
-- `UserAccountManager` uses SQLite for account metadata and per-user
-  `credentials-<hex username>.cip` files for passwords. Usernames follow
-  `[a-z0-9_-]{3,}`; passwords require at least five characters with both
-  uppercase and lowercase letters.
-- `AuditLogManager` and `SqliteAuditLogStore` preserve existing READ and
-  CREATE entries. The planned edit store uses the same audit schema and
-  commits the content change and audit row together.
-- `RecordRelationships` resolves current links using the managers and mission
-  junction tables. `RecordSearch` searches the current content models with
-  literal, case-insensitive matching. Both return typed results for the view
-  to render.
-- `RecordEditor<T>` is the Week 1 boundary for authenticated edits. Its store
-  contract is tested with Mockito. Week 2 supplies the SQLite implementation
-  and connects it to the web forms.
+Terminal option 11 searches content text fields. Option 12 in `-web-admin`
+lists current web sessions for administrators, including username, full token,
+and last activity in UTC. Enter a token to revoke it, `r` to refresh the list,
+or an empty line to return. The next request with a revoked token goes to
+login. The list operation preserves the recorded last-activity times.
+
+A valid web request refreshes the session's activity. Thirty minutes without
+a request expires the token, including at the exact deadline. Each production
+session lookup reloads current account permissions. A deleted account loses
+access and a demoted administrator loses permission to edit. Session tokens
+live in the web server process and are cleared on restart.
+
+## Record editing and audit
+
+Team B's existing create/edit routes and form rendering call `AppController`.
+It validates the complete submitted model and passes the authenticated actor
+to `RecordEditor`. `SqliteRecordStore` writes all fields, mission junction
+rows, and one CREATE or UPDATE audit row using one SQLite transaction.
+SQL values use bound parameters and updates use the exact numeric record ID.
+A failure rolls back both the content and audit writes. Missing update targets
+create no audit entry. Multiline text and apostrophes persist literally.
+
+Audit entries retain username, action, content type, content identifier, and
+timestamp. CREATE uses the generated record ID. Existing READ auditing is
+preserved, and missing detail pages return 404 without a READ event.
+
+## Relationships and search
+
+`RecordRelationships` supplies related records through the existing managers.
+`RelatedRecordView` builds internal links from record types and IDs and escapes
+the display labels.
+
+- Facilities link to their agents and missions.
+- Agents link to their facility and assigned missions.
+- Missions link to their facility, briefs, and agents.
+- Briefs link to assigned missions.
+
+`RecordSearch` performs literal, case-insensitive substring matching across
+brief title/date/text, agent name/birth/death/notes, facility name/abbreviation,
+and mission title. A record appears once even if several fields match. Empty
+queries produce no matches. Search returns content references to the terminal.
+
+Team A's country persistence, facility association, and route are absent from
+the shared branch. Country links and country text search depend on that feature.
+
+## Existing accounts and messaging
+
+Passwords remain in separate `credentials-<hex username>.cip` files. SQLite
+stores username and admin metadata. Username and password rules are enforced
+by the existing account manager. Tests verify separate passwords, password
+replacement, and the account-table columns.
+
+Terminal option 9 opens the current user's inbox and option 10 sends a message.
+Team C owns Homework 7's web messaging center and read indicators. The content
+edit/search services operate on agency records. The existing messaging privacy
+tests remain active.

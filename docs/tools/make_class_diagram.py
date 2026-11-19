@@ -220,7 +220,7 @@ out_path.write_text(f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>
 @page {{ size: letter landscape; margin: 0.4in; }}
 body {{ font-family: Helvetica, Arial, sans-serif; font-size: 8.5pt; color: #000; }}
 h1 {{ font-size: 18pt; margin: 0 0 4px; }} h2 {{ font-size: 12pt; margin: 0 0 2px; }}
-.ov {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }}
+.ov {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; font-size: 7.5pt; line-height: 1.1; }}
 .pkg {{ border: 1.5px solid #000; padding: 6px; break-inside: avoid; }}
 .pname {{ font-weight: bold; border-bottom: 1px solid #000; margin-bottom: 3px; }}
 .prole {{ color: #333; font-style: italic; margin: 0 0 4px; }}

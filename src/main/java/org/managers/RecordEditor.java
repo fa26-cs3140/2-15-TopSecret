@@ -13,7 +13,7 @@ import java.util.function.ToIntFunction;
 public final class RecordEditor<T> {
 
     /**
-     * Week 2 persistence boundary. Each operation must save the record and its
+     * Transactional persistence boundary. Each operation must save the record and its
      * audit event in the same transaction. The store supplies the generated ID
      * for a create and reports a missing ID without writing an audit event.
      */
