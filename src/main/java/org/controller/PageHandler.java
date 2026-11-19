@@ -10,12 +10,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-// Serves /menu, /briefs, /agents, /facilities, /missions, /audit and /logout for logged-in users.
+// Serves /menu, /audit, /logout and the record pages for logged-in users; create/edit URLs go to EditHandler.
 // Requests without a valid session cookie are redirected to the login page.
 public class PageHandler implements HttpHandler {
 
     private final AppController controller;
     private final SessionManager sessions;
+    private final EditHandler edits;
 
     public PageHandler(AppController controller, SessionManager sessions) {
         if (controller == null || sessions == null) {
@@ -23,6 +24,7 @@ public class PageHandler implements HttpHandler {
         }
         this.controller = controller;
         this.sessions = sessions;
+        this.edits = new EditHandler(controller);
     }
 
     @Override
@@ -35,43 +37,65 @@ public class PageHandler implements HttpHandler {
         }
 
         String path = exchange.getRequestURI().getPath();
-        if (path.equals("/logout")) {
-            sessions.endSession(token);
-            WebServer.redirect(exchange, "/");
+        if (EditHandler.parse(path) != null) {
+            edits.handle(exchange, user);
             return;
         }
-        if (path.equals("/menu")) {
-            String body = "<p>Logged in as " + HtmlPage.escape(user.getUsername()) + ".</p>\n"
-                    + "<ul>\n<li><a href=\"/briefs\">Briefs</a></li>\n<li><a href=\"/agents\">Agents</a></li>\n"
-                    + "<li><a href=\"/facilities\">Facilities</a></li>\n<li><a href=\"/missions\">Missions</a></li>\n"
-                    + (user.isAdmin() ? "<li><a href=\"/audit\">Review audit log</a></li>\n" : "") + "</ul>";
-            send(exchange, user, 200, "Main Menu", body);
-            return;
+        switch (path) {
+            case "/logout" -> {
+                sessions.endSession(token);
+                WebServer.redirect(exchange, "/");
+            }
+            case "/menu" -> showMenu(exchange, user);
+            case "/audit" -> send(exchange, user, 200, "Audit Log", HtmlPage.list(controller.auditLog(user), null));
+            default -> showRecords(exchange, user, path);
         }
-        if (path.equals("/audit")) {
-            send(exchange, user, 200, "Audit Log", HtmlPage.list(controller.auditLog(user), null));
-            return;
-        }
+    }
 
-        // /briefs, /briefs/3, /agents, /agents/2, /facilities, /facilities/1, /missions, /missions/4
+    private void showMenu(HttpExchange exchange, UserAccount user) throws IOException {
+        String body = "<p>Logged in as " + HtmlPage.escape(user.getUsername()) + ".</p>\n"
+                + "<ul>\n<li><a href=\"/briefs\">Briefs</a></li>\n<li><a href=\"/agents\">Agents</a></li>\n"
+                + "<li><a href=\"/facilities\">Facilities</a></li>\n<li><a href=\"/missions\">Missions</a></li>\n"
+                + (user.isAdmin() ? "<li><a href=\"/audit\">Review audit log</a></li>\n" : "") + "</ul>";
+        send(exchange, user, 200, "Main Menu", body);
+    }
+
+    // /briefs, /briefs/3, /agents, /agents/2, /facilities, /facilities/1, /missions, /missions/4
+    private void showRecords(HttpExchange exchange, UserAccount user, String path) throws IOException {
         String[] parts = path.substring(1).split("/");
         RecordType type = typeFor(parts[0]);
         if (type == null || parts.length > 2) {
             send(exchange, user, 404, "Not Found", "<p>Page not found.</p>");
         } else if (parts.length == 1) {
-            String text = controller.listRecords(type);
-            send(exchange, user, 200, type.getTitle(), HtmlPage.list(text, links(parts[0], text)));
+            showList(exchange, user, type, parts[0]);
+        } else if (parts[1].matches("\\d{1,9}")) {
+            showDetail(exchange, user, type, parts[0], Integer.parseInt(parts[1]));
         } else {
-            try {
-                int id = Integer.parseInt(parts[1]);
-                send(exchange, user, 200, type.getTitle(), HtmlPage.paragraphs(controller.readRecord(type, id, user)));
-            } catch (NumberFormatException e) {
-                send(exchange, user, 404, "Not Found", "<p>Invalid ID.</p>");
-            }
+            send(exchange, user, 404, "Not Found", "<p>Invalid ID.</p>");
         }
     }
 
-    private static RecordType typeFor(String segment) {
+    // Admins also get a link to create a new record of this type.
+    private void showList(HttpExchange exchange, UserAccount user, RecordType type, String segment)
+            throws IOException {
+        String text = controller.listRecords(type);
+        String newLink = controller.canEdit(user)
+                ? "<p><a href=\"/" + segment + "/new\">New " + type.getSingular() + "</a></p>\n" : "";
+        send(exchange, user, 200, type.getTitle(), newLink + HtmlPage.list(text, links(segment, text)));
+    }
+
+    // Admins also get a link to edit the record when it exists.
+    private void showDetail(HttpExchange exchange, UserAccount user, RecordType type, String segment, int id)
+            throws IOException {
+        String body = HtmlPage.paragraphs(controller.readRecord(type, id, user));
+        if (controller.canEdit(user) && controller.formValues(type, id) != null) {
+            body += "<p><a href=\"/" + segment + "/" + id + "/edit\">Edit " + type.getSingular() + "</a></p>\n";
+        }
+        send(exchange, user, 200, type.getTitle(), body);
+    }
+
+    // Record type for a URL segment such as "briefs"; null when the segment is not a record type.
+    static RecordType typeFor(String segment) {
         return switch (segment) {
             case "briefs" -> RecordType.BRIEF;
             case "agents" -> RecordType.AGENT;
