@@ -140,4 +140,74 @@ public class MissionManagerTest
         assertNotNull(results);
         assertTrue(results.isEmpty());
     }
+
+    // A mission needs one facility; these tests also use two briefs and one agent.
+    private MissionManager managerWithRelatedRecords()
+    {
+        FacilityManager facilities = new FacilityManager(testUrl);
+        facilities.createTable();
+        facilities.addRecord("Headquarters", "HQ");
+        BriefManager briefs = new BriefManager(testUrl);
+        briefs.createTable();
+        briefs.addRecord("Brief One", "2020-01-01", "First");
+        briefs.addRecord("Brief Two", "2020-01-02", "Second");
+        AgentManager agents = new AgentManager(testUrl);
+        agents.createTable();
+        agents.addRecord("Ghost", "1992-11-22", null, null, 1);
+        MissionManager manager = new MissionManager(testUrl);
+        manager.createTable();
+        return manager;
+    }
+
+    private Mission reload(MissionManager manager, int id)
+    {
+        return manager.getRecords("id", String.valueOf(id)).get(0);
+    }
+
+    @Test
+    void testMissionWithNoBriefsOrAgents()
+    {
+        MissionManager manager = managerWithRelatedRecords();
+
+        Mission mission = manager.addRecord("Solo Op", new int[]{}, new int[]{}, 1);
+
+        assertEquals(0, reload(manager, mission.getId()).getBriefIds().length);
+        assertEquals(0, reload(manager, mission.getId()).getAgentIds().length);
+    }
+
+    @Test
+    void testReplaceAssignments()
+    {
+        MissionManager manager = managerWithRelatedRecords();
+        int id = manager.addRecord("Joint Op", new int[]{1}, new int[]{}, 1).getId();
+
+        manager.replaceAssignments(id, new int[]{2}, new int[]{1});
+
+        assertArrayEquals(new int[]{2}, reload(manager, id).getBriefIds());
+        assertArrayEquals(new int[]{1}, reload(manager, id).getAgentIds());
+    }
+
+    @Test
+    void testReplaceAssignmentsWithUnknownIdKeepsOldAssignments()
+    {
+        MissionManager manager = managerWithRelatedRecords();
+        int id = manager.addRecord("Joint Op", new int[]{1}, new int[]{1}, 1).getId();
+
+        assertThrows(IllegalArgumentException.class, () -> manager.replaceAssignments(id, new int[]{99}, new int[]{}));
+        assertArrayEquals(new int[]{1}, reload(manager, id).getBriefIds());
+        assertArrayEquals(new int[]{1}, reload(manager, id).getAgentIds());
+    }
+
+    @Test
+    void testUpdateRecordStoresQuotesSafelyAndRejectsUnknownColumns()
+    {
+        MissionManager manager = managerWithRelatedRecords();
+        int id = manager.addRecord("Joint Op", new int[]{}, new int[]{}, 1).getId();
+
+        assertTrue(manager.updateRecord("id", String.valueOf(id), "title", "O'Brien's Op"));
+        assertEquals("O'Brien's Op", reload(manager, id).getTitle());
+        assertFalse(manager.updateRecord("id", "999", "title", "Nobody"));
+        assertThrows(IllegalArgumentException.class,
+                () -> manager.updateRecord("id", String.valueOf(id), "title = 'x' --", "y"));
+    }
 }

@@ -244,14 +244,10 @@ public class MissionManager extends IDatabaseManager<Mission>
             c.setAutoCommit(false);
             int genMissionId = -1;
             // Get briefIds
-            String[] briefIdStrings = ((String) values[2]).trim().split(",");
-            int[] briefIds = new int[briefIdStrings.length];
-            for (int i = 0; i < briefIds.length; i++) briefIds[i] = Integer.parseInt(briefIdStrings[i]);
+            int[] briefIds = parseIdList((String) values[2]);
 
             // Get agentIds
-            String[] agentIdStrings = ((String) values[3]).trim().split(",");
-            int[] agentIds = new int[agentIdStrings.length];
-            for (int i = 0; i < agentIds.length; i++) agentIds[i] = Integer.parseInt(agentIdStrings[i]);
+            int[] agentIds = parseIdList((String) values[3]);
 
             // Get the statement working
             pstmt.setString(1, (String) values[0]); // Title
@@ -338,12 +334,59 @@ public class MissionManager extends IDatabaseManager<Mission>
     @Override 
     public Boolean updateRecord(String checkColumn, String key, String changeColumn, String value)
     {
-        String query = "UPDATE " + this.tableName + 
-                      " SET " + changeColumn + " = " + "\'" + value +"\'" +
-                      " WHERE " + checkColumn + " LIKE " + "\'" + key + "\'"; 
-        int rowsAffected = this.update(query, checkColumn, key, changeColumn, value);
+        return this.updateColumn(checkColumn, key, changeColumn, value);
+    }
 
-        return rowsAffected > 0;
+    // "1,2" -> {1, 2}; an empty list (a mission with no briefs or agents) -> {}.
+    private static int[] parseIdList(String ids)
+    {
+        return java.util.Arrays.stream(ids.split(",")).map(String::trim).filter(id -> !id.isEmpty())
+                .mapToInt(Integer::parseInt).toArray();
+    }
+
+    /**
+     * Replaces the briefs and agents assigned to a mission (used when a mission is edited).
+     * Runs as one transaction, so a bad ID leaves the old assignments in place.
+     */
+    public void replaceAssignments(int missionId, int[] briefIds, int[] agentIds)
+    {
+        try (Connection c = connect())
+        {
+            c.setAutoCommit(false);
+            try
+            {
+                replaceJunctionRows(c, this.juncBriefTableName, "briefId", missionId, briefIds);
+                replaceJunctionRows(c, this.juncAgentTableName, "agentId", missionId, agentIds);
+                c.commit();
+            }
+            catch (SQLException e)
+            {
+                c.rollback();
+                throw e;
+            }
+        }
+        catch (SQLException e)
+        {
+            throw new IllegalArgumentException("The database rejected the assignments: " + e.getMessage());
+        }
+    }
+
+    private static void replaceJunctionRows(Connection c, String table, String idColumn, int missionId, int[] ids)
+            throws SQLException
+    {
+        try (PreparedStatement delete = c.prepareStatement("DELETE FROM " + table + " WHERE missionId = ?");
+             PreparedStatement insert = c.prepareStatement(
+                     "INSERT INTO " + table + " (missionId, " + idColumn + ") VALUES (?, ?)"))
+        {
+            delete.setInt(1, missionId);
+            delete.executeUpdate();
+            for (int id : ids)
+            {
+                insert.setInt(1, missionId);
+                insert.setInt(2, id);
+                insert.executeUpdate();
+            }
+        }
     }
 
     // TODO: Implement
