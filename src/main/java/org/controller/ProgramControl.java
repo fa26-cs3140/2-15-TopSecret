@@ -20,6 +20,7 @@ public class ProgramControl {
     private final MissionManager missionManager;
     private final AuditLogManager auditLogger;
     private final UserAccountManager userManager;
+    private SessionManager webSessions;
     private final String databaseFile = "mission_database.db";
     private final String databaseURL = "jdbc:sqlite:data/" + databaseFile;
 
@@ -132,7 +133,21 @@ public class ProgramControl {
         ui.enableMessaging(new org.model.messaging.AuthenticatedMessageService(
                 agentManager, new SqliteUserAccountStore(agentManager.getURL()),
                 new org.model.messaging.SqliteMessageStore(agentManager.getURL()), ui.getCurrentUser()));
-        ui.run();
+        WebServer managedServer = null;
+        if (Arrays.asList(args).contains("-web-admin")) {
+            managedServer = startWeb(WebServer.DEFAULT_PORT);
+            if (managedServer == null) {
+                return;
+            }
+            ui.enableSessionManagement(webSessions);
+        }
+        try {
+            ui.run();
+        } finally {
+            if (managedServer != null) {
+                managedServer.stop();
+            }
+        }
 }
 
     // End of run()
@@ -142,7 +157,8 @@ public class ProgramControl {
     WebServer startWeb(int port)
     {
         AppController controller = new AppController(briefManager, agentManager, missionManager, facilityManager, auditLogger);
-        WebServer server = new WebServer(controller, userManager, new SessionManager(), port);
+        webSessions = new SessionManager(userManager);
+        WebServer server = new WebServer(controller, userManager, webSessions, port);
         try
         {
             server.start();

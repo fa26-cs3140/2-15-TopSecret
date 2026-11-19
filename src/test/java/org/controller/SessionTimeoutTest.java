@@ -71,6 +71,25 @@ class SessionTimeoutTest {
         assertSame(agent, sessions.getUser(other));
     }
 
+    @Test
+    void currentPermissionsAndDeletedAccountsAreChecked() {
+        org.managers.UserAccountManager accounts = mock(org.managers.UserAccountManager.class);
+        SessionManager checked = new SessionManager(clock, accounts);
+        atMinute(0);
+        when(accounts.getUser("admin")).thenReturn(admin);
+        String token = checked.createSession(admin);
+        assertSame(admin, checked.getUser(token));
+
+        UserAccount demoted = new UserAccount("admin", false);
+        when(accounts.getUser("admin")).thenReturn(demoted);
+        assertSame(demoted, checked.getUser(token));
+        assertThrows(SecurityException.class, () -> checked.revokeSession(admin, token));
+
+        when(accounts.getUser("admin")).thenReturn(null);
+        assertNull(checked.getUser(token));
+        assertNull(checked.getUser(token));
+    }
+
     private void atMinute(long minutes) {
         when(clock.instant()).thenReturn(LOGIN_TIME.plusSeconds(minutes * 60));
     }

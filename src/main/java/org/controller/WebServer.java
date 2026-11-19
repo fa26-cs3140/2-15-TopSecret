@@ -62,7 +62,7 @@ public class WebServer {
     }
 
     public int getPort() {
-        return port;
+        return server == null ? port : server.getAddress().getPort();
     }
 
     static void send(HttpExchange exchange, int status, String html) throws IOException {

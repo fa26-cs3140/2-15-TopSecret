@@ -9,6 +9,7 @@ import java.util.Scanner;
 import java.util.function.Predicate;
 
 import org.controller.AppController;
+import org.controller.SessionManager;
 import org.managers.RecordSearch;
 import org.controller.DebugHelper;
 import org.managers.AgentManager;
@@ -34,6 +35,7 @@ public class AgencyInterface {
     private final AppController controller;
 
     private org.controller.messaging.MessageController messages;
+    private SessionManager webSessions;
 
     private final String SEPARATOR = "-----------------";
 
@@ -75,6 +77,7 @@ public class AgencyInterface {
                     case "9" -> showMyMessages();
                     case "10" -> sendAgentMessage();
                     case "11" -> searchRecords();
+                    case "12" -> manageWebSessions();
                     case "0" -> { exit(); return; } // Make sure to run exit() to log logut info
                     default -> invalidSelection();
                 }
@@ -99,7 +102,41 @@ public class AgencyInterface {
         output.println("8. Change Password");
         if (messages != null) output.println("9. My messages\n10. Send an agent message");
         output.println("11. Search records");
+        if (webSessions != null && isAdmin()) {
+            output.println("12. Manage web sessions");
+        }
         output.print("0. Exit\nSelect an option: ");
+    }
+
+    public void enableSessionManagement(SessionManager sessions) {
+        webSessions = java.util.Objects.requireNonNull(sessions);
+    }
+
+    private void manageWebSessions() {
+        if (webSessions == null) {
+            invalidSelection();
+            return;
+        }
+        try {
+            while (true) {
+                UserAccount actor = uManager.getUser(currentUser.getUsername());
+                List<SessionManager.SessionSummary> sessions = webSessions.listSessions(actor);
+                output.println("Username | Token | Last activity (UTC)");
+                for (SessionManager.SessionSummary session : sessions) {
+                    output.println(session.username() + " | " + session.token() + " | " + session.lastActivity());
+                }
+                String token = prompt("Token to revoke, r to refresh, or Enter to return: ");
+                if (token.isBlank()) {
+                    return;
+                }
+                if (!token.equals("r")) {
+                    webSessions.revokeSession(uManager.getUser(currentUser.getUsername()), token);
+                    output.println("Session revoked.");
+                }
+            }
+        } catch (SecurityException denied) {
+            output.println(denied.getMessage());
+        }
     }
 
     private void searchRecords() {

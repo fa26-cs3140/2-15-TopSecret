@@ -1,6 +1,7 @@
 package org.controller;
 
 import org.model.UserAccount;
+import org.managers.UserAccountManager;
 
 import java.security.SecureRandom;
 import java.time.Clock;
@@ -22,6 +23,7 @@ public class SessionManager {
 
     private final Map<String, Session> sessions = new ConcurrentHashMap<>();
     private final Clock clock;
+    private final UserAccountManager accounts;
     private final SecureRandom random = new SecureRandom();
 
     private record Session(UserAccount user, Instant lastActivity) {
@@ -38,7 +40,16 @@ public class SessionManager {
     }
 
     SessionManager(Clock clock) {
+        this(clock, null);
+    }
+
+    public SessionManager(UserAccountManager accounts) {
+        this(Clock.systemUTC(), Objects.requireNonNull(accounts));
+    }
+
+    SessionManager(Clock clock, UserAccountManager accounts) {
         this.clock = Objects.requireNonNull(clock);
+        this.accounts = accounts;
     }
 
     // Returns a new random token for the user.
@@ -60,7 +71,11 @@ public class SessionManager {
         }
         Session active = sessions.computeIfPresent(token, (key, session) -> {
             Instant now = clock.instant();
-            return session.isExpired(now) ? null : new Session(session.user(), now);
+            if (session.isExpired(now)) {
+                return null;
+            }
+            UserAccount current = currentAccount(session.user());
+            return current == null ? null : new Session(current, now);
         });
         return active == null ? null : active.user();
     }
@@ -69,7 +84,7 @@ public class SessionManager {
         requireAdministrator(administrator);
         Instant now = clock.instant();
         sessions.forEach((token, session) -> {
-            if (session.isExpired(now)) {
+            if (session.isExpired(now) || currentAccount(session.user()) == null) {
                 sessions.remove(token, session);
             }
         });
@@ -85,8 +100,13 @@ public class SessionManager {
         endSession(token);
     }
 
-    private static void requireAdministrator(UserAccount user) {
-        if (user == null || !user.isAdmin()) {
+    private UserAccount currentAccount(UserAccount user) {
+        return accounts == null ? user : accounts.getUser(user.getUsername());
+    }
+
+    private void requireAdministrator(UserAccount user) {
+        UserAccount current = user == null ? null : currentAccount(user);
+        if (current == null || !current.isAdmin()) {
             throw new SecurityException("Only administrators can manage web sessions.");
         }
     }
