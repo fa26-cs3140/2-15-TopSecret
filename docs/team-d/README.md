@@ -77,7 +77,7 @@ stores username and admin metadata. Username and password rules are enforced
 by the existing account manager. Tests verify separate passwords, password
 replacement, and the account-table columns.
 
-Terminal option 9 opens the current user's inbox and option 10 sends a message.
+Terminal option 9 sends a message and option 10 opens the current user's inbox.
 Team C owns Homework 7's web messaging center and read indicators. The content
 edit/search services operate on agency records. The existing messaging privacy
 tests remain active.

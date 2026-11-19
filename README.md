@@ -39,9 +39,9 @@ terminal exits.
 
 ## Agent messaging
 
-After terminal login, choose **10. Send an agent message**, select an existing agent
+After terminal login, choose **9. Send an agent message**, select an existing agent
 by ID, and write the message. A line containing `.` sends; `/cancel` cancels.
-Choose **9. My messages** to view messages addressed to your username, matched
+Choose **10. My messages** to view messages addressed to your username, matched
 case-insensitively to the selected agent's name. No admin privileges are needed,
 and admin status does not grant access to another user's inbox.
 

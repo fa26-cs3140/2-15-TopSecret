@@ -39,9 +39,9 @@ class TerminalMessagingIntegrationTest {
         when(service.sendMessage(1, message.getBody())).thenReturn(message);
         when(service.getInbox()).thenReturn(List.of(message));
 
-        String output = run("10\n1\nline one\nline two\n.\n9\n0\n", service);
+        String output = run("9\n1\nline one\nline two\n.\n10\n0\n", service);
 
-        assertTrue(output.contains("9. My messages\n10. Send an agent message"));
+        assertTrue(output.contains("9. Send an agent message\n10. My messages"));
         assertTrue(output.contains("Message sent to Ghost"));
         assertTrue(output.contains(message.getBody()));
         verify(service).sendMessage(1, message.getBody());
@@ -52,8 +52,8 @@ class TerminalMessagingIntegrationTest {
     void cancelledOrIncompleteInputNeverSends() {
         MessageService service = mock(MessageService.class);
 
-        run("10\n1\n/cancel\n0\n", service);
-        run("10\n1\npartial\n", service);
+        run("9\n1\n/cancel\n0\n", service);
+        run("9\n1\npartial\n", service);
 
         verify(service, times(2)).getAgents();
         verify(service, never()).sendMessage(anyInt(), anyString());
@@ -64,7 +64,7 @@ class TerminalMessagingIntegrationTest {
         MessageService service = mock(MessageService.class);
         when(service.sendMessage(1, "hello")).thenThrow(new IllegalStateException());
 
-        String output = run("10\n1\nhello\n.\n0\n", service);
+        String output = run("9\n1\nhello\n.\n0\n", service);
 
         verify(service).sendMessage(1, "hello");
         assertTrue(output.contains("Messaging unavailable. No delivery was confirmed."));

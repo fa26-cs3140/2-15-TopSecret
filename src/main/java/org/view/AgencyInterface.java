@@ -74,8 +74,8 @@ public class AgencyInterface {
                     case "6" -> { if (isAdmin()) displayAuditLog(); else invalidSelection(); }
                     case "7" -> { if (isAdmin()) userPromotionMenu(); else invalidSelection(); }
                     case "8" -> changePasswordMenu();
-                    case "9" -> showMyMessages();
-                    case "10" -> sendAgentMessage();
+                    case "9" -> sendAgentMessage();
+                    case "10" -> showMyMessages();
                     case "11" -> searchRecords();
                     case "12" -> manageWebSessions();
                     case "0" -> { exit(); return; } // Make sure to run exit() to log logut info
@@ -100,7 +100,7 @@ public class AgencyInterface {
             output.println("7. Manage User Permissions");
         }
         output.println("8. Change Password");
-        if (messages != null) output.println("9. My messages\n10. Send an agent message");
+        if (messages != null) output.println("9. Send an agent message\n10. My messages");
         output.println("11. Search records");
         if (webSessions != null && isAdmin()) {
             output.println("12. Manage web sessions");
