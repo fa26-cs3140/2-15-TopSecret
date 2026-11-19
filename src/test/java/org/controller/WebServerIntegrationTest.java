@@ -179,6 +179,17 @@ class WebServerIntegrationTest {
     }
 
     @Test
+    void requestsKeepTheSessionAliveBeyondItsInitialLifetime() throws Exception {
+        String cookie = sessionCookie(login("pat", "Secret1"));
+        when(clock.instant()).thenReturn(Instant.EPOCH.plusSeconds(29 * 60));
+        assertEquals(200, get("/menu", cookie).statusCode());
+        when(clock.instant()).thenReturn(Instant.EPOCH.plusSeconds(58 * 60));
+        assertEquals(200, get("/briefs", cookie).statusCode());
+        when(clock.instant()).thenReturn(Instant.EPOCH.plusSeconds(88 * 60));
+        assertEquals(303, get("/menu", cookie).statusCode());
+    }
+
+    @Test
     void serverDoesNotStartWithoutAccounts() {
         when(accounts.hasUsers()).thenReturn(false);
         AppController controller = newController();

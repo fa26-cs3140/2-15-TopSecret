@@ -29,6 +29,9 @@ public final class SqliteRecordStore implements RecordEditor.Store<Object> {
 
     @Override
     public boolean update(int id, Object record, RecordEditor.AuditEvent event) {
+        if (id <= 0) {
+            throw new IllegalArgumentException("Record ID must be positive.");
+        }
         return save(id, record, event) > 0;
     }
 

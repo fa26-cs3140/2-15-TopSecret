@@ -86,6 +86,8 @@ class SqliteRecordStoreIntegrationTest {
 
     @Test
     void missingTargetsAndInvalidRelationsWriteNoAudit() {
+        assertThrows(IllegalArgumentException.class, () -> store.update(0,
+                new Brief(1, "Invalid", "2020-01-01", "text", null), event("UPDATE", RecordType.BRIEF)));
         assertFalse(store.update(999, new Brief(999, "Missing", "2020-01-01", "text", null),
                 event("UPDATE", RecordType.BRIEF)));
         assertThrows(IllegalArgumentException.class, () -> store.create(
