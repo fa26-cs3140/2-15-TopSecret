@@ -22,6 +22,13 @@ public class FacilityManager extends IDatabaseManager<Facility>
      * CREATE TABLE facilities (id INTEGER PRIMARY KEY, 
      * name TEXT NOT NULL, abbreviation TEXT NOT NULL, mission_id INTEGER)
      */
+
+    // Perhaps a new table is in order.
+    // Could make a table containing nothing but countries and their IDS,
+    // at which point searching for matching names would be nice.
+    // Basically a search query would query the country table, get the id
+    // then query the faclity table for all facilities with a matching 
+    // country id. 
     private final String tableName = "facilities";
     private final String[] columnNames = { "id", "name", "abbreviation", "mission_id" };
 
