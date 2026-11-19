@@ -3,6 +3,7 @@ package org.controller;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.managers.RecordEditor;
 import org.managers.AgentManager;
 import org.managers.AuditLogService;
 import org.managers.BriefManager;
@@ -31,6 +32,7 @@ class EditWorkflowIntegrationTest {
     private BriefManager briefs;
     private AuditLogService audit;
     private WebServer server;
+    private RecordEditor.Store<Object> changes;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -45,9 +47,10 @@ class EditWorkflowIntegrationTest {
         FacilityManager facilities = mock(FacilityManager.class);
         when(facilities.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA")));
         audit = mock(AuditLogService.class);
+        changes = mock(RecordEditor.Store.class);
 
         AppController controller = new AppController(briefs, mock(AgentManager.class), mock(MissionManager.class),
-                facilities, audit);
+                facilities, audit, changes);
         server = new WebServer(controller, accounts, new SessionManager(), TEST_PORT);
         server.start();
     }
@@ -114,14 +117,14 @@ class EditWorkflowIntegrationTest {
 
     @Test
     void validCreateRedirectsToNewRecord() throws Exception {
-        when(briefs.addRecord(any(Brief.class))).thenReturn(new Brief(101, "Op Nightfall", "2026-01-01", "Watch the port.", null));
+        when(changes.create(any(Brief.class), any())).thenReturn(101);
 
         HttpResponse<String> response = post("/briefs/new",
                 "title=Op+Nightfall&date=2026-01-01&text=Watch+the+port.", login("pat", "Secret1"));
 
         assertEquals(303, response.statusCode());
         assertEquals("/briefs/101", response.headers().firstValue("Location").orElseThrow());
-        verify(audit).log("pat", "CREATE", "BRIEF", "101");
+        verify(changes).create(any(Brief.class), argThat(event -> event.action().equals("CREATE")));
     }
 
     @Test
@@ -152,12 +155,13 @@ class EditWorkflowIntegrationTest {
 
     @Test
     void validEditRedirectsToRecordAndLogsUpdate() throws Exception {
+        when(changes.update(eq(1), any(), any())).thenReturn(true);
         HttpResponse<String> response = post("/facilities/1/edit", "name=Blackwood+Annex&abbreviation=BWA",
                 login("pat", "Secret1"));
 
         assertEquals(303, response.statusCode());
         assertEquals("/facilities/1", response.headers().firstValue("Location").orElseThrow());
-        verify(audit).log("pat", "UPDATE", "FACILITY", "1");
+        verify(changes).update(eq(1), any(Facility.class), argThat(event -> event.action().equals("UPDATE")));
     }
 
     @Test

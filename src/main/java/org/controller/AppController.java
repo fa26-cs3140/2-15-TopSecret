@@ -4,7 +4,8 @@ import org.managers.AgentManager;
 import org.managers.AuditLogService;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
-import org.managers.IDatabaseManager;
+import org.managers.RecordEditor;
+import org.managers.SqliteRecordStore;
 import org.managers.MissionManager;
 import org.model.Agent;
 import org.model.AuditLogEntry;
@@ -15,6 +16,7 @@ import org.model.RecordType;
 import org.model.UserAccount;
 import org.view.FormField;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -32,9 +34,17 @@ public class AppController {
     private final MissionManager missionManager;
     private final FacilityManager facilityManager;
     private final AuditLogService auditLog;
+    private final RecordEditor.Store<Object> changes;
 
     public AppController(BriefManager briefManager, AgentManager agentManager, MissionManager missionManager,
                          FacilityManager facilityManager, AuditLogService auditLog) {
+        this(briefManager, agentManager, missionManager, facilityManager, auditLog,
+                new SqliteRecordStore(briefManager == null ? null : briefManager.getURL()));
+    }
+
+    public AppController(BriefManager briefManager, AgentManager agentManager, MissionManager missionManager,
+                         FacilityManager facilityManager, AuditLogService auditLog,
+                         RecordEditor.Store<Object> changes) {
         if (briefManager == null || agentManager == null || missionManager == null || facilityManager == null
                 || auditLog == null) {
             throw new IllegalArgumentException("Arguments cannot be null.");
@@ -44,6 +54,7 @@ public class AppController {
         this.missionManager = missionManager;
         this.facilityManager = facilityManager;
         this.auditLog = auditLog;
+        this.changes = java.util.Objects.requireNonNull(changes);
     }
 
     // One line per record ("id. name"), or a "No ... are available." message.
@@ -126,49 +137,39 @@ public class AppController {
     public int createRecord(RecordType type, Map<String, String> values, UserAccount user) {
         requireEditor(user);
         Map<String, String> v = cleaned(type, values);
-        // The model constructors validate (dates, blanks); ID 1 is a placeholder until the database assigns one.
-        int id = switch (type) {
-            case BRIEF -> briefManager.addRecord(new Brief(1, v.get("title"), v.get("date"), v.get("text"), null))
-                    .getId();
-            case AGENT -> agentManager.addRecord(new Agent(1, v.get("name"), v.get("dateOfBirth"),
-                    v.get("dateOfDeath"), v.get("notes"), facilityId(v))).getId();
-            case FACILITY -> facilityManager.addRecord(new Facility(1, v.get("name"), v.get("abbreviation"))).getId();
-            case MISSION -> missionManager.addRecord(new Mission(1, v.get("title"), briefIds(v), agentIds(v),
-                    facilityId(v))).getId();
-        };
-        auditLog.log(user.getUsername(), "CREATE", type.name(), String.valueOf(id));
-        return id;
+        Object record = model(type, 1, v);
+        return editor(type).create(user, record);
     }
 
-    // Saves submitted form values over an existing record and logs UPDATE.
-    // Throws SecurityException for non-admins and IllegalArgumentException for invalid values or a missing ID.
     public void updateRecord(RecordType type, int id, Map<String, String> values, UserAccount user) {
         requireEditor(user);
         if (formValues(type, id) == null) {
             throw new IllegalArgumentException("No " + type.getSingular() + " found with ID " + id + ".");
         }
-        Map<String, String> v = cleaned(type, values);
-        // Build the model object first so invalid values are rejected before anything is saved.
-        switch (type) {
-            case BRIEF -> {
-                new Brief(id, v.get("title"), v.get("date"), v.get("text"), null);
-                save(briefManager, id, v, "title", "date", "text");
-            }
-            case AGENT -> {
-                new Agent(id, v.get("name"), v.get("dateOfBirth"), v.get("dateOfDeath"), v.get("notes"), facilityId(v));
-                save(agentManager, id, v, "name", "dateOfBirth", "dateOfDeath", "notes", "facilityId");
-            }
-            case FACILITY -> {
-                new Facility(id, v.get("name"), v.get("abbreviation"));
-                save(facilityManager, id, v, "name", "abbreviation");
-            }
-            case MISSION -> {
-                Mission mission = new Mission(id, v.get("title"), briefIds(v), agentIds(v), facilityId(v));
-                save(missionManager, id, v, "title", "facilityId");
-                missionManager.replaceAssignments(id, mission.getBriefIds(), mission.getAgentIds());
-            }
+        Object record = model(type, id, cleaned(type, values));
+        if (!editor(type).update(user, record)) {
+            throw new IllegalArgumentException("The record no longer exists.");
         }
-        auditLog.log(user.getUsername(), "UPDATE", type.name(), String.valueOf(id));
+    }
+
+    private RecordEditor<Object> editor(RecordType type) {
+        return new RecordEditor<>(type, changes, record -> switch (record) {
+            case Brief brief -> brief.getId();
+            case Agent agent -> agent.getId();
+            case Facility facility -> facility.getId();
+            case Mission mission -> mission.getId();
+            default -> throw new IllegalArgumentException("Unsupported content record.");
+        }, Clock.systemUTC());
+    }
+
+    private Object model(RecordType type, int id, Map<String, String> values) {
+        return switch (type) {
+            case BRIEF -> new Brief(id, values.get("title"), values.get("date"), values.get("text"), null);
+            case AGENT -> new Agent(id, values.get("name"), values.get("dateOfBirth"),
+                    values.get("dateOfDeath"), values.get("notes"), facilityId(values));
+            case FACILITY -> new Facility(id, values.get("name"), values.get("abbreviation"));
+            case MISSION -> new Mission(id, values.get("title"), briefIds(values), agentIds(values), facilityId(values));
+        };
     }
 
     private void requireEditor(UserAccount user) {
@@ -202,9 +203,12 @@ public class AppController {
         Map<String, String> cleaned = new LinkedHashMap<>();
         for (FormField field : RecordForms.fieldsFor(type)) {
             String raw = values == null ? null : values.get(field.name());
-            String value = raw == null || raw.isBlank() ? null : raw.trim();
+            String value = raw == null || raw.isBlank() ? null : raw;
             if (value == null && field.required()) {
                 throw new IllegalArgumentException(field.label() + " is required.");
+            }
+            if (value != null && field.kind() != FormField.Kind.TEXTAREA) {
+                value = value.trim();
             }
             cleaned.put(field.name(), value);
         }
@@ -280,13 +284,6 @@ public class AppController {
             map.put(pairs[i], pairs[i + 1] == null ? "" : pairs[i + 1]);
         }
         return map;
-    }
-
-    // Writes each named form value to its column of the record with this ID.
-    private static void save(IDatabaseManager<?> manager, int id, Map<String, String> v, String... fields) {
-        for (String field : fields) {
-            manager.updateRecord("id", String.valueOf(id), field, v.get(field));
-        }
     }
 
     private static String orNA(String value) {
