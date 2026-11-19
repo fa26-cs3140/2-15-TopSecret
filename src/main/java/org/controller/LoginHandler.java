@@ -7,9 +7,6 @@ import org.model.UserAccount;
 import org.view.HtmlPage;
 
 import java.io.IOException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 
 // GET / shows the login form; POST /login checks credentials and sets the session cookie.
@@ -38,7 +35,7 @@ public class LoginHandler implements HttpHandler {
             return;
         }
 
-        Map<String, String> form = parseForm(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+        Map<String, String> form = WebServer.readForm(exchange);
         String username = form.getOrDefault("username", "").trim();
         String password = form.getOrDefault("password", "");
         UserAccount user = accounts.verifyLogin(username, password) ? accounts.getUser(username) : null;
@@ -50,18 +47,5 @@ public class LoginHandler implements HttpHandler {
         }
         exchange.getResponseHeaders().add("Set-Cookie", SessionManager.cookieHeader(sessions.createSession(user)));
         WebServer.redirect(exchange, "/menu");
-    }
-
-    // Parses an application/x-www-form-urlencoded body such as "username=pat&password=Secret1".
-    static Map<String, String> parseForm(String body) {
-        Map<String, String> values = new HashMap<>();
-        for (String pair : body.split("&")) {
-            String[] parts = pair.split("=", 2);
-            if (parts.length == 2) {
-                values.put(URLDecoder.decode(parts[0], StandardCharsets.UTF_8),
-                        URLDecoder.decode(parts[1], StandardCharsets.UTF_8));
-            }
-        }
-        return values;
     }
 }
