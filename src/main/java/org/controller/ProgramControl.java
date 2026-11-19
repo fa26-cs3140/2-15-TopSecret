@@ -78,7 +78,7 @@ public class ProgramControl {
         this.createModelTables();
         this.loadTestData();
 
-        // -web starts the read-only web view instead of the terminal menu
+        // -web starts the authenticated web interface instead of the terminal menu
         if (LaunchOptions.isWebMode(args))
         {
             startWeb(WebServer.DEFAULT_PORT);
@@ -148,7 +148,7 @@ public class ProgramControl {
                 managedServer.stop();
             }
         }
-}
+    }
 
     // End of run()
 

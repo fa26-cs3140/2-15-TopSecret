@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-// HTTP server for the read-only web view, started with the -web switch.
+// HTTP server for authenticated record viewing and editing.
 public class WebServer {
 
     public static final int DEFAULT_PORT = 3002;
