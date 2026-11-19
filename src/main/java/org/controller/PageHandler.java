@@ -87,8 +87,13 @@ public class PageHandler implements HttpHandler {
     // Admins also get a link to edit the record when it exists.
     private void showDetail(HttpExchange exchange, UserAccount user, RecordType type, String segment, int id)
             throws IOException {
+        if (controller.formValues(type, id) == null) {
+            send(exchange, user, 404, "Not Found", "<p>Record not found.</p>");
+            return;
+        }
         String body = HtmlPage.paragraphs(controller.readRecord(type, id, user));
-        if (controller.canEdit(user) && controller.formValues(type, id) != null) {
+        body += org.view.RelatedRecordView.links(controller.relatedRecords(type, id));
+        if (controller.canEdit(user)) {
             body += "<p><a href=\"/" + segment + "/" + id + "/edit\">Edit " + type.getSingular() + "</a></p>\n";
         }
         send(exchange, user, 200, type.getTitle(), body);

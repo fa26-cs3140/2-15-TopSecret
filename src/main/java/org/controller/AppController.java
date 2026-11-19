@@ -4,6 +4,8 @@ import org.managers.AgentManager;
 import org.managers.AuditLogService;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
+import org.managers.RecordRelationships;
+import org.model.RelatedRecord;
 import org.managers.RecordEditor;
 import org.managers.SqliteRecordStore;
 import org.managers.MissionManager;
@@ -94,6 +96,10 @@ public class AppController {
         }
         auditLog.log(user.getUsername(), "READ", type.name(), String.valueOf(id));
         return String.join("\n", details.get());
+    }
+
+    public List<RelatedRecord> relatedRecords(RecordType type, int id) {
+        return new RecordRelationships(briefManager, agentManager, facilityManager, missionManager).find(type, id);
     }
 
     // One line per audit entry for admins; an access-denied message for everyone else.

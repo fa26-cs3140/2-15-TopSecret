@@ -9,6 +9,7 @@ import java.util.Scanner;
 import java.util.function.Predicate;
 
 import org.controller.AppController;
+import org.managers.RecordSearch;
 import org.controller.DebugHelper;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
@@ -73,6 +74,7 @@ public class AgencyInterface {
                     case "8" -> changePasswordMenu();
                     case "9" -> showMyMessages();
                     case "10" -> sendAgentMessage();
+                    case "11" -> searchRecords();
                     case "0" -> { exit(); return; } // Make sure to run exit() to log logut info
                     default -> invalidSelection();
                 }
@@ -96,7 +98,19 @@ public class AgencyInterface {
         }
         output.println("8. Change Password");
         if (messages != null) output.println("9. My messages\n10. Send an agent message");
+        output.println("11. Search records");
         output.print("0. Exit\nSelect an option: ");
+    }
+
+    private void searchRecords() {
+        String query = prompt("Search text: ");
+        List<RecordSearch.Match> matches = new RecordSearch(bManager, aManager, fManager, mManager).find(query);
+        if (matches.isEmpty()) {
+            output.println("No matching records.");
+        }
+        for (RecordSearch.Match match : matches) {
+            output.println(match.type().getSingular() + " " + match.id() + ". " + match.title());
+        }
     }
 
     public void displayTypeMenu(RecordType type) {
