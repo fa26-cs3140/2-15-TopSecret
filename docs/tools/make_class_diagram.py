@@ -44,10 +44,10 @@ def parse_class(fq):
             else "record" if "extends Record" in header else
             "abstract class" if "abstract class" in header else "class")
     ext = re.search(r"extends (\w+)", header)
-    impl = re.search(r"implements ([\w, <>]+?) \{", header)
+    impl = re.search(r"implements ([\w., <>]+?) \{", header)
     c = dict(name=name, pkg=fq.rsplit(".", 1)[0], kind=kind, fields=[], methods=[], consts=[],
              extends=ext.group(1) if ext and kind not in ("enum", "record") else None,
-             implements=[s.strip() for s in impl.group(1).split(",")] if impl else [],
+             implements=[re.sub(r"<.*>", "", item.strip()) for item in impl.group(1).split(",")] if impl else [],
              generic=(re.search(r"class \w+(<\w+>)", header) or [None, ""])[1])
     for line in lines[1:-1]:
         line = line.rstrip(";")

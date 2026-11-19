@@ -14,8 +14,8 @@ Executed with Java 26 and the repository's Gradle wrapper:
 | Separate unit task | 348 passed |
 | Separate integration task | 64 passed |
 | Gradle build and packaged JAR | Passed |
-| Project method coverage, complete suite | 389 / 412 methods, 94.4% |
-| Project method coverage, unit task | 351 / 412 methods, 85.2% |
+| Project method coverage, complete suite | 388 / 411 methods, 94.4% |
+| Project method coverage, unit task | 351 / 411 methods, 85.4% |
 | New Team D services, link view, and session manager | 100% method coverage in both the isolated unit task and complete suite |
 
 The Team D coverage statement includes RecordEditor and AuditEvent,
@@ -62,3 +62,11 @@ body, and terminal exit stopped the server cleanly. The process exited with 0.
 Country links, country search, and the country's own editing path require Team
 A's unfinished feature. Web messaging and read flags require Team C's feature.
 Those shared dependencies are listed in the PR and WORK-PLAN.md.
+
+## Final formatting and documentation audit
+
+Expanded the inherited terminal message renderer, message getters, and service
+formatting. The full suite and build passed again after those changes. Replaced
+superseded class notes and older homework diagrams with the maintained class
+PDF, ERD, and wireframes. The current model overview and team roles now match
+the code and Homework 7 responsibilities.

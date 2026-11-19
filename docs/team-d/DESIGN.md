@@ -48,28 +48,36 @@ classDiagram
         id
         label
     }
-    class AgencyManagers {
-        BriefManager
-        AgentManager
-        FacilityManager
-        MissionManager
-    }
+    class BriefManager
+    class AgentManager
+    class FacilityManager
+    class MissionManager
+    class RelatedRecordView
 
     LoginHandler --> UserAccountManager
     LoginHandler --> SessionManager
     PageHandler --> SessionManager
     PageHandler --> AppController
+    PageHandler ..> RelatedRecordView : renders links
+    RelatedRecordView ..> RelatedRecord : renders
+    SessionManager --> UserAccountManager
     SessionManager --> UserAccount
     SessionManager ..> SessionSummary : returns
     RecordEditor --> EditStore
     RecordEditor ..> AuditLogEntry : describes
-    RecordRelationships --> AgencyManagers
+    RecordRelationships --> BriefManager
+    RecordRelationships --> AgentManager
+    RecordRelationships --> FacilityManager
+    RecordRelationships --> MissionManager
     RecordRelationships ..> RelatedRecord : returns
-    RecordSearch --> AgencyManagers
-    AppController --> RecordRelationships
-    AppController --> RecordEditor
+    RecordSearch --> BriefManager
+    RecordSearch --> AgentManager
+    RecordSearch --> FacilityManager
+    RecordSearch --> MissionManager
+    AppController ..> RecordRelationships : creates
+    AppController ..> RecordEditor : creates
     SqliteRecordStore ..|> EditStore
-    AgencyInterface --> RecordSearch
+    AgencyInterface ..> RecordSearch : creates
     AgencyInterface --> SessionManager
 ```
 

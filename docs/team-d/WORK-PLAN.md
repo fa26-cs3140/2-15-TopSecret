@@ -32,9 +32,9 @@ for the available content types.
    manager have 100% JaCoCo method coverage in the isolated unit suite. The
    complete project still has uncovered inherited methods, including the
    unfinished Country class. See VERIFICATION.md for measured totals.
-4. **Shared document cleanup.** Older Team A/C and legacy component documents
-   remain in the repository. Their owners should reconcile them with the
-   final countries, messaging, and view implementation before submission.
+4. **Final shared diagrams.** Superseded class notes and old diagrams have been
+   removed in favor of the current class PDF, ERD, and wireframes. Update those
+   current diagrams again when country and web messaging features arrive.
 5. **Team review and system tests.** Review the integration PR and have each
    teammate run the final combined application before the deadline.
 
