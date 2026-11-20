@@ -30,15 +30,38 @@ public final class TerminalMessageView implements MessageView {
 
     @Override
     public void showInbox(List<Message> messages) {
+        output.println("\n=== My Messages ===");
+
         if (messages.isEmpty()) {
             output.println("You have no messages.");
+            return;
         }
-        for (Message message : messages) {
-            output.println("From: " + message.getSenderUsername()
-                    + " | To: " + message.getRecipientName()
-                    + " | Sent: " + message.getSentAt()
-                    + "\n" + message.getBody() + "\n---");
+
+        for (int i = 0; i < messages.size(); i++) {
+            Message message = messages.get(i);
+
+            String status = message.isRead() ? "Read" : "Unread";
+
+            output.printf(
+                    "%d. [%s] From: %s | Sent: %s%n",
+                    i + 1,
+                    status,
+                    message.getSenderUsername(),
+                    message.getSentAt()
+            );
         }
+    }
+
+    @Override
+    public void showMessageDetail(Message message) {
+        output.println("\n=== Message Details ===");
+        output.println("From: " + message.getSenderUsername());
+        output.println("To: " + message.getRecipientName());
+        output.println("Sent: " + message.getSentAt());
+        output.println("-----------------");
+        output.println(message.getBody());
+        output.println("-----------------");
+        output.println("Status: Read");
     }
 
     @Override
