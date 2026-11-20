@@ -231,7 +231,9 @@ class WebServerIntegrationTest {
         String cookie = sessionCookie(login("agent7", "Agent77"));
 
         assertFalse(get("/menu", cookie).body().contains("/audit"));
-        assertTrue(get("/audit", cookie).body().contains("Access denied"));
+        var audit = get("/audit", cookie);
+        assertEquals(403, audit.statusCode());
+        assertTrue(audit.body().contains("Access denied"));
     }
 
     @Test
