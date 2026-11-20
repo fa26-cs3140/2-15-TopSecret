@@ -218,4 +218,41 @@ public final class SqliteMessageStore implements MessageStore {
                 LocalDateTime.parse(result.getString("sent_at"))
         );
     }
+
+    /**
+     * Doing 2 things:
+     * 1. Update the read status of the matching message
+     * 2. Retrieve that message from SQLite and return its updated contents
+     */
+    @Override
+    public Message markAsRead(long messageId, String recipientName) {
+        if (messageId <= 0 || recipientName == null || recipientName.isBlank()) {
+            throw new IllegalArgumentException("Valid message ID and recipient required.");
+        }
+
+        try (Connection connection = connect();
+             PreparedStatement update = connection.prepareStatement(MARK_AS_READ);
+             PreparedStatement select = connection.prepareStatement(SELECT_MESSAGE)) {
+
+            update.setLong(1, messageId);
+            update.setString(2, recipientName);
+
+            if (update.executeUpdate() != 1) {
+                throw new IllegalArgumentException("Message not found in your inbox.");
+            }
+
+            select.setLong(1, messageId);
+            select.setString(2, recipientName);
+
+            try (ResultSet result = select.executeQuery()) {
+                if (!result.next()) {
+                    throw new IllegalStateException("Updated message could not be retrieved.");
+                }
+
+                return readMessage(result);
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Unable to mark message as read.", e);
+        }
+    }
 }
