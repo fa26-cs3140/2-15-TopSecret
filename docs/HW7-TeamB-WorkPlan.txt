@@ -20,7 +20,7 @@ URLs (all require a valid session; all editing requires admin):
   GET  /<type>/<id>/edit   form filled with the record's current values
   POST /<type>/<id>/edit   update the record, then 303 redirect to /<type>/<id>
 
-  <type> is briefs, agents, facilities, missions (and countries once Team A adds them).
+  <type> is briefs, agents, facilities, missions or countries.
   Non-admins get 403 "Access denied". An unknown type or ID gets 404.
   Invalid input re-shows the same form with an error message and the values the user
   typed, so nothing is lost (status 200, no redirect).
@@ -86,8 +86,17 @@ link, shown only to admins.
   Refactoring items 1, 2, 3 and 5 are done (PageHandler routes split, one lookup per record type,
   form parsing moved to WebServer, AppController rejects a null MissionManager).
   Items 4 and 6 (ProgramControl.run split, old cipher code) remain; run() is now covered by a test.
-  When Team A adds countries (RecordType.COUNTRY), RecordForms and AppController need a COUNTRY case;
-  the compiler will flag every switch that needs one.
+
+  Follow-up fixes after the week 2 merge:
+    - Countries: the facility form has a Country ID field (must name an existing country), the
+      facility list and detail page show the country name, and countries can be created and
+      edited like other records (RecordForms and AppController have a COUNTRY case).
+    - Test data loads again at startup; data/facilities.tsv gives each facility a country.
+    - Slash-only paths such as /// return 404 instead of the login page.
+    - A non-admin opening /audit gets 403 (the page still says "Access denied").
+    - 100% method coverage for the whole project: the /css/ stylesheet handler and the message
+      handler factory are tested, and the unused PageHandler constructor was removed.
+    - Class diagram regenerated for the final HW7 code (docs/HW7-ClassDiagram.pdf).
 
 
 5. Backlog from team code review
