@@ -81,6 +81,20 @@ class AgencyInterfaceFacilityManagerTest {
     }
 
     @Test
+    void facilityCountryCanBeSelectedByName() {
+        String text = run(admin, "3\n3\nNamed HQ\nNHQ\nAfghanistan\n0\n0\n");
+        assertTrue(text.contains("Added facility"));
+        assertEquals(1, facilityManager.getRecords("name", "Named HQ").getFirst().getCountryID());
+    }
+
+    @Test
+    void countryPromptCanBeCancelledWithoutSaving() {
+        run(admin, "3\n3\nCancelled HQ\nCHQ\nNo such country\nExit\n0\n0\n");
+        assertTrue(facilityManager.getRecords("id", "%").isEmpty());
+        verify(auditLog, never()).log(anyString(), eq("CREATE"), anyString(), anyString());
+    }
+
+    @Test
     void listsFacilitiesFromSQLite() {
         facilityManager.addRecord("Blackwood Annex", "BA");
         facilityManager.addRecord("Rose Garden", "RG");
