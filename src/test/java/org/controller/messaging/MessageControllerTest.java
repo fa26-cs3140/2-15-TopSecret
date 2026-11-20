@@ -64,4 +64,57 @@ class MessageControllerTest {
         assertThrows(IllegalStateException.class, () -> controller.sendMessage(1, "hello"));
         verifyNoInteractions(view);
     }
+
+
+    @Test
+    void showInboxReturnsMessagesForSelection() {
+        Message unread = new Message(
+                5, "Ghost", 1, "sender",
+                "Meet at HQ", LocalDateTime.now(), false
+        );
+
+        List<Message> inbox = List.of(unread);
+        when(service.getInbox()).thenReturn(inbox);
+
+        List<Message> result = controller.showInbox();
+
+        // The controller returns the same inbox for terminal selection.
+        assertEquals(inbox, result);
+
+        // Listing should not mark anything as read.
+        verify(service).getInbox();
+        verify(view).showInbox(inbox);
+        verify(service, never()).readMessage(anyLong());
+    }
+
+    @Test
+    void readMessageDisplaysTheOpenedMessage() {
+        Message read = new Message(
+                5, "Ghost", 1, "sender",
+                "Secret mission", LocalDateTime.now(), true
+        );
+
+        when(service.readMessage(5)).thenReturn(read);
+
+        controller.readMessage(5);
+
+        // The service opens the message before the view displays it.
+        var order = inOrder(service, view);
+
+        order.verify(service).readMessage(5);
+        order.verify(view).showMessageDetail(read);
+
+        verifyNoMoreInteractions(service, view);
+    }
+
+    @Test
+    void readMessageFailureDoesNotDisplayMessage() {
+        when(service.readMessage(99)).thenThrow(new IllegalArgumentException("Message not found in your inbox."));
+
+        assertThrows(IllegalArgumentException.class, () -> controller.readMessage(99));
+
+        // An unauthorized or nonexistent message must not be displayed.
+        verify(service).readMessage(99);
+        verifyNoInteractions(view);
+    }
 }
