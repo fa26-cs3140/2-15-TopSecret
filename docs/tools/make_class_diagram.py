@@ -120,23 +120,28 @@ def box(c):
     return out + "</div></div>"
 
 
-# Drawn overview: top-left corners on a 1000 x 730 canvas.
+# Drawn overview: top-left corners on a 1000 x 820 canvas.
 W, H = 120, 30
 POS = {
-    "AgencyInterface": (60, 95), "TerminalMessageView": (60, 160), "MessageView": (60, 225), "FormField": (60, 290),
-    "FormView": (60, 350), "HtmlPage": (60, 405),
+    "AgencyInterface": (60, 50), "TerminalMessageView": (60, 100), "MessageView": (60, 150),
+    "MessageHtmlView": (60, 200), "FormField": (60, 255), "FormView": (60, 305), "HtmlPage": (60, 355),
+    "RelatedRecordView": (60, 405),
     "TopSecret": (500, 30), "ProgramControl": (500, 95), "LaunchOptions": (700, 95), "MessageController": (320, 215),
+    "MessageWebHandler": (320, 140),
     "WebServer": (700, 165), "LoginHandler": (580, 245), "SessionManager": (850, 245), "PageHandler": (700, 305),
     "EditHandler": (850, 345), "RecordForms": (850, 405), "AppController": (440, 395),
-    "IDatabaseManager": (215, 470), "BriefManager": (20, 535), "AgentManager": (150, 535),
-    "FacilityManager": (280, 535), "MissionManager": (410, 535), "UserAccountManager": (595, 535),
-    "AuditLogManager": (742, 535), "SqliteMessageStore": (870, 535),
-    "MessageService": (540, 610), "AuthenticatedMessageService": (760, 610),
-    "Brief": (20, 680), "Agent": (150, 680), "Facility": (280, 680), "Mission": (410, 680), "UserAccount": (540, 680),
-    "AuditLogEntry": (670, 680), "Message": (800, 680),
+    "RecordEditor": (20, 480), "SqliteRecordStore": (165, 480), "IDatabaseManager": (330, 480),
+    "RecordRelationships": (820, 480),
+    "BriefManager": (20, 550), "AgentManager": (150, 550),
+    "FacilityManager": (280, 550), "MissionManager": (410, 550), "UserAccountManager": (595, 550),
+    "AuditLogManager": (742, 550), "SqliteMessageStore": (870, 550),
+    "MessageService": (540, 630), "AuthenticatedMessageService": (760, 630),
+    "Brief": (20, 700), "Agent": (150, 700), "Facility": (280, 700), "Mission": (410, 700), "UserAccount": (540, 700),
+    "AuditLogEntry": (670, 700), "Message": (800, 700), "Country": (280, 770),
 }
 WIDE = {"AuthenticatedMessageService": 190, "TerminalMessageView": 140, "UserAccountManager": 135,
-        "SqliteMessageStore": 118}
+        "SqliteMessageStore": 118, "RelatedRecordView": 140, "MessageHtmlView": 140, "MessageWebHandler": 125,
+        "RecordRelationships": 140, "SqliteRecordStore": 125}
 EDGES = [  # (from, to, kind): inh = extends, real = implements, assoc = holds a reference, dep = creates/calls
     ("BriefManager", "IDatabaseManager", "inh"), ("AgentManager", "IDatabaseManager", "inh"),
     ("FacilityManager", "IDatabaseManager", "inh"), ("MissionManager", "IDatabaseManager", "inh"),
@@ -157,6 +162,10 @@ EDGES = [  # (from, to, kind): inh = extends, real = implements, assoc = holds a
     ("MissionManager", "Mission", "dep"), ("UserAccountManager", "UserAccount", "dep"),
     ("AuditLogManager", "AuditLogEntry", "dep"), ("SqliteMessageStore", "Message", "dep"),
     ("SessionManager", "UserAccount", "assoc"),
+    ("AppController", "RecordEditor", "dep"), ("RecordEditor", "SqliteRecordStore", "assoc"),
+    ("AppController", "RecordRelationships", "dep"), ("PageHandler", "RelatedRecordView", "dep"),
+    ("WebServer", "MessageWebHandler", "dep"), ("MessageWebHandler", "MessageHtmlView", "dep"),
+    ("Country", "Facility", "assoc"),
 ]
 
 
@@ -177,13 +186,13 @@ def clip(n, tx, ty):
     return cx + dx * s, cy + dy * s
 
 
-svg = ['<svg viewBox="0 0 1000 730" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica, Arial" font-size="11">'
+svg = ['<svg viewBox="0 0 1000 820" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica, Arial" font-size="11">'
        '<defs><marker id="open" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" '
        'orient="auto"><path d="M0,0 L10,5 L0,10" fill="none" stroke="#000"/></marker>'
        '<marker id="tri" viewBox="0 0 12 12" refX="12" refY="6" markerWidth="12" markerHeight="12" orient="auto">'
        '<path d="M0,0 L12,6 L0,12 Z" fill="#fff" stroke="#000"/></marker></defs>']
 for label, x, y, w, h in [("org.view", 10, 10, 250, 440), ("org.controller (+ .messaging, org.runtime)", 280, 10, 710, 440),
-                          ("org.managers", 10, 460, 980, 110), ("org.model (+ .messaging)", 10, 580, 980, 145)]:
+                          ("org.managers", 10, 460, 980, 135), ("org.model (+ .messaging)", 10, 605, 980, 210)]:
     svg.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="none" stroke="#888" stroke-dasharray="6 3"/>'
                f'<text x="{x + 6}" y="{y + 14}" font-weight="bold" fill="#444">{label}</text>')
 for a, b, kind in EDGES:
@@ -230,7 +239,7 @@ h1 {{ font-size: 18pt; margin: 0 0 4px; }} h2 {{ font-size: 12pt; margin: 0 0 2p
 .pname {{ font-weight: bold; border-bottom: 1px solid #000; margin-bottom: 3px; }}
 .prole {{ color: #333; font-style: italic; margin: 0 0 4px; }}
 .legend {{ margin-top: 8px; color: #333; }}
-svg {{ display: block; width: 100%; height: 6.3in; margin-top: 6px; }}
+svg {{ display: block; width: 100%; height: 6.9in; margin-top: 6px; }}
 table {{ border-collapse: collapse; width: 100%; margin-top: 8px; }}
 td, th {{ border: 1px solid #666; padding: 2px 5px; text-align: left; }} th {{ background: #e5e5e5; }}
 .brk {{ break-before: page; }}
@@ -253,7 +262,8 @@ Model-View-Controller packages: <b>org.model</b>, <b>org.view</b>, <b>org.contro
 <p class="legend">Solid line, open arrow = association (holds a reference). Dashed line, open arrow = dependency
 (creates or calls). Solid line, hollow triangle = extends. Dashed line, hollow triangle = implements.
 Terminal: ProgramControl &rarr; AgencyInterface. Web (-web): WebServer &rarr; LoginHandler / PageHandler &rarr;
-EditHandler for create and edit forms. Both interfaces share AppController.</p>{"".join(svg)}</section>
+EditHandler for create and edit forms, MessageWebHandler for messaging. Both interfaces share AppController,
+which saves each create or edit through RecordEditor and SqliteRecordStore (record and audit entry in one transaction).</p>{"".join(svg)}</section>
 <section class="brk"><h2>Relationships</h2><table><tr><th>From</th><th>Relationship</th><th>To</th></tr>{table}</table></section>
 {detail}</body></html>""", encoding="utf-8")
 print(f"{len(classes)} classes, {len(rows)} relationships -> {out_path}")
