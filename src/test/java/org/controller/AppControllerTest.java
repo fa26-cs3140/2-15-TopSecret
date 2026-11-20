@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.model.Agent;
 import org.model.Brief;
+import org.model.Country;
 import org.model.Facility;
 import org.model.Mission;
 import org.mockito.ArgumentCaptor;
@@ -86,9 +87,17 @@ class AppControllerTest {
 
     @Test
     void listFacilitiesShowsAbbreviations() {
-        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA")));
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA", 62)));
+        when(facilityManager.getCountry(62)).thenReturn(new Country("France", 62, new Facility[0]));
 
-        assertTrue(controller.listRecords(RecordType.FACILITY).contains("1. Blackwood Annex (BA)"));
+        assertTrue(controller.listRecords(RecordType.FACILITY).contains("1. Blackwood Annex (BA) [France]"));
+    }
+
+    @Test
+    void listFacilitiesWithMissingCountryStillShows() {
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA", 1)));
+
+        assertEquals("1. Blackwood Annex (BA)", controller.listRecords(RecordType.FACILITY));
     }
 
     @Test
@@ -186,7 +195,7 @@ class AppControllerTest {
         when(changes.update(anyInt(), any(), any())).thenReturn(true);
         when(agentManager.getRecords("id", "%"))
                 .thenReturn(List.of(new Agent(2, "Ghost", "1992-11-22", null, null, 2)));
-        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(3, "Rose Garden", "RG")));
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(3, "Rose Garden", "RG", 1)));
 
         controller.updateRecord(RecordType.AGENT, 2, Map.of("name", "Ghost", "dateOfBirth", "1992-11-22",
                 "dateOfDeath", "", "notes", "Back in the field", "facilityId", "3"), admin);
@@ -205,9 +214,9 @@ class AppControllerTest {
 
     @Test
     void formValuesReturnCurrentRecordFields() {
-        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA")));
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA", 1)));
 
-        assertEquals(Map.of("name", "Blackwood Annex", "abbreviation", "BA", "countryId", ""),
+        assertEquals(Map.of("name", "Blackwood Annex", "abbreviation", "BA", "countryId", "1"),
                 controller.formValues(RecordType.FACILITY, 1));
         assertNull(controller.formValues(RecordType.FACILITY, 9));
     }
@@ -223,8 +232,9 @@ class AppControllerTest {
         when(briefManager.getRecords("id", "%")).thenReturn(List.of(
                 new Brief(1, "One", "2020-01-01", "a", null), new Brief(2, "Two", "2020-01-02", "b", null)));
         when(agentManager.getRecords("id", "%")).thenReturn(List.of(new Agent(2, "Ghost", "1992-11-22", null, null, 1)));
-        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA")));
-        when(changes.create(any(Mission.class), any())).thenReturn(7);
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA", 1)));
+        when(missionManager.addRecord(any(Mission.class))).thenReturn(new Mission(7, "Joint Op", new int[]{1, 2},
+                new int[]{2}, 1));
 
         int id = controller.createRecord(RecordType.MISSION, Map.of("title", " Joint Op ", "facilityId", "1",
                 "briefIds", "1, 2, 2,", "agentIds", "2"), admin);
@@ -262,19 +272,17 @@ class AppControllerTest {
 
     @Test
     void adminCreatesAgentAndFacility() {
-        when(facilityManager.getCountry(1)).thenReturn(new org.model.Country("Afghanistan", 1, new Facility[0]));
-        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA")));
-        when(changes.create(any(Agent.class), any())).thenReturn(11);
-        when(changes.create(any(Facility.class), any())).thenReturn(7);
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA", 1)));
+        when(agentManager.addRecord(any(Agent.class))).thenReturn(new Agent(11, "Nova", "1999-09-09", null, null, 1));
+        when(facilityManager.addRecord(any(Facility.class))).thenReturn(new Facility(7, "Glass House", "GH", 1));
 
         assertEquals(11, controller.createRecord(RecordType.AGENT, Map.of("name", "Nova", "dateOfBirth", "1999-09-09",
                 "dateOfDeath", "", "facilityId", "1"), admin));
+        when(facilityManager.getCountry(66)).thenReturn(new Country("Germany", 66, new Facility[0]));
         assertEquals(7, controller.createRecord(RecordType.FACILITY, Map.of("name", "Glass House",
-                "abbreviation", "GH", "countryId", "1"), admin));
-        verify(changes).create(any(), argThat(event -> event.username().equals("pat") && event.action().equals("CREATE")
-                && event.type() == RecordType.AGENT));
-        verify(changes).create(any(), argThat(event -> event.username().equals("pat") && event.action().equals("CREATE")
-                && event.type() == RecordType.FACILITY));
+                "abbreviation", "GH", "countryId", "66"), admin));
+        verify(auditLog).log("pat", "CREATE", "AGENT", "11");
+        verify(auditLog).log("pat", "CREATE", "FACILITY", "7");
     }
 
     @Test
@@ -283,7 +291,7 @@ class AppControllerTest {
         when(missionManager.getRecords("id", "%")).thenReturn(List.of(new Mission(4, "Op", new int[]{1},
                 new int[]{2}, 1)));
         when(briefManager.getRecords("id", "%")).thenReturn(List.of(new Brief(3, "Three", "2020-01-03", "c", null)));
-        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA")));
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA", 1)));
 
         controller.updateRecord(RecordType.MISSION, 4, Map.of("title", "Op 2", "facilityId", "1", "briefIds", "3",
                 "agentIds", ""), admin);
@@ -303,17 +311,18 @@ class AppControllerTest {
         when(facilityManager.getCountry(1)).thenReturn(new org.model.Country("Afghanistan", 1, new Facility[0]));
         when(changes.update(anyInt(), any(), any())).thenReturn(true);
         when(briefManager.getRecords("id", "%")).thenReturn(List.of(new Brief(1, "Old", "2020-01-01", "a", null)));
-        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(2, "Rose Garden", "RG")));
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(2, "Rose Garden", "RG", 1)));
 
         controller.updateRecord(RecordType.BRIEF, 1, Map.of("title", "New", "date", "2021-02-03", "text", "b"), admin);
-        controller.updateRecord(RecordType.FACILITY, 2, Map.of("name", "Rose Garden", "abbreviation", "RGN", "countryId", "1"), admin);
+        when(facilityManager.getCountry(62)).thenReturn(new Country("France", 62, new Facility[0]));
+        controller.updateRecord(RecordType.FACILITY, 2, Map.of("name", "Rose Garden", "abbreviation", "RGN",
+                "countryId", "62"), admin);
 
-        verify(changes).update(eq(1), any(Brief.class), any());
-        verify(changes).update(eq(2), any(Facility.class), any());
-        verify(changes).update(eq(1), any(), argThat(event -> event.username().equals("pat") && event.action().equals("UPDATE")
-                && event.type() == RecordType.BRIEF));
-        verify(changes).update(eq(2), any(), argThat(event -> event.username().equals("pat") && event.action().equals("UPDATE")
-                && event.type() == RecordType.FACILITY));
+        verify(briefManager).updateRecord("id", "1", "date", "2021-02-03");
+        verify(facilityManager).updateRecord("id", "2", "abbreviation", "RGN");
+        verify(facilityManager).updateRecord("id", "2", "country_id", "62");
+        verify(auditLog).log("pat", "UPDATE", "BRIEF", "1");
+        verify(auditLog).log("pat", "UPDATE", "FACILITY", "2");
     }
 
     @Test
@@ -338,5 +347,15 @@ class AppControllerTest {
                 "facilityId", "3"), controller.formValues(RecordType.AGENT, 2));
         assertEquals(Map.of("title", "Joint", "facilityId", "1", "briefIds", "1, 2", "agentIds", ""),
                 controller.formValues(RecordType.MISSION, 4));
+    }
+
+    @Test
+    void facilityNeedsAnExistingCountry() {
+        assertEquals("No country found with ID 197.", assertThrows(IllegalArgumentException.class,
+                () -> controller.createRecord(RecordType.FACILITY, Map.of("name", "X", "abbreviation", "X",
+                        "countryId", "197"), admin)).getMessage());
+        assertThrows(IllegalArgumentException.class, () -> controller.createRecord(RecordType.FACILITY,
+                Map.of("name", "X", "abbreviation", "X"), admin));
+        verifyNoInteractions(auditLog);
     }
 }

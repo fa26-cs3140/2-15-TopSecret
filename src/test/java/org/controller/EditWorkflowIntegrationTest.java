@@ -11,6 +11,7 @@ import org.managers.FacilityManager;
 import org.managers.MissionManager;
 import org.managers.UserAccountManager;
 import org.model.Brief;
+import org.model.Country;
 import org.model.Facility;
 import org.model.UserAccount;
 
@@ -45,8 +46,8 @@ class EditWorkflowIntegrationTest {
 
         briefs = mock(BriefManager.class);
         FacilityManager facilities = mock(FacilityManager.class);
-        when(facilities.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA")));
-        when(facilities.getCountry(1)).thenReturn(new org.model.Country("Afghanistan", 1, new Facility[0]));
+        when(facilities.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA", 1)));
+        when(facilities.getCountry(62)).thenReturn(new Country("France", 62, new Facility[0]));
         audit = mock(AuditLogService.class);
         changes = mock(RecordEditor.Store.class);
 
@@ -147,6 +148,7 @@ class EditWorkflowIntegrationTest {
         assertTrue(response.body().contains("action=\"/facilities/1/edit\""));
         assertTrue(response.body().contains("value=\"Blackwood Annex\""));
         assertTrue(response.body().contains("value=\"BA\""));
+        assertTrue(response.body().contains("name=\"countryId\""));
     }
 
     @Test
@@ -156,8 +158,7 @@ class EditWorkflowIntegrationTest {
 
     @Test
     void validEditRedirectsToRecordAndLogsUpdate() throws Exception {
-        when(changes.update(eq(1), any(), any())).thenReturn(true);
-        HttpResponse<String> response = post("/facilities/1/edit", "name=Blackwood+Annex&abbreviation=BWA&countryId=1",
+        HttpResponse<String> response = post("/facilities/1/edit", "name=Blackwood+Annex&abbreviation=BWA&countryId=62",
                 login("pat", "Secret1"));
 
         assertEquals(303, response.statusCode());

@@ -104,8 +104,8 @@ class AgencyInterfaceFacilityManagerTest {
 
     @Test
     void listsFacilitiesFromSQLite() {
-        facilityManager.addRecord("Blackwood Annex", "BA");
-        facilityManager.addRecord("Rose Garden", "RG");
+        facilityManager.addRecord("Blackwood Annex", "BA", 1);
+        facilityManager.addRecord("Rose Garden", "RG", 1);
 
         String text = run(standard, "3\n1\n0\n0\n");
 
@@ -115,7 +115,7 @@ class AgencyInterfaceFacilityManagerTest {
 
     @Test
     void readsFacilityFromSQLiteAndLogsAction() {
-        Facility facility = facilityManager.addRecord("Meridian Observatory", "MO");
+        Facility facility = facilityManager.addRecord("Meridian Observatory", "MO", 1);
 
         String text = run(
                 standard,

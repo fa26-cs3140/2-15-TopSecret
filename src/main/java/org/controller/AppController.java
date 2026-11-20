@@ -70,7 +70,8 @@ public class AppController {
             case COUNTRY -> facilityManager.getCountries().stream()
                     .map(country -> country.getID() + ". " + country.getName()).toList();
             case FACILITY -> facilityManager.getRecords("id", "%").stream()
-                    .map(f -> f.getId() + ". " + f.getName() + " (" + f.getAbbreviation() + ")" + countryLabel(f.getCountryID())).toList();
+                    .map(f -> f.getId() + ". " + f.getName() + " (" + f.getAbbreviation() + ")"
+                            + countryName(f.getCountryID()).map(name -> " [" + name + "]").orElse("")).toList();
             case MISSION -> missionManager.getRecords("id", "%").stream()
                     .map(m -> m.getId() + ". " + m.getTitle()).toList();
         };
@@ -135,8 +136,7 @@ public class AppController {
                     "dateOfDeath", a.getDateOfDeath(), "notes", a.getNotes(),
                     "facilityId", String.valueOf(a.getFacilityId())));
             case FACILITY -> facility(id).map(f -> values("name", f.getName(), "abbreviation", f.getAbbreviation(),
-                    "countryId", f.getCountryID() == 0 ? "" : String.valueOf(f.getCountryID())));
-            case COUNTRY -> country(id).map(c -> values("name", c.getName()));
+                    "countryId", String.valueOf(f.getCountryID())));
             case MISSION -> mission(id).map(m -> values("title", m.getTitle(),
                     "facilityId", String.valueOf(m.getFacilityId()),
                     "briefIds", joinIds(m.getBriefIds()), "agentIds", joinIds(m.getAgentIds())));
@@ -149,8 +149,19 @@ public class AppController {
     public int createRecord(RecordType type, Map<String, String> values, UserAccount user) {
         requireEditor(user);
         Map<String, String> v = cleaned(type, values);
-        Object record = model(type, 1, v);
-        return editor(type).create(user, record);
+        // The model constructors validate (dates, blanks); ID 1 is a placeholder until the database assigns one.
+        int id = switch (type) {
+            case BRIEF -> briefManager.addRecord(new Brief(1, v.get("title"), v.get("date"), v.get("text"), null))
+                    .getId();
+            case AGENT -> agentManager.addRecord(new Agent(1, v.get("name"), v.get("dateOfBirth"),
+                    v.get("dateOfDeath"), v.get("notes"), facilityId(v))).getId();
+            case FACILITY -> facilityManager.addRecord(new Facility(1, v.get("name"), v.get("abbreviation"),
+                    countryId(v))).getId();
+            case MISSION -> missionManager.addRecord(new Mission(1, v.get("title"), briefIds(v), agentIds(v),
+                    facilityId(v))).getId();
+        };
+        auditLog.log(user.getUsername(), "CREATE", type.name(), String.valueOf(id));
+        return id;
     }
 
     public void updateRecord(RecordType type, int id, Map<String, String> values, UserAccount user) {
@@ -158,9 +169,29 @@ public class AppController {
         if (formValues(type, id) == null) {
             throw new IllegalArgumentException("No " + type.getSingular() + " found with ID " + id + ".");
         }
-        Object record = model(type, id, cleaned(type, values));
-        if (!editor(type).update(user, record)) {
-            throw new IllegalArgumentException("The record no longer exists.");
+        Map<String, String> v = cleaned(type, values);
+        // Build the model object first so invalid values are rejected before anything is saved.
+        switch (type) {
+            case BRIEF -> {
+                new Brief(id, v.get("title"), v.get("date"), v.get("text"), null);
+                save(briefManager, id, v, "title", "date", "text");
+            }
+            case AGENT -> {
+                new Agent(id, v.get("name"), v.get("dateOfBirth"), v.get("dateOfDeath"), v.get("notes"), facilityId(v));
+                save(agentManager, id, v, "name", "dateOfBirth", "dateOfDeath", "notes", "facilityId");
+            }
+            case FACILITY -> {
+                int countryId = countryId(v);
+                new Facility(id, v.get("name"), v.get("abbreviation"), countryId);
+                save(facilityManager, id, v, "name", "abbreviation");
+                // the form field is countryId; the facilities column is country_id
+                facilityManager.updateRecord("id", String.valueOf(id), "country_id", String.valueOf(countryId));
+            }
+            case MISSION -> {
+                Mission mission = new Mission(id, v.get("title"), briefIds(v), agentIds(v), facilityId(v));
+                save(missionManager, id, v, "title", "facilityId");
+                missionManager.replaceAssignments(id, mission.getBriefIds(), mission.getAgentIds());
+            }
         }
     }
 
@@ -238,21 +269,18 @@ public class AppController {
         return id;
     }
 
-    private String countryLabel(int countryId) {
-        Country country = facilityManager.getCountry(countryId);
-        return country == null ? " [Unassigned country]" : " [" + country.getName() + "]";
-    }
-
-    private int countryId(Map<String, String> values) {
-        int id = parseId(values.get("countryId"), "Country ID");
-        if (country(id).isEmpty()) {
+    // Country ID from the form; must name an existing country.
+    private int countryId(Map<String, String> v) {
+        int id = parseId(v.get("countryId"), "Country ID");
+        if (countryName(id).isEmpty()) {
             throw new IllegalArgumentException("No country found with ID " + id + ".");
         }
         return id;
     }
 
-    private Optional<Country> country(int id) {
-        return Optional.ofNullable(facilityManager.getCountry(id));
+    // Country name for an ID, or empty when no such country exists.
+    private Optional<String> countryName(int countryId) {
+        return Optional.ofNullable(facilityManager.getCountry(countryId)).map(Country::getName);
     }
 
     private int[] briefIds(Map<String, String> v) {

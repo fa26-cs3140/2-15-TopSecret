@@ -502,8 +502,8 @@ class AgencyInterfaceTest {
     @Test
     void listFacilitiesShowsIdsNamesAndAbbreviations() {
         when(facilityManager.getRecords("id", "%")).thenReturn(List.of(
-                new Facility(1, "Blackwood Annex", "BA"),
-                new Facility(2, "Rose Garden", "RG")));
+                new Facility(1, "Blackwood Annex", "BA", 1),
+                new Facility(2, "Rose Garden", "RG", 1)));
 
         createInterface(standard, "3\n1\n0\n0\n").run();
 
@@ -523,7 +523,7 @@ class AgencyInterfaceTest {
     @Test
     void readFacilityShowsAllPropertiesAndIsAudited() {
         when(facilityManager.getRecords("id", "%")).thenReturn(List.of(
-                new Facility(3, "Meridian Observatory", "MO")));
+                new Facility(3, "Meridian Observatory", "MO", 1)));
 
         createInterface(standard, "3\n2\n3\n0\n0\n").run();
 
@@ -543,8 +543,8 @@ class AgencyInterfaceTest {
 
     @Test
     void addFacilityPromptsForPropertiesAndIsAudited() {
-        when(facilityManager.getCountry(1)).thenReturn(new org.model.Country("Afghanistan", 1, new Facility[0]));
-        when(changes.create(any(Facility.class), any())).thenReturn(6);
+        when(facilityManager.addRecord("Fairbanks Point", "FP", 1))
+                .thenReturn(new Facility(6, "Fairbanks Point", "FP", 1));
 
         createInterface(admin, "3\n3\nFairbanks Point\nFP\n1\n0\n0\n").run();
 
@@ -557,7 +557,8 @@ class AgencyInterfaceTest {
 
     @Test
     void addFacilityRejectedByServiceShowsError() {
-        when(facilityManager.getCountry(1)).thenReturn(new org.model.Country("Afghanistan", 1, new Facility[0]));
+        when(facilityManager.addRecord(any(), any(), anyInt()))
+                .thenThrow(new IllegalArgumentException("Name cannot be blank."));
 
         createInterface(admin, "3\n3\n\nFP\n1\n0\n0\n").run();
 
@@ -603,7 +604,7 @@ class AgencyInterfaceTest {
         when(briefManager.getRecords("id", "%")).thenReturn(List.of(
                 new Brief(1, "Operation Sandtrap", "1970-11-03", "Bug the pouch.", null)));
         when(facilityManager.getRecords("id", "%")).thenReturn(List.of(
-                new Facility(1, "Blackwood Annex", "BA")));
+                new Facility(1, "Blackwood Annex", "BA", 1)));
 
         createInterface(standard, "1\n1\n0\n3\n1\n0\n0\n").run();
 

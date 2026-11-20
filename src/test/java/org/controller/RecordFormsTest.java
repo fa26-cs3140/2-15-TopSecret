@@ -31,7 +31,7 @@ class RecordFormsTest {
     }
 
     @Test
-    void facilityFormHasNameAndAbbreviation() {
+    void facilityFormHasNameAbbreviationAndCountry() {
         assertEquals(List.of("name", "abbreviation", "countryId"), names(RecordType.FACILITY));
     }
 
