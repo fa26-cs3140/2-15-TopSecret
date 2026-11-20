@@ -1,0 +1,84 @@
+TOP SECRET - HELP
+=================
+
+Top Secret is an agency management system for managing agents,
+facilities, countries, missions, briefs, user accounts, and messages.
+
+USAGE
+-----
+java -jar build/libs/TopSecret.jar [option]
+
+COMMAND-LINE OPTIONS
+--------------------
+-h                  Display this help message and exit.
+-web                Start the web interface at http://localhost:3002/.
+
+No option           Launch the terminal interface (default).
+
+GETTING STARTED
+---------------
+1. Build the application using: ./gradlew build
+2. Run the application from the project root directory.
+3. On first launch, create an administrator account.
+4. On subsequent launches, log in using your credentials.
+5. Select an option from the main menu to access a feature.
+
+TERMINAL MENU
+-------------
+Briefs               View and manage mission briefs.
+Agents               View and manage agency personnel.
+Facilities           View and manage agency facilities.
+Missions             View and manage missions and assignments.
+Create User          Create another user account.
+Review Audit Log     View recorded system activities (admin only).
+User Permissions     Manage user permissions (admin only).
+Change Password      Change your account password.
+Send Agent Message   Send a message to an existing agent.
+My Messages          View messages addressed to your account.
+Manage Web Sessions  View/revoke web sessions (admin, -web-admin).
+Countries            View and manage countries.
+Exit                 Log out and close the terminal application.
+
+Some menu options are restricted to administrators.
+
+RECORD MANAGEMENT
+-----------------
+Select a record type to list, read, or manage its records.
+Administrators have additional options to create and import records.
+
+Facilities are associated with countries. Missions may involve
+multiple agents and briefs. Related records can be viewed through
+the web interface.
+
+AGENT MESSAGING
+---------------
+Messages are addressed to existing agents by their agent name.
+Only a logged-in user whose username matches the recipient agent
+name (case-insensitive) can access those messages.
+
+Messages can be sent to agents before they have user accounts.
+Administrative permissions do not grant access to others' inboxes.
+
+In the web interface, messages are labeled Read or Unread.
+Opening a message marks it as Read.
+
+WEB INTERFACE
+-------------
+Launch with -web and visit http://localhost:3002/.
+
+Log in with an existing user account. User accounts must first be
+created through the terminal interface.
+
+The web interface supports browsing agency records, viewing
+related data, and sending/reading agent messages.
+Administrators can also create and edit records through the web.
+
+Web sessions expire after 30 minutes of inactivity.
+Use Log out to end your session.
+
+WEB SESSION ADMINISTRATION
+--------------------------
+Launch with -web-admin to run the web server and terminal together.
+
+Administrators can use terminal option 12 to list active web
+sessions and revoke session tokens.
