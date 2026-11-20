@@ -2,8 +2,15 @@
 
 ## Class diagram
 
-The class diagram reflects the implemented record editing, related records,
-search, and session administration paths.
+Verified against NewDatabaseManagerRefactor at `18a534c` on 2026-11-20.
+This is Team D's scope; gray external boundaries in the PDF are maintained by
+other roles. The whole-system class PDF is a separate shared deliverable.
+
+- [Team D class diagram and compiled API inventory](TeamD-ClassDiagram.pdf)
+- [Entity/relationship diagram without column details](TeamD-ERD.pdf)
+- [Team D related-data, search, and session wireframes](TeamD-Wireframes.pdf)
+
+The diagrams represent implemented behavior, not unfinished backlog fixes.
 
 ```mermaid
 classDiagram
@@ -37,6 +44,22 @@ classDiagram
     }
     class SqliteRecordStore
     class AuditLogEntry
+    class AuditEvent {
+        <<record>>
+        username
+        action
+        type
+        timestamp
+        +forRecord(int) AuditLogEntry
+    }
+    class AuditLogManager
+    class AuditLogService {
+        <<interface>>
+    }
+    class SqliteAuditLogStore
+    class AuditLogStore {
+        <<interface>>
+    }
     class RecordSearch {
         +find(String) List~Match~
     }
@@ -73,7 +96,12 @@ classDiagram
     FacilityManager ..> Facility : loads
     Facility ..> Country : country ID
     RecordEditor --> EditStore
-    RecordEditor ..> AuditLogEntry : describes
+    RecordEditor ..> AuditEvent : creates
+    AuditEvent ..> AuditLogEntry : forRecord
+    AuditLogManager ..|> AuditLogService
+    AuditLogManager --> AuditLogStore
+    SqliteAuditLogStore ..|> AuditLogStore
+    SqliteAuditLogStore ..> AuditLogEntry : persists
     RecordRelationships --> BriefManager
     RecordRelationships --> AgentManager
     RecordRelationships --> FacilityManager
@@ -108,76 +136,22 @@ require an existing country through the current forms.
 ```mermaid
 erDiagram
     COUNTRIES |o--o{ FACILITIES : hosts
-    FACILITIES ||--o{ AGENTS : assigns
+    FACILITIES |o--o{ AGENTS : assigns
     FACILITIES ||--o{ MISSIONS : hosts
-    MISSIONS ||--o{ J_MISSION_AGENTS : includes
-    AGENTS ||--o{ J_MISSION_AGENTS : participates
-    MISSIONS ||--o{ J_MISSION_BRIEFS : references
-    BRIEFS ||--o{ J_MISSION_BRIEFS : supports
+    MISSIONS |o--o{ J_MISSION_AGENTS : includes
+    AGENTS |o--o{ J_MISSION_AGENTS : participates
+    MISSIONS |o--o{ J_MISSION_BRIEFS : references
+    BRIEFS |o--o{ J_MISSION_BRIEFS : supports
     USERS ||--o{ AUDIT_LOG : acts
     USERS ||--o{ AGENT_MESSAGES : sends
     AGENTS ||--o{ AGENT_MESSAGES : receives
-
-    COUNTRIES {
-        int id PK
-        string name
-    }
-    FACILITIES {
-        int id PK
-        string name
-        string abbreviation
-        int mission_id "legacy; unrelated to current mission links"
-        int country_id FK "nullable for legacy facilities"
-    }
-    AGENTS {
-        int id PK
-        string name
-        string dateOfBirth
-        string dateOfDeath
-        string notes
-        int facilityId FK
-    }
-    MISSIONS {
-        int id PK
-        string title
-        int facilityId FK
-    }
-    BRIEFS {
-        int id PK
-        string title
-        string date
-        string text
-        int mission_id "legacy; not the junction"
-    }
-    J_MISSION_AGENTS {
-        int missionId PK, FK
-        int agentId PK, FK
-    }
-    J_MISSION_BRIEFS {
-        int missionId PK, FK
-        int briefId PK, FK
-    }
-    USERS {
-        string username PK
-        bool is_admin
-    }
-    AUDIT_LOG {
-        int id PK
-        string username FK
-        string action
-        string content_type
-        string content_identifier
-        string accessed_at
-    }
-    AGENT_MESSAGES {
-        int id PK
-        string sender_username FK
-        int recipient_agent_id FK
-        string recipient_name
-        string body
-        string sent_at
-    }
 ```
+
+This conceptual ERD intentionally contains entity names and relationships only,
+as requested by the rubric. Physical schemas are recorded separately below.
+Optional parent cardinalities reflect nullable foreign keys in the actual DDL,
+including junction columns; application-valid mission links use positive IDs.
+No FK connects audit content identifiers to each content table.
 
 `AUDIT_LOG.content_identifier` is text because it can identify records from
 different tables or account actions. Tokens and their last-activity times
@@ -187,11 +161,12 @@ are in-memory server state. Passwords live in separate ciphered files.
 
 ```text
 Top Secret
-[Menu] [Briefs] [Agents] [Facilities] [Countries] [Audit log] [Log out]
+[Menu] [Briefs] [Agents] [Facilities] [Countries] [Facilities] [Missions] [Messages] [Audit log] [Log out]
 
 Facilities
 Name: Blackwood Annex
 Abbreviation: BA
+Country: United States
 [Edit facility]
 
 Related records
@@ -201,7 +176,9 @@ Related records
 - [mission · Recon]
 ```
 
-Brackets mark links or actions. Edit is shown only to administrators. An
+Brackets mark links or actions. Edit is shown only to administrators.
+The duplicated Facilities link is current shared behavior and is flagged for the
+navigation owner. Team C owns the Messages destination and its screen designs. An
 unassigned group can display “None.” Agent detail links to its facility and
 missions, Mission detail links to its facility, briefs, and agents, and
 Brief detail links to its assigned missions.
@@ -252,7 +229,7 @@ Countries
 Edit facility
 Name                      [Blackwood Annex]
 Abbreviation              [BA]
-Country ID (see Countries) [1]
+Country ID                [1]
 [Save] [Cancel]
 ```
 
@@ -278,4 +255,102 @@ fetch metadata, before dispatching handlers. Session cookies use SameSite=Lax.
 The application serves HTTP directly; origin validation compares against its
 HTTP Host header. HTTPS reverse-proxy deployments would need explicit trusted
 public-origin configuration rather than accepting arbitrary forwarded headers.
-The schema, ERD, and wireframe remain unchanged by these reliability fixes.
+These reliability changes add no tables. See the current physical schema below.
+
+## Physical schema notes (separate from the ERD)
+
+The SQL below was read from sqlite_master after initializing the current managers
+and messaging store in a disposable database. It describes fresh databases.
+Existing databases receive the country/read-status migrations; SQLite preserves
+legacy constraints when a column is added. Agent and junction foreign keys permit
+SQL NULL even though normal model writes require positive references. Legacy
+brief/facility mission fields are not the mission junction relationships.
+
+Team C owns agent_messages; its definition is included only as the database
+integration boundary. The read-status field must also appear in their class and
+wireframe documentation. Team D's conceptual ERD deliberately omits all columns.
+
+```sql
+CREATE TABLE agent_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_username TEXT NOT NULL REFERENCES users(username),
+    recipient_agent_id INTEGER NOT NULL REFERENCES agents(id),
+    recipient_name TEXT NOT NULL COLLATE NOCASE CHECK(length(trim(recipient_name)) > 0),
+    body TEXT NOT NULL CHECK(length(trim(body, char(9) || char(10) || char(13) || ' ')) > 0),
+    sent_at TEXT NOT NULL,
+    is_read INTEGER NOT NULL DEFAULT 0 CHECK(is_read IN (0, 1))
+);
+
+CREATE TABLE agents (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    dateOfBirth DATE NOT NULL,
+    dateOfDeath DATE,
+    notes TEXT,
+    facilityId INTEGER,
+    FOREIGN KEY (facilityId) REFERENCES facilities (id)
+);
+
+CREATE TABLE audit_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL REFERENCES users(username),
+    action TEXT NOT NULL,
+    content_type TEXT NOT NULL,
+    content_identifier TEXT NOT NULL,
+    accessed_at TEXT NOT NULL
+);
+
+CREATE TABLE briefs (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    date DATE NOT NULL,
+    text TEXT NOT NULL,
+    mission_id INTEGER UNIQUE
+);
+
+CREATE TABLE countries (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
+
+CREATE TABLE facilities (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    abbreviation TEXT NOT NULL,
+    country_id INTEGER REFERENCES countries(id),
+    mission_id INTEGER
+);
+
+CREATE TABLE j_mission_agents
+(
+missionId INTEGER,
+agentId INTEGER,
+PRIMARY KEY (missionId, agentId),
+FOREIGN KEY (missionId) REFERENCES missions(id) ON DELETE CASCADE,
+FOREIGN KEY (agentId) REFERENCES agents(id) ON DELETE CASCADE
+);
+
+CREATE TABLE j_mission_briefs
+(
+missionId INTEGER,
+briefId INTEGER,
+PRIMARY KEY (missionId, briefId),
+FOREIGN KEY (missionId) REFERENCES missions(id) ON DELETE CASCADE,
+FOREIGN KEY (briefId) REFERENCES briefs(id) ON DELETE CASCADE
+);
+
+CREATE TABLE missions
+(
+ id INTEGER PRIMARY KEY,
+ title TEXT NOT NULL,
+ facilityId INTEGER NOT NULL,
+
+ CONSTRAINT fk_facility FOREIGN KEY (facilityId) REFERENCES facilities(id) ON DELETE CASCADE
+);
+
+CREATE TABLE users (username TEXT NOT NULL PRIMARY KEY, is_admin INTEGER NOT NULL DEFAULT 0);
+
+```
+
+No passwords or session tokens are stored in these tables. Credential files are
+ciphered separately; web sessions and last-activity instants live in memory.
+Content CREATE/UPDATE, assignments, and audit commit together through
+SqliteRecordStore. TSV import is a separate legacy path and currently has the
+partial-import audit gap documented in VERIFICATION.md.
