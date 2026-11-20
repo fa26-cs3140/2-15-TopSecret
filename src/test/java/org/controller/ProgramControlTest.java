@@ -224,6 +224,17 @@ public class ProgramControlTest {
     }
 
     @Test
+    void createMessageWebHandlerUsesTheAgentDatabase(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) {
+        AgentManager agents = mock(AgentManager.class);
+        when(agents.getURL()).thenReturn("jdbc:sqlite:" + dir.resolve("messages.db"));
+        ProgramControl control = new ProgramControl(mock(FileHandler.class), mock(BriefManager.class), agents,
+                mock(FacilityManager.class), mock(AuditLogManager.class), mock(UserAccountManager.class),
+                mock(MissionManager.class));
+
+        assertNotNull(control.createMessageWebHandler());
+    }
+
+    @Test
     void defaultConstructorUsesRepositoryData() {
         assertDoesNotThrow(() -> new ProgramControl());
     }
