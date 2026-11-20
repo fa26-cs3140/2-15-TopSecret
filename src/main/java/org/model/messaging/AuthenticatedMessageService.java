@@ -62,7 +62,8 @@ public final class AuthenticatedMessageService implements MessageService {
         return List.copyOf(agents.getRecords("id","%"));
     }
 
-    @Override public Message sendMessage (int agentId,String body) {
+    @Override
+    public Message sendMessage (int agentId,String body) {
         requireAccount();
 
         if (body == null || body.isBlank())
@@ -88,8 +89,20 @@ public final class AuthenticatedMessageService implements MessageService {
                 .orElseThrow(() -> new IllegalArgumentException("No such agent."));
     }
 
-    @Override public List<Message> getInbox() {
+    @Override
+    public List<Message> getInbox() {
         requireAccount();
         return store.findForRecipient(username);
+    }
+
+    @Override
+    public Message readMessage(long messageId) {
+        requireAccount();
+
+        if (messageId <= 0) {
+            throw new IllegalArgumentException("Invalid message ID.");
+        }
+
+        return store.markAsRead(messageId, username);
     }
 }
