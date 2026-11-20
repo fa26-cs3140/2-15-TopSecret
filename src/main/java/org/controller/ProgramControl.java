@@ -156,13 +156,15 @@ public class ProgramControl {
     // for example before the first account has been created in the terminal.
     WebServer startWeb(int port)
     {
+        // Do not initialize the web server or messaging without accounts.
+        if (!userManager.hasUsers()) {
+            System.out.println("Web view not started: No user accounts exist.");
+            return null;
+        }
+
         AppController controller = new AppController(briefManager, agentManager, missionManager, facilityManager, auditLogger);
         webSessions = new SessionManager(userManager);
-        MessageWebHandler messaging = new MessageWebHandler(
-                agentManager,
-                new SqliteUserAccountStore(agentManager.getURL()),
-                new org.model.messaging.SqliteMessageStore(agentManager.getURL())
-        );
+        MessageWebHandler messaging = createMessageWebHandler();
         WebServer server = new WebServer(controller, userManager, webSessions, port, messaging);
         try
         {
@@ -175,6 +177,18 @@ public class ProgramControl {
         }
         System.out.println("Web view running at http://localhost:" + port + "/ (press Ctrl+C to stop)");
         return server;
+    }
+
+    /**
+     * Helper: Creates the web messaging handler using the application's database.
+     * Kept separate so web startup can be tested without real SQLite storage.
+     */
+    MessageWebHandler createMessageWebHandler() {
+        return new MessageWebHandler(
+                agentManager,
+                new SqliteUserAccountStore(agentManager.getURL()),
+                new org.model.messaging.SqliteMessageStore(agentManager.getURL())
+        );
     }
 
     //@return list of available filenames
