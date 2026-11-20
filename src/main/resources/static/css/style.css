@@ -1,4 +1,50 @@
-
 h1 {
-    color: red;
+    font-family: monospace;
+    color: darkred;
+    animation: color-change 1s infinite;
+ }
+
+h2 {
+    font-family: monospace;
+    color: darkred;
+    animation: color-change 1s infinite;
+}
+
+p {
+  font-family: monospace;
+}
+
+@keyframes color-change {
+  0% { color: red; }
+  50% { color: darkred; }
+}
+
+@keyframes slideFromTop {
+    from {
+        opacity: 0;
+        transform:  translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0px);
+    }
+}
+
+@keyframes slideFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.topdown-on-load {
+    animation: slideFromTop 0.6s ease-out forwards;
+}
+
+.leftright-on-load {
+    animatiom: slideFromLeft 0.6s ease-out forwards;
 }

@@ -45,6 +45,7 @@ public class WebServer {
 
         server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/login", exchange -> handleSafely(exchange, login));
+        server.createContext("/css/", exchange -> serveStaticResource(exchange));
         HttpHandler navigation = exchange -> {
             if (exchange.getRequestURI().getPath().equals("/")) {
                 login.handle(exchange);
@@ -54,6 +55,38 @@ public class WebServer {
         };
         server.createContext("/", exchange -> handleSafely(exchange, navigation));
         server.start();
+    }
+
+    // Quick thing to load the css file; we gotta make a context for it.
+    // Was really confused but it seems simple enough
+    private static void serveStaticResource(HttpExchange exchange) throws IOException {
+        String path = exchange.getRequestURI().getPath();
+
+        // Only allow requests for CSS resources.
+        if (!path.startsWith("/css/") || path.contains("..")) {
+            send(exchange, 404, "<p>Resource not found.</p>");
+            return;
+        }
+
+        String resourcePath = "static" + path;
+
+        try (var input = WebServer.class.getClassLoader()
+                .getResourceAsStream(resourcePath)) {
+
+            if (input == null) {
+                send(exchange, 404, "<p>Resource not found.</p>");
+                return;
+            }
+            byte[] bytes = input.readAllBytes();
+
+            exchange.getResponseHeaders()
+                .set( "Content-Type", "text/css; charset=utf-8");
+            exchange.sendResponseHeaders(200, bytes.length);
+
+            try (OutputStream output = exchange.getResponseBody()) {
+                output.write(bytes);
+            }
+        }
     }
 
     private static void handleSafely(HttpExchange exchange, HttpHandler handler) throws IOException {

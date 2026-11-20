@@ -286,19 +286,25 @@ public class FacilityManager extends IDatabaseManager<Facility>
 
     @Override
     public void createTable() {
+
+
         try (Connection connection = connect()) {
             connection.setAutoCommit(false);
             try (Statement statement = connection.createStatement()) {
-                statement.execute("CREATE TABLE IF NOT EXISTS countries (id INTEGER PRIMARY KEY, name TEXT NOT NULL)");
-                try (PreparedStatement seed = connection.prepareStatement(
-                        "INSERT OR IGNORE INTO countries (id, name) VALUES (?, ?)")) {
-                    for (Countries country : Countries.values()) {
-                        seed.setInt(1, country.ordinal() + 1);
-                        seed.setString(2, country.getName());
-                        seed.addBatch();
+                if (!tableExists("countries"))
+                {
+                    statement.execute("CREATE TABLE IF NOT EXISTS countries (id INTEGER PRIMARY KEY, name TEXT NOT NULL)");
+                    try (PreparedStatement seed = connection.prepareStatement(
+                                "INSERT OR IGNORE INTO countries (id, name) VALUES (?, ?)")) {
+                        for (Countries country : Countries.values()) {
+                            seed.setInt(1, country.ordinal() + 1);
+                            seed.setString(2, country.getName());
+                            seed.addBatch();
+                        }
+                        seed.executeBatch();
                     }
-                    seed.executeBatch();
                 }
+
                 statement.execute("CREATE TABLE IF NOT EXISTS facilities ("
                         + "id INTEGER PRIMARY KEY, name TEXT NOT NULL, abbreviation TEXT NOT NULL, "
                         + "country_id INTEGER REFERENCES countries(id), mission_id INTEGER)");
