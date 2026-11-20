@@ -6,7 +6,8 @@ public class Facility {
     private String abbreviation;
     private int countryId;
 
-    public Facility(int id, String name, String abbreviation, int country) {
+    /** Existing facilities may remain unassigned until a country is selected. */
+    public Facility(int id, String name, String abbreviation) {
         if (id <= 0) {
             throw new IllegalArgumentException("Facility ID must be positive.");
         }
@@ -14,7 +15,11 @@ public class Facility {
         this.id = id;
         this.setName(name);
         this.setAbbreviation(abbreviation);
-        this.setCountry(country);
+    }
+
+    public Facility(int id, String name, String abbreviation, int country) {
+        this(id, name, abbreviation);
+        setCountry(country);
     }
 
     public int getId() {
@@ -50,7 +55,7 @@ public class Facility {
     }
 
     public void setCountry(int countryId) {
-        if (countryId <= 0 && countryId > 196) {
+        if (countryId <= 0) {
             throw new IllegalArgumentException("Country cannot be null");
         }
 

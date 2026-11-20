@@ -62,6 +62,7 @@ public class FacilityManager extends IDatabaseManager<Facility>
             throw new IllegalArgumentException("Database URL cannot be blank.");
         }
         this.url = url;
+        createTable();
     }
 
     @Override 
@@ -101,9 +102,12 @@ public class FacilityManager extends IDatabaseManager<Facility>
             while (rs.next()) {
                 facilities.add(new Facility(rs.getInt(this.columnNames[0]), 
                             rs.getString(this.columnNames[1]),
-                            rs.getString(this.columnNames[2]),
-                            rs.getInt(this.columnNames[3])
+                            rs.getString(this.columnNames[2])
                             ));
+                int countryId = rs.getInt("country_id");
+                if (!rs.wasNull()) {
+                    facilities.getLast().setCountry(countryId);
+                }
             }
         } catch (SQLException e) {
             DebugHelper.debugPrintln(e.getMessage());
@@ -126,9 +130,9 @@ public class FacilityManager extends IDatabaseManager<Facility>
         int id = this.insert("INSERT INTO " + this.tableName + 
                              " (%s, %s, %s) ".formatted(this.columnNames[1], this.columnNames[2], this.columnNames[3])
                              + "VALUES (?, ?, ?)",
-                             name, abbreviation, country
+                             name, abbreviation, country == 0 ? null : country
                 );
-        return new Facility(id, name, abbreviation, country);
+        return country == 0 ? new Facility(id, name, abbreviation) : new Facility(id, name, abbreviation, country);
     }
 
     /**
@@ -144,6 +148,10 @@ public class FacilityManager extends IDatabaseManager<Facility>
         return this.addRecord(facility);
     }
 
+    public Facility addRecord(String name, String abbreviation) {
+        return addRecord(new Facility(1, name, abbreviation));
+    }
+
     /**
      * Updates a record in the database. Finds the record by checking the key in checkColumn
      * and updates the value stored in changeColumn with the input value
@@ -154,102 +162,46 @@ public class FacilityManager extends IDatabaseManager<Facility>
         return this.updateColumn(checkColumn, key, changeColumn, value);
     }
 
-    /**
-     * Returns a Country by matching a name, get country names from enum
-     */
-    public Country getCountry(Countries countryEnum)
-    {
-        List<Facility> facs = new ArrayList<>();
-        String name = countryEnum.getName();
-        String query = "SELECT name FROM countries WHERE name LIKE '?'";
-        int outId = -1;
-        String outName = "";
-
-        // Get country id from facility
-        try (Connection c = connect(); PreparedStatement s = c.prepareStatement(query))
-        {
-            s.setString(1, name);
-            ResultSet rs = s.executeQuery();
-            // Pass header
-            rs.next();
-            outName = rs.getString("name");
-            outId = rs.getInt("id");
-            
-        } catch (SQLException e) {
-            return null;
-        }
-
-        // Get facilities
-        facs = this.getRecords(columnNames[3], "" + outId);
-        Facility[] outFacs = facs.toArray(new Facility[0]);
-        Country out = new Country(outName, outId, outFacs);
-
-        return out;
+    public Country getCountry(Countries country) {
+        return getCountry(country.ordinal() + 1);
     }
 
-    public Country getCountry(int countryId)
-    {
-        if (countryId <= 0 || countryId > 196) return null;
-
-        List<Facility> facs = new ArrayList<>();
-        String query = "SELECT name FROM countries WHERE id = ?";
-        String outName = "";
-        int outId = -1;
-        try (Connection c = connect(); PreparedStatement s = c.prepareStatement(query))
-        {
-            s.setInt(1, countryId);
-            ResultSet rs = s.executeQuery();
-            rs.next(); // Pass header
-
-            outName = rs.getString("name");
-            outId = rs.getInt("id");
-
-        } catch (SQLException e) {
-            return null;
-        }
-
-        facs = this.getRecords(columnNames[3], "" + outId);
-        Facility[] outFacs = facs.toArray(new Facility[0]);
-        Country out = new Country(outName, outId, outFacs);
-
-        return out;
+    public Country getCountry(int countryId) {
+        return getCountries().stream().filter(country -> country.getID() == countryId).findFirst().orElse(null);
     }
 
-    public Country getCountry(String name)
-    {
-        List<Facility> facs = new ArrayList<>();
-        String query = "SELECT id, name FROM countries WHERE name LIKE ?";
-        String outName = "";
-        int outId = -1;
+    public Country getCountry(String name) {
+        if (name == null) {
+            return null;
+        }
+        return getCountries().stream()
+                .filter(country -> country.getName().regionMatches(true, 0, name, 0, name.length()))
+                .findFirst().orElse(null);
+    }
 
-        try (Connection c = connect(); PreparedStatement s = c.prepareStatement(query))
-        {
-            s.setString(1, name + "%");
-            try (ResultSet rs = s.executeQuery())
-            {
-                if (rs.next()) // If valid query
-                {
-                    outName = rs.getString("name");
-                    outId = rs.getInt("id");
-                } 
-                else 
-                {
-                    return null;
-                }
+    public List<Country> getCountries() {
+        List<Country> countries = new ArrayList<>();
+        List<Facility> facilities = getRecords("id", "%");
+        try (Connection connection = connect();
+             PreparedStatement statement = connection.prepareStatement("SELECT id, name FROM countries ORDER BY id");
+             ResultSet result = statement.executeQuery()) {
+            while (result.next()) {
+                int id = result.getInt("id");
+                Facility[] assigned = facilities.stream().filter(facility -> facility.getCountryID() == id)
+                        .toArray(Facility[]::new);
+                countries.add(new Country(result.getString("name"), id, assigned));
             }
-
-        } catch (SQLException e) {
-            DebugHelper.debugPrintln(e.getStackTrace());
-            return null;
+        } catch (SQLException failure) {
+            throw new IllegalStateException("Unable to read countries.", failure);
         }
-
-        facs = this.getRecords(columnNames[3], "" + outId);
-        Facility[] outFacs = facs.toArray(new Facility[0]);
-        Country out = new Country(outName, outId, outFacs);
-
-        return out;
+        return countries;
     }
 
+    public Country addCountry(String name) {
+        Country validated = new Country(name, 1, new Facility[0]);
+        int id = insert("INSERT INTO countries (name) VALUES (?)", validated.getName());
+        return new Country(name, id, new Facility[0]);
+    }
 
     /**
      * Imports a file containing tab separated values into a database.
@@ -290,15 +242,16 @@ public class FacilityManager extends IDatabaseManager<Facility>
         while ((readText = reader.readLine()) != null)
         {
             // Each coloumn should correspond with the requisite value, apart from id
-            String[] data = readText.split("\t");
+            String[] data = readText.replace("\\t", "\t").split("\t");
 
             String name = data[0];
             String abbreviation = data[1];
-            int country_id = -1;
-            try { country_id = Integer.parseInt(data[2]); } catch (NumberFormatException e) { country_id = -1; };
-            if (country_id <= 0 || country_id > 196) { reader.close(); return 0; }
-
-            this.addRecord(name, abbreviation, country_id);
+            if (data.length > 2) {
+                int countryId = Integer.parseInt(data[2]);
+                this.addRecord(name, abbreviation, countryId);
+            } else {
+                this.addRecord(name, abbreviation);
+            }
             numRecords++;
         }
 
@@ -312,88 +265,40 @@ public class FacilityManager extends IDatabaseManager<Facility>
      */
     
 
-    @Override 
-    public void createTable() 
-    {
-        // Create Country Table
-        /*
-         *  Country Table Schema
-         *  CREATE TABLE countries
-         *  (
-         *  id INTEGER PRIMARY KEY,
-         *  name TEXT NOT NULL
-         *  )
-        */
-        String createSql = "CREATE TABLE IF NOT EXISTS countries (id INTEGER PRIMARY KEY, name TEXT NOT NULL)";
-        String insertSql = "INSERT INTO countries (name) VALUES (?)";
-
-        try (Connection c = connect(); Statement s = c.createStatement()) {
-            // 1. Create the table FIRST
-            s.execute(createSql);
-
-            // 2. Now prepare the INSERT statement after the table exists
-            try (PreparedStatement ps = c.prepareStatement(insertSql)) {
-                for (Countries country : Countries.values()) {
-                    ps.setString(1, country.getName());
-                    ps.addBatch();
+    @Override
+    public void createTable() {
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            try (Statement statement = connection.createStatement()) {
+                statement.execute("CREATE TABLE IF NOT EXISTS countries (id INTEGER PRIMARY KEY, name TEXT NOT NULL)");
+                try (PreparedStatement seed = connection.prepareStatement(
+                        "INSERT OR IGNORE INTO countries (id, name) VALUES (?, ?)")) {
+                    for (Countries country : Countries.values()) {
+                        seed.setInt(1, country.ordinal() + 1);
+                        seed.setString(2, country.getName());
+                        seed.addBatch();
+                    }
+                    seed.executeBatch();
                 }
-                // 3. Execute the batch on ps, NOT s
-                ps.executeBatch();
+                statement.execute("CREATE TABLE IF NOT EXISTS facilities ("
+                        + "id INTEGER PRIMARY KEY, name TEXT NOT NULL, abbreviation TEXT NOT NULL, "
+                        + "country_id INTEGER REFERENCES countries(id), mission_id INTEGER)");
+                boolean hasCountry = false;
+                try (ResultSet columns = statement.executeQuery("PRAGMA table_info(facilities)")) {
+                    while (columns.next()) {
+                        hasCountry |= columns.getString("name").equals("country_id");
+                    }
+                }
+                if (!hasCountry) {
+                    statement.execute("ALTER TABLE facilities ADD COLUMN country_id INTEGER REFERENCES countries(id)");
+                }
+                connection.commit();
+            } catch (SQLException failure) {
+                connection.rollback();
+                throw failure;
             }
-
-            DebugHelper.debugPrintln("Country table created!");
-
-        } catch (SQLException e) {
-            DebugHelper.debugPrintln("FacilityManager: " + e.getMessage());
-            DebugHelper.debugPrintln("Country table not created...");
-        }
-
-        // Create the Facilities table
-        /*
-         * Table Schema
-         * CREATE TABLE facilities 
-         * (
-         *  id INTEGER PRIMARY KEY, 
-         *  name TEXT NOT NULL, 
-         *  abbreviation TEXT NOT NULL, 
-         *  country_id INTEGER,
-         *  mission_id INTEGER,
-         *
-         *  CONSTRAINT fk_country FOREIGN KEY (country_id) REFERENCES countries(id)
-         *  )
-         */
-        try (Connection c = connect(); Statement s = c.createStatement()) {
- //           s.execute(
- //                   "CREATE TABLE IF NOT EXISTS %s (%s INTEGER PRIMARY KEY, %s TEXT NOT NULL, "
- //                   .formatted(this.tableName, this.columnNames[0], this.columnNames[1])
- //                   + "%s TEXT NOT NULL, %s INTEGER)".formatted(this.columnNames[2], this.columnNames[3])
- //                   );
-            s.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS %s 
-                    (
-                     %s INTEGER PRIMARY KEY, 
-                     %s TEXT NOT NULL,
-                     %s TEXT NOT NULL,
-                     %s INTEGER NOT NULL,
-                     %s INTEGER,
-                     
-                     CONSTRAINT fk_country FOREIGN KEY (%s) REFERENCES countries(id)
-                     )
-                    """
-                    .formatted
-                    (
-                        this.tableName,
-                        this.columnNames[0], // id
-                        this.columnNames[1], // name
-                        this.columnNames[2], // abbreviation
-                        this.columnNames[3], // country_id
-                        this.columnNames[4], // mission_id
-                        this.columnNames[3] // country_id fkey
-                    )
-                );
-        } catch (SQLException e) {
-            DebugHelper.debugPrintln(e.getMessage());
+        } catch (SQLException failure) {
+            throw new IllegalStateException("Unable to initialize facilities and countries.", failure);
         }
     }
 }

@@ -18,26 +18,12 @@ public class Country
         return this.name;
     }
 
-    private void setName(String name)
+    public void setName(String name)
     {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Name cannot be blank or null");
         }
 
-        Boolean validCountry = false;
-        for (Countries c : Countries.values())
-        {
-            if (name.equals(c.getName()))
-            {
-                validCountry = true;
-            }
-        }
-
-        if (!validCountry) {
-            throw new IllegalArgumentException("Name cannot be blank or null");
-        }
-
-        // Values confirmed we good
         this.name = name;
     }
 
@@ -53,7 +39,7 @@ public class Country
 
     private void setID(int id)
     {
-        if (id <= 0 || id > 196) {
+        if (id <= 0) {
             throw new IllegalArgumentException("ID out of range");
         }
 
