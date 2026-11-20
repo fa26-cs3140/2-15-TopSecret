@@ -134,8 +134,22 @@ public class ProgramControlTest {
     }
 
     private ProgramControl controlWithAccounts(UserAccountManager accounts) {
-        return new ProgramControl(mock(FileHandler.class), mock(BriefManager.class), mock(AgentManager.class),
-                mock(FacilityManager.class), mock(AuditLogManager.class), accounts, mock(MissionManager.class));
+        ProgramControl control = spy(new ProgramControl(
+                mock(FileHandler.class),
+                mock(BriefManager.class),
+                mock(AgentManager.class),
+                mock(FacilityManager.class),
+                mock(AuditLogManager.class),
+                accounts,
+                mock(MissionManager.class)
+        ));
+
+        // Web startup tests do not need real messaging persistence.
+        doReturn(mock(MessageWebHandler.class))
+                .when(control)
+                .createMessageWebHandler();
+
+        return control;
     }
 
     @Test
