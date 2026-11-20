@@ -215,7 +215,8 @@ public final class SqliteMessageStore implements MessageStore {
                 result.getInt("recipient_agent_id"),
                 result.getString("recipient_name"),
                 result.getString("body"),
-                LocalDateTime.parse(result.getString("sent_at"))
+                LocalDateTime.parse(result.getString("sent_at")),
+                result.getInt("is_read") == 1
         );
     }
 
