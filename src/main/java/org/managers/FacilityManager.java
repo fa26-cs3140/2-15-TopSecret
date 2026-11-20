@@ -33,8 +33,8 @@ public class FacilityManager extends IDatabaseManager<Facility>
      *  CONSTRAINT fk_country FOREIGN KEY (country_id) REFERENCES countries(id)
      *  )
      *
-     *  The createTable() function will also load all country data, which will be stored 
-     *  as an enumerator in memory
+     *  createTable() seeds countries from the supplied Countries enum without
+     *  replacing names that users have edited.
      *
      *
      *  Country Table Schema
@@ -45,14 +45,6 @@ public class FacilityManager extends IDatabaseManager<Facility>
      *  )
      */
 
-    // Perhaps a new table is in order.
-    // Could make a table containing nothing but countries and their IDS,
-    // at which point searching for matching names would be nice.
-    // Basically a search query would query the country table, get the id
-    // then query the faclity table for all facilities with a matching 
-    // country id. 
-    //
-    //
     private final String tableName = "facilities";
     private final String[] columnNames = { "id", "name", "abbreviation", "country_id", "mission_id" };
 
@@ -91,28 +83,29 @@ public class FacilityManager extends IDatabaseManager<Facility>
     /**
      * Returns an array of Facility objects that match the key in the column.
      */
-    @Override 
-    public List<Facility> getRecords(String column, String key)
-    {
+    @Override
+    public List<Facility> getRecords(String column, String key) {
+        if (!java.util.Arrays.asList(columnNames).contains(column)) {
+            throw new IllegalArgumentException("Unknown facility column.");
+        }
         List<Facility> facilities = new ArrayList<>();
-        try (Connection c = connect();
-             ResultSet rs = c.createStatement().executeQuery("SELECT * FROM " + this.tableName + 
-                                                            " WHERE " + column + " LIKE " + "\'" + key + "\'" + 
-                                                            " ORDER BY " + this.columnNames[0])) {
-            while (rs.next()) {
-                facilities.add(new Facility(rs.getInt(this.columnNames[0]), 
-                            rs.getString(this.columnNames[1]),
-                            rs.getString(this.columnNames[2])
-                            ));
-                int countryId = rs.getInt("country_id");
-                if (!rs.wasNull()) {
-                    facilities.getLast().setCountry(countryId);
+        String sql = "SELECT * FROM facilities WHERE " + column + " LIKE ? ORDER BY id";
+        try (Connection connection = connect(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, key);
+            try (ResultSet result = statement.executeQuery()) {
+                while (result.next()) {
+                    Facility facility = new Facility(result.getInt("id"),
+                            result.getString("name"), result.getString("abbreviation"));
+                    int countryId = result.getInt("country_id");
+                    if (!result.wasNull()) {
+                        facility.setCountry(countryId);
+                    }
+                    facilities.add(facility);
                 }
             }
-        } catch (SQLException e) {
-            DebugHelper.debugPrintln(e.getMessage());
+        } catch (SQLException failure) {
+            throw new IllegalStateException("Unable to read facilities.", failure);
         }
-
         return facilities;
     }
 
