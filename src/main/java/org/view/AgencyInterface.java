@@ -382,7 +382,7 @@ public class AgencyInterface {
 
     private void runTypeMenu(RecordType type) {
         // Can only create missions if there exists at least one facility
-        if (type == RecordType.MISSION && fManager.getRecords("id", "1").isEmpty())
+        if (type == RecordType.MISSION && fManager.getRecords("id", "%").isEmpty())
         {
             output.println("Cannot create a mission: No available facilities.");
             return;
@@ -535,7 +535,11 @@ public class AgencyInterface {
         }
 
         String facilityName = prompt("Facility name: ");
-        int facilityId = fManager.getRecords(fManager.getColumnNames()[1], facilityName).get(0).getId();
+        List<Facility> matchingFacilities = fManager.getRecords(fManager.getColumnNames()[1], facilityName);
+        if (matchingFacilities.isEmpty()) {
+            throw new IllegalArgumentException("No facility found with that name.");
+        }
+        int facilityId = matchingFacilities.getFirst().getId();
 
         Integer id = mManager.addRecord(title, briefIds, agentIds, facilityId).getId();
 

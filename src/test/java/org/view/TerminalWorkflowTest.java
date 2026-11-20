@@ -73,7 +73,7 @@ class TerminalWorkflowTest {
 
     @Test
     void terminalMissionCreationUsesTheSelectedRelatedRecordIds() {
-        when(facilities.getRecords("id", "1")).thenReturn(List.of(new Facility(1, "HQ", "HQ")));
+        when(facilities.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "HQ", "HQ")));
         when(facilities.getColumnNames()).thenReturn(new String[]{"id", "name"});
         when(briefs.getColumnNames()).thenReturn(new String[]{"id", "title"});
         when(agents.getColumnNames()).thenReturn(new String[]{"id", "name"});
@@ -88,6 +88,30 @@ class TerminalWorkflowTest {
         verify(missions).addRecord(eq("Recon"), org.mockito.AdditionalMatchers.aryEq(new int[]{2}),
                 org.mockito.AdditionalMatchers.aryEq(new int[]{3}), eq(1));
         verify(audit).log("admin", "CREATE", "MISSION", "4");
+    }
+
+    @Test
+    void aNonDefaultFacilityIdStillAllowsMissionNavigation() {
+        when(facilities.getRecords("id", "%")).thenReturn(List.of(new Facility(41, "Legacy HQ", "HQ")));
+        when(missions.getRecords("id", "%")).thenReturn(List.of(
+                new Mission(7, "Legacy mission", new int[0], new int[0], 41)));
+
+        ui("4\n1\n0\n0\n").run();
+
+        assertTrue(output.toString().contains("Legacy mission"));
+    }
+
+    @Test
+    void aMissingFacilityNameDoesNotCrashMissionCreation() {
+        when(facilities.getRecords("id", "%")).thenReturn(List.of(new Facility(41, "HQ", "HQ")));
+        when(facilities.getColumnNames()).thenReturn(new String[]{"id", "name"});
+        when(briefs.getColumnNames()).thenReturn(new String[]{"id", "title"});
+        when(agents.getColumnNames()).thenReturn(new String[]{"id", "name"});
+
+        assertDoesNotThrow(() -> ui("4\n3\nRecon\n\n\nMissing HQ\n0\n0\n").run());
+
+        assertTrue(output.toString().contains("Unable to add mission"));
+        verify(missions, never()).addRecord(anyString(), any(int[].class), any(int[].class), anyInt());
     }
 
     private AgencyInterface ui(String input) {

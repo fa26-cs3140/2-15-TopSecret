@@ -64,6 +64,10 @@ public class PageHandler implements HttpHandler {
     // /briefs, /briefs/3, /agents, /agents/2, /facilities, /facilities/1, /missions, /missions/4
     private void showRecords(HttpExchange exchange, UserAccount user, String path) throws IOException {
         String[] parts = path.substring(1).split("/");
+        if (parts.length == 0) {
+            send(exchange, user, 404, "Not Found", "<p>Page not found.</p>");
+            return;
+        }
         RecordType type = typeFor(parts[0]);
         if (type == null || parts.length > 2) {
             send(exchange, user, 404, "Not Found", "<p>Page not found.</p>");

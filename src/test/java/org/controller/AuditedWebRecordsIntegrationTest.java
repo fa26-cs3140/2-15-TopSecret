@@ -206,6 +206,104 @@ class AuditedWebRecordsIntegrationTest {
         }
     }
 
+    @Test
+    void malformedFormEncodingReturnsAnErrorAndKeepsTheServerUsable() throws Exception {
+        for (String path : new String[]{"/login", "/countries/new"}) {
+            HttpRequest request = request(path, cookie)
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .POST(HttpRequest.BodyPublishers.ofString("name=%ZZ&username=%"))
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            assertEquals(400, response.statusCode(), path);
+        }
+        assertEquals(200, get("/menu", cookie).statusCode());
+        assertTrue(audit.getAuditLog().isEmpty());
+    }
+
+    @Test
+    void slashOnlyPathsReturnNotFoundWithoutDroppingTheConnection() throws Exception {
+        for (String path : new String[]{"//", "///", "////"}) {
+            int status = get(path, cookie).statusCode();
+            assertTrue(status == 400 || status == 404, path);
+        }
+        assertEquals(404, get("/%2F", cookie).statusCode());
+        assertEquals(404, get("/%2F%2F", cookie).statusCode());
+        assertEquals(200, get("/countries", cookie).statusCode());
+    }
+
+    @Test
+    void aReadStorageFailureReturnsAControlledResponse() throws Exception {
+        try (var connection = DriverManager.getConnection(url); var statement = connection.createStatement()) {
+            statement.execute("DROP TABLE countries");
+        }
+        HttpResponse<String> response = get("/countries", cookie);
+        assertEquals(503, response.statusCode());
+        assertTrue(response.body().contains("temporarily unavailable"));
+        assertFalse(response.body().contains("no such table"));
+        assertEquals(200, get("/menu", cookie).statusCode());
+    }
+
+    @Test
+    void hostileNamesRemainLiteralAndCannotChangeOtherRecords() throws Exception {
+        String hostile = "<script>alert(1)</script> O'Brien'); DROP TABLE countries; --";
+        int country = create("countries", Map.of("name", hostile));
+        int facility = create("facilities", Map.of("name", hostile, "abbreviation", "SAFE",
+                "countryId", String.valueOf(country)));
+        String detail = get("/facilities/" + facility, cookie).body();
+        assertFalse(detail.contains("<script>"));
+        assertTrue(detail.contains("&lt;script&gt;"));
+        assertEquals(hostile, new FacilityManager(url).getCountry(country).getName());
+        assertEquals(facility, new FacilityManager(url).getRecords("name", hostile).getFirst().getId());
+        assertTrue(new FacilityManager(url).getCountries().size() > 1);
+    }
+
+    @Test
+    void forgedRoleFieldsAndFakeTokensCannotAuthorizeAnEdit() throws Exception {
+        Map<String, String> fields = Map.of("name", "Unauthorized", "username", "admin", "is_admin", "true");
+        assertEquals(403, post("/countries/new", fields, standardCookie).statusCode());
+        assertEquals(303, post("/countries/new", fields, "session=forged").statusCode());
+        assertEquals(303, post("/countries/new", fields, null).statusCode());
+        assertTrue(audit.getAuditLog().isEmpty());
+    }
+
+    @Test
+    void deletingAnAccountInvalidatesItsExistingCookie() throws Exception {
+        try (var connection = DriverManager.getConnection(url);
+             var statement = connection.prepareStatement("DELETE FROM users WHERE username = ?")) {
+            statement.setString(1, "ghost");
+            statement.executeUpdate();
+        }
+        assertEquals(303, get("/countries", standardCookie).statusCode());
+        assertEquals(303, post("/countries/new", Map.of("name", "Denied"), standardCookie).statusCode());
+    }
+
+    @Test
+    void concurrentCountryCreatesKeepIdentifiersAndAuditEntriesConsistent() throws Exception {
+        java.util.concurrent.ExecutorService workers = java.util.concurrent.Executors.newFixedThreadPool(4);
+        try {
+            var store = new org.managers.SqliteRecordStore(url);
+            var event = new org.managers.RecordEditor.AuditEvent("admin", "CREATE",
+                    org.model.RecordType.COUNTRY, java.time.LocalDateTime.now());
+            var futures = new java.util.ArrayList<java.util.concurrent.Future<Integer>>();
+            for (int index = 0; index < 4; index++) {
+                String name = "Concurrent country " + index;
+                futures.add(workers.submit(() -> store.create(new org.model.Country(name, 1,
+                        new org.model.Facility[0]), event)));
+            }
+            var ids = new java.util.HashSet<String>();
+            for (var future : futures) {
+                ids.add(String.valueOf(future.get(10, java.util.concurrent.TimeUnit.SECONDS)));
+            }
+            assertEquals(4, ids.size());
+            var entries = audit.getAuditLog();
+            assertEquals(4, entries.size());
+            assertEquals(ids, entries.stream().map(org.model.AuditLogEntry::getContentIdentifier)
+                    .collect(Collectors.toSet()));
+        } finally {
+            workers.shutdownNow();
+        }
+    }
+
     private String login(String username, String password) throws Exception {
         HttpResponse<String> response = post("/login", Map.of("username", username, "password", password), null);
         assertEquals(303, response.statusCode());

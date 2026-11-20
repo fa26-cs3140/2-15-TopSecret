@@ -1,6 +1,7 @@
 package org.controller;
 
 import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.managers.UserAccountManager;
 
@@ -43,15 +44,26 @@ public class WebServer {
         PageHandler pages = new PageHandler(controller, sessions);
 
         server = HttpServer.create(new InetSocketAddress(port), 0);
-        server.createContext("/login", login);
-        server.createContext("/", exchange -> {
+        server.createContext("/login", exchange -> handleSafely(exchange, login));
+        HttpHandler navigation = exchange -> {
             if (exchange.getRequestURI().getPath().equals("/")) {
                 login.handle(exchange);
             } else {
                 pages.handle(exchange);
             }
-        });
+        };
+        server.createContext("/", exchange -> handleSafely(exchange, navigation));
         server.start();
+    }
+
+    private static void handleSafely(HttpExchange exchange, HttpHandler handler) throws IOException {
+        try {
+            handler.handle(exchange);
+        } catch (IllegalArgumentException malformed) {
+            send(exchange, 400, "<p>Invalid request data.</p>");
+        } catch (IllegalStateException unavailable) {
+            send(exchange, 503, "<p>The requested data is temporarily unavailable.</p>");
+        }
     }
 
     public void stop() {
