@@ -35,7 +35,15 @@ a {
 }
 
 li::marker {
-  color: #e3f6e3; /* Replace with any color name, hex code, or RGB value */
+  color: #e3f6e3; 
+}
+
+li {
+  color: #e3f6e3;
+}
+
+pre {
+    color: #e3f6e3;
 }
 
 @keyframes color-change {
