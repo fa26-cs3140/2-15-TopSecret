@@ -10,6 +10,7 @@ import java.util.List;
 public interface MessageView {
     void showAgents(List<Agent> agents);
     void showInbox(List<Message> messages);
+    void showMessageDetail(Message message);
     void showMessageSent(Message message);
     void showError(String message);
 }
