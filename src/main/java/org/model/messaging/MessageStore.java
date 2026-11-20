@@ -11,4 +11,10 @@ public interface MessageStore {
 
     /** ASCII case-insensitive name matching, ascending generated ID order. */
     List<Message> findForRecipient(String recipientName);
+
+    /**
+     * Marks a message as read, but only if it belongs to the specified recipient.
+     * Returns the updated message.
+     */
+    Message markAsRead(long messageId, String recipientName);
 }
