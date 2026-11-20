@@ -25,7 +25,11 @@ The web view listens at http://localhost:3002/. Accounts must already exist.
 The browser login uses session cookies. The server expires a token after 30
 minutes of inactivity and refreshes activity on an authenticated request.
 Administrators can create and edit records over the web. Each content change and
-its audit entry commit together. Detail pages link to related agency records.
+its audit entry commit together. Detail pages link to related agency records. Countries are listed at /countries
+and terminal option 13. Facilities require a Country ID selected from that list.
+Country names can be edited and appear dynamically at related facilities.
+Existing facilities keep their data during migration and remain unassigned
+until a user selects a country.
 
 To administer the running server from the terminal, start both in one process:
 

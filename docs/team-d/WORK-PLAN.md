@@ -20,21 +20,22 @@ for the available content types.
 | Tests and system check | Separate unit/integration tasks, full Gradle build, HTTP/SQLite acceptance tests, packaged-JAR system test |
 | Documentation | Updated diagrams and current instructions; regenerated the shared class PDF from compiled classes |
 
-## Shared prerequisites and remaining submission work
+## Team integration status
 
-1. **Team A country feature.** The shared `Country` class is unfinished.
-   There is no country store, table, facility FK, or route. Once Team A supplies
-   them, integrate countries into related-record links, terminal search, and
-   the typed transactional edit path. The ERD marks that relationship as planned.
+1. **Country integration completed.** Incorporated Team A's country model,
+   repaired initialization and lookup problems, migrated existing facilities,
+   and connected country edits, relationships, and search. Regression tests
+   verify seeded IDs, renames, restart behavior, and legacy data preservation.
 2. **Team C web messaging.** The shared branch still has terminal messaging.
    The Homework 7 web center and read indicators belong to Team C.
-3. **Whole-project coverage.** Team D's record services, link view, and session
-   manager have 100% JaCoCo method coverage in the isolated unit suite. The
-   complete project still has uncovered inherited methods, including the
-   unfinished Country class. See VERIFICATION.md for measured totals.
+3. **Whole-project method coverage completed.** The complete test suite exercises
+   all 439 measured methods. Added checks cover startup argument handling,
+   directory changes, search-result accessors, diagnostics, and terminal
+   account/import/mission workflows. The unused audit-table stub had no
+   callers and has been removed.
 4. **Final shared diagrams.** Superseded class notes and old diagrams have been
    removed in favor of the current class PDF, ERD, and wireframes. Update those
-   current diagrams again when country and web messaging features arrive.
+   current diagrams again when the web messaging feature arrives.
 5. **Team review and system tests.** Review the integration PR and have each
    teammate run the final combined application before the deadline.
 
@@ -46,3 +47,25 @@ tests inject a mock of that store and check the submitted audit metadata.
 PageHandler adds related links and returns 404 for missing details. ProgramControl
 shares a session manager between the terminal and web server in `-web-admin`
 mode. The shared MissionManager implementation is retained.
+
+## Country compatibility corrections
+
+The country push removed the previous Facility constructor and manager overload.
+They remain available for existing callers. The new four-argument constructor
+validates positive country IDs. SQLite enforces the referenced country's existence.
+
+Country initialization uses explicit seed IDs with INSERT OR IGNORE, and adds the
+new facility column to existing databases. Country lookup includes both ID and
+name and works after renaming. Names are editable and newly created countries
+can receive IDs beyond the original enum. Facility lookup binds input values.
+
+The current web forms require Country ID for new or edited facilities. Legacy
+unassigned records are preserved without assigning an invented country.
+
+## Adversarial review
+
+Fixed malformed form/encoded-path handling, controlled storage-read errors,
+the hard-coded facility ID in terminal mission navigation, and the crash on
+an unknown facility name. Regression tests exercise each failure through
+the HTTP server or terminal menu. SQL/HTML injection strings, forged roles
+and tokens, deleted accounts, and concurrent writes are also exercised.

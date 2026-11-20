@@ -6,7 +6,8 @@ classes in docs/HW7-ClassDiagram.pdf.
 
 Brief stores its ID, title, ISO date, text, and the legacy nullable missionId.
 Agent stores its ID, name, birth/death dates, optional notes, and facilityId.
-Facility stores its ID, name, and abbreviation.
+Facility stores its ID, name, abbreviation, and countryId.
+Country stores its ID, editable name, and currently assigned facilities.
 Mission stores its ID, title, brief IDs, agent IDs, and facilityId.
 Mission assignments are persisted in j_mission_briefs and j_mission_agents.
 The current application supports an empty assignment list.
@@ -25,5 +26,7 @@ User account metadata and audit entries use users and audit_log. Passwords
 remain in per-user ciphered files. Session tokens and activity times live in
 the web server process, with a 30-minute inactivity limit.
 
-Team A's Country class is still unfinished. Country persistence, the facility
-country association, and country links/search require that shared feature.
+FacilityManager seeds countries once from the Countries enum and migrates old
+facilities by adding country_id. Existing unassigned records remain unassigned
+until edited. Country names, links, and forms use the persisted country table.
+Country renames are reflected dynamically at assigned facilities.

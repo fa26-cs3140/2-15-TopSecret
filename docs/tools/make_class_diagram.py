@@ -107,7 +107,12 @@ def box(c):
     if rel:
         out += f'<div class="rel">{html.escape("; ".join(rel))}</div>'
     if c["kind"] == "enum":
-        out += '<div class="sec">' + "".join(f"<div>{x}</div>" for x in c["consts"]) + "</div>"
+        constants = c["consts"]
+        visible = constants[:8] if len(constants) > 12 else constants
+        out += '<div class="sec">' + "".join(f"<div>{html.escape(value)}</div>" for value in visible)
+        if len(visible) < len(constants):
+            out += f'<div>... {len(constants) - len(visible)} further constants in {html.escape(c["name"])}.java</div>'
+        out += "</div>"
     out += '<div class="sec">' + ("".join(f'<div class="{"u" if s else ""}">{html.escape(f)}</div>'
                                          for f, s in c["fields"]) or "&nbsp;") + "</div>"
     out += '<div class="sec">' + ("".join(f'<div class="{"u" if s else ""} {"it" if a else ""}">'

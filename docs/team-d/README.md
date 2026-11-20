@@ -57,18 +57,26 @@ preserved, and missing detail pages return 404 without a READ event.
 `RelatedRecordView` builds internal links from record types and IDs and escapes
 the display labels.
 
-- Facilities link to their agents and missions.
+- Facilities link to their country, agents, and missions.
+- Countries link to their assigned facilities.
 - Agents link to their facility and assigned missions.
 - Missions link to their facility, briefs, and agents.
 - Briefs link to assigned missions.
 
 `RecordSearch` performs literal, case-insensitive substring matching across
 brief title/date/text, agent name/birth/death/notes, facility name/abbreviation,
-and mission title. A record appears once even if several fields match. Empty
+mission title, and country name. A record appears once even if several fields match. Empty
 queries produce no matches. Search returns content references to the terminal.
 
-Team A's country persistence, facility association, and route are absent from
-the shared branch. Country links and country text search depend on that feature.
+Countries are seeded from Team A's supplied enum and can be created or renamed
+through the existing web forms. The facility form requires a Country ID from
+the Countries list. Related links connect countries and facilities, and terminal
+search matches country names. Terminal option 13 opens Countries.
+
+Legacy facilities retain their IDs and other values during migration. The
+three-argument Facility constructor and two-column sample TSVs remain compatible.
+Their country is unassigned until a user selects one. Reinitialization preserves
+edited country names and prevents duplicate seed rows.
 
 ## Existing accounts and messaging
 

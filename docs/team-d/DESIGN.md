@@ -50,7 +50,13 @@ classDiagram
     }
     class BriefManager
     class AgentManager
-    class FacilityManager
+    class FacilityManager {
+        +getCountries() List~Country~
+        +getCountry(int) Country
+        +addCountry(String) Country
+    }
+    class Country
+    class Facility
     class MissionManager
     class RelatedRecordView
 
@@ -63,6 +69,9 @@ classDiagram
     SessionManager --> UserAccountManager
     SessionManager --> UserAccount
     SessionManager ..> SessionSummary : returns
+    FacilityManager ..> Country : loads
+    FacilityManager ..> Facility : loads
+    Facility ..> Country : country ID
     RecordEditor --> EditStore
     RecordEditor ..> AuditLogEntry : describes
     RecordRelationships --> BriefManager
@@ -90,13 +99,15 @@ column name.
 
 ## ERD
 
-The current database has the entities below except `COUNTRIES`. Its PK and
-the facility FK are proposed integration points for Team A. Field names in
-the existing tables reflect the current SQLite schema.
+The database contains the entities below. The country table is seeded from
+Team A's Countries enum using stable numeric IDs. Existing facilities are
+migrated by adding a nullable country_id column. Unassigned legacy facilities
+retain their data until a user selects a country. New and edited facilities
+require an existing country through the current forms.
 
 ```mermaid
 erDiagram
-    COUNTRIES |o..o{ FACILITIES : "hosts (planned)"
+    COUNTRIES |o--o{ FACILITIES : hosts
     FACILITIES ||--o{ AGENTS : assigns
     FACILITIES ||--o{ MISSIONS : hosts
     MISSIONS ||--o{ J_MISSION_AGENTS : includes
@@ -116,7 +127,7 @@ erDiagram
         string name
         string abbreviation
         int mission_id "legacy; unrelated to current mission links"
-        int country_id FK "planned"
+        int country_id FK "nullable for legacy facilities"
     }
     AGENTS {
         int id PK
@@ -175,12 +186,19 @@ are in-memory server state. Passwords live in separate ciphered files.
 ## Web detail wireframe
 
 ```text
-[Menu]  [Facilities]  [Agents]  [Missions]  [Briefs]  [Log out]
-Facility · Blackwood Annex                           [Edit]
-Abbreviation  BA
-Country       [Team A country integration pending]
-Agents        [Vanguard]   [Ghost]
-Missions      [Recon]
+Top Secret
+[Menu] [Briefs] [Agents] [Facilities] [Countries] [Audit log] [Log out]
+
+Facilities
+Name: Blackwood Annex
+Abbreviation: BA
+[Edit facility]
+
+Related records
+- [country · United States]
+- [agent · Vanguard]
+- [agent · Ghost]
+- [mission · Recon]
 ```
 
 Brackets mark links or actions. Edit is shown only to administrators. An
@@ -193,7 +211,7 @@ Brief detail links to its assigned missions.
 ```text
 Search records
 Text: nightbird
-Agent 12  Mira
+agent 12. Mira
 Returns to the main menu after listing results.
 ```
 
@@ -207,11 +225,36 @@ Token to revoke, r to refresh, or Enter to return:
 The session screen lists active tokens without refreshing their activity.
 After revocation, the next browser request using that token goes to login.
 
-## Current country dependency
+## Country initialization and editing
 
-The shared branch contains an unfinished `Country` class, without a country
-manager, database table, facility foreign key, or country route. Country
-links and country text search depend on Team A completing that feature.
-The proposed country table and relationship above identify the integration
-point. The implemented relationship service currently resolves facilities,
-agents, missions, and briefs from the existing tables.
+FacilityManager initializes the country table from the supplied enum, preserving
+edited country names and preventing duplicate seeding on later starts. Country
+names can be changed and new country IDs can exceed the original seed count.
+
+The Countries menu opens the list and the existing create/edit form workflow.
+Facilities select their country by its listed numeric ID. Related links connect
+a country with its assigned facilities. Editing the country's name changes the
+label displayed at each linked facility without rewriting those facilities.
+Country names are included in terminal search.
+
+The pre-country Facility constructor and two-column TSV imports remain
+supported. Such legacy records have an unassigned country until edited.
+
+## Country and facility forms
+
+```text
+Countries
+[New country]
+[1. Afghanistan]
+[2. Albania]
+...
+
+Edit facility
+Name                      [Blackwood Annex]
+Abbreviation              [BA]
+Country ID (see Countries) [1]
+[Save] [Cancel]
+```
+
+New/Edit actions are available to administrators. A new country form requests
+a name. Changing a facility's Country ID changes its association.

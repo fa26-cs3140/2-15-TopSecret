@@ -11,5 +11,6 @@ record/session wireframes are in Team D's design document. The model overview
 describes the implemented persistence paths. Superseded class notes, diagrams,
 and documentation for removed classes are available in Git history.
 
-Country-related diagrams identify Team A's feature as pending. The final team
-wireframes also need Team C's web messaging implementation when it is available.
+Country storage, facility associations, and related navigation are represented
+in the current diagrams. The final team wireframes also need Team C's web
+messaging implementation when it is available.
