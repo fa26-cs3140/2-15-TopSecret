@@ -10,9 +10,16 @@ public final class Message {
     private final String recipientName;
     private final String body;
     private final LocalDateTime sentAt;
+    private final boolean read;
 
+    /** New messages are unread by default; preserves the original constructor. */
     public Message(long id, String senderUsername, int recipientAgentId,
                    String recipientName, String body, LocalDateTime sentAt) {
+        this(id, senderUsername, recipientAgentId, recipientName, body, sentAt, false);
+    }
+
+    public Message(long id, String senderUsername, int recipientAgentId,
+                   String recipientName, String body, LocalDateTime sentAt, boolean read) {
         if (id < 0 || recipientAgentId <= 0) {
             throw new IllegalArgumentException("Invalid message or agent ID.");
         }
@@ -27,6 +34,7 @@ public final class Message {
         this.recipientName = recipientName;
         this.body = body;
         this.sentAt = sentAt;
+        this.read = read;
     }
 
     public long getId() { return id; }
@@ -35,4 +43,5 @@ public final class Message {
     public String getRecipientName() { return recipientName; }
     public String getBody() { return body; }
     public LocalDateTime getSentAt() { return sentAt; }
+    public boolean isRead() { return read; }
 }
