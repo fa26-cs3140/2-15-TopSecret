@@ -77,8 +77,8 @@ public class AgencyInterface {
                     case "9" -> sendAgentMessage();
                     case "10" -> showMyMessages();
                     case "11" -> searchRecords();
-                    case "13" -> runTypeMenu(RecordType.COUNTRY);
                     case "12" -> manageWebSessions();
+                    case "13" -> runTypeMenu(RecordType.COUNTRY);
                     case "0" -> { exit(); return; } // Make sure to run exit() to log logut info
                     default -> invalidSelection();
                 }
@@ -103,10 +103,10 @@ public class AgencyInterface {
         output.println("8. Change Password");
         if (messages != null) output.println("9. Send an agent message\n10. My messages");
         output.println("11. Search records");
-        output.println("13. Countries");
         if (webSessions != null && isAdmin()) {
             output.println("12. Manage web sessions");
         }
+        output.println("13. Countries");
         output.print("0. Exit\nSelect an option: ");
     }
 
