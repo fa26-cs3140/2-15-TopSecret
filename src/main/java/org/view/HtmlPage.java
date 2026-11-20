@@ -38,7 +38,10 @@ public final class HtmlPage {
                 .append("<a href=\"/briefs\">Briefs</a> | ")
                 .append("<a href=\"/agents\">Agents</a> | ")
                 .append("<a href=\"/facilities\">Facilities</a> | ")
-                .append("<a href=\"/countries\">Countries</a>");
+                .append("<a href=\"/countries\">Countries</a>")
+                .append("<a href=\"/facilities\">Facilities</a> | ")
+                .append("<a href=\"/missions\">Missions</a> | ")
+                .append("<a href=\"/messages\">Messages</a>");
 
             // TODO: add Missions when the controller supports it
 
