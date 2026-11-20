@@ -39,6 +39,7 @@ public final class MessageWebHandler {
 
     /** Routes a request using the authenticated user's identity. */
     public void handle(HttpExchange exchange, UserAccount user) throws IOException {
+        // Verify that a user is logged in
         if (user == null) {
             WebServer.redirect(exchange, "/");
             return;
@@ -47,14 +48,14 @@ public final class MessageWebHandler {
         MessageService service;
 
         try {
-            service = new AuthenticatedMessageService(agents, users, store, user);
+            service = new AuthenticatedMessageService(agents, users, store, user); // Create messaging service for current user
         } catch (IllegalArgumentException e) {
             send(exchange, user, 403, "Access denied", "<p>Messaging account unavailable.</p>");
             return;
         }
 
         try {
-            route(exchange, user, service);
+            route(exchange, user, service); // Route the request
         } catch (IllegalStateException e) {
             send(exchange, user, 500, "Messaging error", "<p>Messaging is temporarily unavailable.</p>");
         }
@@ -67,9 +68,9 @@ public final class MessageWebHandler {
         String method = exchange.getRequestMethod();
 
         if ("/messages".equals(path)) {
-            if ("GET".equals(method)) {
+            if ("GET".equals(method)) { // View inbox
                 showInbox(exchange, user, service);
-            } else if ("POST".equals(method)) {
+            } else if ("POST".equals(method)) { // Send a message
                 sendMessage(exchange, user, service);
             } else {
                 methodNotAllowed(exchange, user);
@@ -78,7 +79,7 @@ public final class MessageWebHandler {
         }
 
         if ("/messages/new".equals(path)) {
-            if ("GET".equals(method)) {
+            if ("GET".equals(method)) { // Display compose message form
                 showComposeForm(exchange, user, service);
             } else {
                 methodNotAllowed(exchange, user);
@@ -86,7 +87,7 @@ public final class MessageWebHandler {
             return;
         }
 
-        if (!path.matches("/messages/[0-9]+")) {
+        if (!path.matches("/messages/[0-9]+")) { // Open message using id
             send(exchange, user, 404, "Not Found",
                     "<p>Message not found.</p>");
             return;
@@ -108,7 +109,7 @@ public final class MessageWebHandler {
 
     /** Displays the user's inbox without modifying read status. */
     private void showInbox(HttpExchange exchange, UserAccount user, MessageService service) throws IOException {
-
+        // User is redirected to /messages?sent=1 after sending a message
         String notice = "sent=1".equals(exchange.getRequestURI().getRawQuery())
                 ? "<p role=\"status\">Message sent.</p>"
                 : "";
@@ -172,7 +173,6 @@ public final class MessageWebHandler {
     }
 
     private void methodNotAllowed(HttpExchange exchange, UserAccount user) throws IOException {
-
         send(exchange, user, 405, "Method Not Allowed", "<p>Unsupported request method.</p>");
     }
 
