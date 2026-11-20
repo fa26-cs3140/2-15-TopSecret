@@ -14,8 +14,8 @@ Executed with Java 26 and the repository's Gradle wrapper:
 | Separate unit task | 366 passed |
 | Separate integration task | 75 passed |
 | Gradle build and packaged JAR | Passed |
-| Project method coverage, complete suite | 443 / 443 methods, 100% |
-| Project method coverage, unit task | 398 / 443 methods, 89.8% |
+| Project method coverage, complete suite | 442 / 442 methods, 100% |
+| Project method coverage, unit task | 398 / 442 methods, 90.0% |
 | New Team D services, link view, and session manager | 100% method coverage in both the isolated unit task and complete suite |
 
 The Team D coverage statement includes RecordEditor and AuditEvent,
@@ -81,8 +81,9 @@ complete on this branch.
 
 ## Final formatting and documentation audit
 
-Messaging production files match the shared branch so Team C can apply its
-own rewrite. Messaging regression-test corrections remain in this branch.
+Messaging model production files and model tests match the shared branch so
+Team C can apply its own rewrite. Terminal view readability changes and controller
+messaging regression-test corrections remain in this branch.
 The full suite and build pass with that scope. Replaced
 superseded class notes and older homework diagrams with the maintained class
 PDF, ERD, and wireframes. The current model overview and team roles now match
