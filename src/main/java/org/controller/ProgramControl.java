@@ -158,7 +158,12 @@ public class ProgramControl {
     {
         AppController controller = new AppController(briefManager, agentManager, missionManager, facilityManager, auditLogger);
         webSessions = new SessionManager(userManager);
-        WebServer server = new WebServer(controller, userManager, webSessions, port);
+        MessageWebHandler messaging = new MessageWebHandler(
+                agentManager,
+                new SqliteUserAccountStore(agentManager.getURL()),
+                new org.model.messaging.SqliteMessageStore(agentManager.getURL())
+        );
+        WebServer server = new WebServer(controller, userManager, webSessions, port, messaging);
         try
         {
             server.start();
