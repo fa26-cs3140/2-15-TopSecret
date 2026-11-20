@@ -7,6 +7,7 @@ import org.managers.BriefManager;
 import org.managers.FacilityManager;
 import org.managers.MissionManager;
 import org.managers.UserAccountManager;
+import org.managers.RecordEditor;
 import org.model.Agent;
 import org.model.Brief;
 import org.model.Facility;
@@ -29,6 +30,7 @@ class TerminalWorkflowTest {
     private final BriefManager briefs = mock(BriefManager.class);
     private final MissionManager missions = mock(MissionManager.class);
     private final UserAccountManager accounts = mock(UserAccountManager.class);
+    private final RecordEditor.Store<Object> changes = mock(RecordEditor.Store.class);
     private final AuditLogService audit = mock(AuditLogService.class);
     private final ByteArrayOutputStream output = new ByteArrayOutputStream();
     private final UserAccount admin = new UserAccount("admin", true);
@@ -49,7 +51,6 @@ class TerminalWorkflowTest {
     void promotionMenuRejectsSelfAndPersistsAnotherUsersRole() {
         UserAccount target = new UserAccount("ghost", false);
         when(accounts.getUsers()).thenReturn(List.of(admin, target));
-        when(accounts.getUser("admin")).thenReturn(admin);
         when(accounts.getUser("ghost")).thenReturn(target);
 
         ui("7\nadmin\nghost\n1\n0\n").run();
@@ -80,14 +81,21 @@ class TerminalWorkflowTest {
         when(briefs.getRecords("title", "Notes")).thenReturn(List.of(new Brief(2, "Notes", "2020-01-01", "text", null)));
         when(agents.getRecords("name", "Ghost")).thenReturn(List.of(new Agent(3, "Ghost", "1990-01-01", null, null, 1)));
         when(facilities.getRecords("name", "HQ")).thenReturn(List.of(new Facility(1, "HQ", "HQ")));
-        when(missions.addRecord(eq("Recon"), any(int[].class), any(int[].class), eq(1)))
-                .thenReturn(new Mission(4, "Recon", new int[]{2}, new int[]{3}, 1));
+        when(briefs.getRecords("id", "%")).thenReturn(List.of(new Brief(2, "Notes", "2020-01-01", "text", null)));
+        when(agents.getRecords("id", "%")).thenReturn(List.of(new Agent(3, "Ghost", "1990-01-01", null, null, 1)));
+        when(changes.create(any(Mission.class), any())).thenReturn(4);
 
         ui("4\n3\nRecon\nNotes\nGhost\nHQ\n0\n0\n").run();
 
-        verify(missions).addRecord(eq("Recon"), org.mockito.AdditionalMatchers.aryEq(new int[]{2}),
-                org.mockito.AdditionalMatchers.aryEq(new int[]{3}), eq(1));
-        verify(audit).log("admin", "CREATE", "MISSION", "4");
+        var record = org.mockito.ArgumentCaptor.forClass(Object.class);
+        verify(changes).create(record.capture(), argThat(event -> event.type() == org.model.RecordType.MISSION
+                && event.username().equals("admin")));
+        Mission saved = (Mission) record.getValue();
+        assertEquals("Recon", saved.getTitle());
+        assertArrayEquals(new int[]{2}, saved.getBriefIds());
+        assertArrayEquals(new int[]{3}, saved.getAgentIds());
+        assertEquals(1, saved.getFacilityId());
+        verify(audit, never()).log(any(), eq("CREATE"), any(), any());
     }
 
     @Test
@@ -115,7 +123,8 @@ class TerminalWorkflowTest {
     }
 
     private AgencyInterface ui(String input) {
+        when(accounts.getUser("admin")).thenReturn(admin);
         return new AgencyInterface(agents, facilities, briefs, accounts, missions, audit, admin,
-                new Scanner(input), new PrintStream(output));
+                new Scanner(input), new PrintStream(output), changes);
     }
 }

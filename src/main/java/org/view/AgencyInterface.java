@@ -2,6 +2,9 @@ package org.view;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Map;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -11,6 +14,8 @@ import java.util.function.Predicate;
 import org.controller.AppController;
 import org.controller.SessionManager;
 import org.managers.RecordSearch;
+import org.managers.RecordEditor;
+import org.managers.SqliteRecordStore;
 import org.controller.DebugHelper;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
@@ -41,7 +46,15 @@ public class AgencyInterface {
 
     public AgencyInterface(AgentManager aManager, FacilityManager fManager, BriefManager bManager, UserAccountManager uManager, MissionManager mManager,
                            AuditLogService auditLog, UserAccount currentUser, Scanner scanner, PrintStream output) {
-        if (aManager == null || fManager == null || bManager == null || auditLog == null || currentUser == null || scanner == null || output == null) {
+        this(aManager, fManager, bManager, uManager, mManager, auditLog, currentUser, scanner, output,
+                new SqliteRecordStore(bManager == null ? null : bManager.getURL()));
+    }
+
+    AgencyInterface(AgentManager aManager, FacilityManager fManager, BriefManager bManager,
+                    UserAccountManager uManager, MissionManager mManager, AuditLogService auditLog,
+                    UserAccount currentUser, Scanner scanner, PrintStream output,
+                    RecordEditor.Store<Object> changes) {
+        if (aManager == null || fManager == null || bManager == null || uManager == null || auditLog == null || currentUser == null || scanner == null || output == null) {
             throw new IllegalArgumentException("Arguments cannot be null.");
         }
         // this.data = data;
@@ -54,7 +67,7 @@ public class AgencyInterface {
         this.currentUser = currentUser;
         this.scanner = scanner;
         this.output = output;
-        this.controller = new AppController(bManager, aManager, mManager, fManager, auditLog);
+        this.controller = new AppController(bManager, aManager, mManager, fManager, auditLog, changes);
     }
 
     public UserAccount getCurrentUser() {
@@ -245,7 +258,11 @@ public class AgencyInterface {
 
     private void exit()
     {
-        auditLog.log(currentUser.getUsername(), "LOGOUT", "LOGOUT", "x");
+        try {
+            auditLog.log(currentUser.getUsername(), "LOGOUT", "LOGOUT", "x");
+        } catch (IllegalStateException unavailable) {
+            output.println("Unable to record logout: audit storage is unavailable.");
+        }
         output.println("Exiting Top Secret.");
     }
 
@@ -327,6 +344,10 @@ public class AgencyInterface {
         }
         output.println(this.SEPARATOR);
         if (option == 0) return; // Exit code means to leave
+        if (!isAdmin()) {
+            output.println("Access denied. Only administrators can manage permissions.");
+            return;
+        }
         if (option == 1) // Grant admin 
         {
             if (!selectedUser.isAdmin())
@@ -421,18 +442,17 @@ public class AgencyInterface {
         output.println(this.SEPARATOR);
         try {
             Integer id = switch (type) {
-                case BRIEF -> bManager.addRecord(prompt("Title: "), prompt("Date (yyyy-mm-dd): "),
-                        prompt("Text: ")).getId();
+                case BRIEF -> createRecord(type, Map.of("title", prompt("Title: "),
+                        "date", prompt("Date (yyyy-mm-dd): "), "text", prompt("Text: ")));
                 case AGENT -> addAgent();
-                case COUNTRY -> fManager.addCountry(prompt("Name: ")).getID();
+                case COUNTRY -> createRecord(type, Map.of("name", prompt("Name: ")));
                 case FACILITY -> addFacility();
                 case MISSION -> addMission();
             };
             if (id != null) {
-                auditLog.log(currentUser.getUsername(), "CREATE", type.name(), String.valueOf(id));
                 output.println("Added " + type.getSingular() + " with ID " + id + ".");
             }
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
             output.println("Unable to add " + type.getSingular() + ": " + e.getMessage());
         }
         output.println(this.SEPARATOR);
@@ -445,7 +465,8 @@ public class AgencyInterface {
         if (countryId < 0) {
             return null;
         }
-        return fManager.addRecord(name, abbreviation, countryId).getId();
+        return createRecord(RecordType.FACILITY, Map.of("name", name, "abbreviation", abbreviation,
+                "countryId", String.valueOf(countryId)));
     }
 
     private int promptCountry(String label) {
@@ -508,10 +529,12 @@ public class AgencyInterface {
     private Integer addAgent() {
         String name = prompt("Name: ");
         String born = prompt("Date of birth (yyyy-mm-dd): ");
-        String died = blankToNull(prompt("Date of death (yyyy-mm-dd, blank if none): "));
-        String notes = blankToNull(prompt("Notes (blank if none): "));
+        String died = prompt("Date of death (yyyy-mm-dd, blank if none): ");
+        String notes = prompt("Notes (blank if none): ");
         Integer facilityId = readId("Facility ID: ");
-        return facilityId == null ? null : aManager.addRecord(name, born, died, notes, facilityId).getId();
+        return facilityId == null ? null : createRecord(RecordType.AGENT, Map.of("name", name,
+                "dateOfBirth", born, "dateOfDeath", died, "notes", notes,
+                "facilityId", String.valueOf(facilityId)));
     }
 
     private Integer addMission() {
@@ -557,9 +580,14 @@ public class AgencyInterface {
         }
         int facilityId = matchingFacilities.getFirst().getId();
 
-        Integer id = mManager.addRecord(title, briefIds, agentIds, facilityId).getId();
+        return createRecord(RecordType.MISSION, Map.of("title", title, "facilityId", String.valueOf(facilityId),
+                "briefIds", Arrays.stream(briefIds).mapToObj(String::valueOf).collect(Collectors.joining(",")),
+                "agentIds", Arrays.stream(agentIds).mapToObj(String::valueOf).collect(Collectors.joining(","))));
+    }
 
-        return id;
+    private int createRecord(RecordType type, Map<String, String> values) {
+        UserAccount actor = uManager.getUser(currentUser.getUsername());
+        return controller.createRecord(type, values, actor);
     }
 
     private void displayAuditLog() {
@@ -569,7 +597,8 @@ public class AgencyInterface {
     }
 
     private boolean isAdmin() {
-        return currentUser.isAdmin();
+        UserAccount account = uManager == null ? null : uManager.getUser(currentUser.getUsername());
+        return account != null && account.isAdmin();
     }
 
     private String readLine() {
@@ -594,7 +623,4 @@ public class AgencyInterface {
         output.println("Invalid selection. Please try again.");
     }
 
-    private static String blankToNull(String value) {
-        return value.isEmpty() ? null : value;
-    }
 }

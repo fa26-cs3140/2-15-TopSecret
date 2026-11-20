@@ -23,6 +23,7 @@ import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class AgencyInterfaceAuditLogManagerTest {
 
@@ -94,6 +95,7 @@ class AgencyInterfaceAuditLogManagerTest {
     }
 
     private String run(UserAccount user, String input) {
+        when(userManager.getUser(user.getUsername())).thenReturn(user);
         new AgencyInterface(
                 agentManager,
                 facilityManager,

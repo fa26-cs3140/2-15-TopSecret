@@ -34,6 +34,8 @@ class AgencyInterfaceBriefManagerTest {
     private UserAccountManager userManager;
     private AuditLogService auditLog;
 
+    private org.managers.SqliteAuditLogStore persistedAudit;
+
     private ByteArrayOutputStream output;
 
     private final UserAccount admin =
@@ -56,6 +58,10 @@ class AgencyInterfaceBriefManagerTest {
         userManager = mock(UserAccountManager.class);
         auditLog = mock(AuditLogService.class);
 
+        persistedAudit = new org.managers.SqliteAuditLogStore(url);
+        var accountStore = new org.managers.SqliteUserAccountStore(url);
+        accountStore.addUser(admin);
+        accountStore.addUser(standard);
         output = new ByteArrayOutputStream();
     }
 
@@ -66,6 +72,7 @@ class AgencyInterfaceBriefManagerTest {
 
     private String run(UserAccount user, String input) {
         output.reset();
+        when(userManager.getUser(user.getUsername())).thenReturn(user);
 
         AgencyInterface ui = new AgencyInterface(
                 agentManager,
@@ -76,7 +83,8 @@ class AgencyInterfaceBriefManagerTest {
                 auditLog,
                 user,
                 new Scanner(input),
-                new PrintStream(output)
+                new PrintStream(output),
+                new org.managers.SqliteRecordStore(briefManager.getURL())
         );
 
         ui.run();
@@ -121,7 +129,9 @@ class AgencyInterfaceBriefManagerTest {
         assertEquals("1980-05-15", stored.get(0).getDate());
         assertEquals("New report.", stored.get(0).getText());
 
-        verify(auditLog).log("pat", "CREATE", "BRIEF", String.valueOf(stored.get(0).getId()));
+        assertTrue(persistedAudit.getAll().stream().anyMatch(entry -> entry.getUsername().equals("pat")
+                && entry.getAction().equals("CREATE") && entry.getContentType().equals("BRIEF")
+                && entry.getContentIdentifier().equals(String.valueOf(stored.get(0).getId()))));
     }
 
     @Test

@@ -33,6 +33,8 @@ class AgencyInterfaceAgentManagerTest {
     private UserAccountManager userManager;
     private AuditLogService auditLog;
 
+    private org.managers.SqliteAuditLogStore persistedAudit;
+
     private ByteArrayOutputStream output;
 
     private final UserAccount admin = new UserAccount("pat", true);
@@ -53,6 +55,10 @@ class AgencyInterfaceAgentManagerTest {
         userManager = mock(UserAccountManager.class);
         auditLog = mock(AuditLogService.class);
 
+        persistedAudit = new org.managers.SqliteAuditLogStore(url);
+        var accountStore = new org.managers.SqliteUserAccountStore(url);
+        accountStore.addUser(admin);
+        accountStore.addUser(standard);
         output = new ByteArrayOutputStream();
     }
 
@@ -65,6 +71,7 @@ class AgencyInterfaceAgentManagerTest {
 
     private String run(UserAccount user, String input) {
         output.reset();
+        when(userManager.getUser(user.getUsername())).thenReturn(user);
 
         AgencyInterface ui = new AgencyInterface(
                 agentManager,
@@ -75,7 +82,8 @@ class AgencyInterfaceAgentManagerTest {
                 auditLog,
                 user,
                 new Scanner(input),
-                new PrintStream(output)
+                new PrintStream(output),
+                new org.managers.SqliteRecordStore(agentManager.getURL())
         );
 
         ui.run();
@@ -141,7 +149,9 @@ class AgencyInterfaceAgentManagerTest {
         assertEquals("Double agent.", stored.get(0).getNotes());
         assertEquals(facilityId, stored.get(0).getFacilityId());
 
-        verify(auditLog).log("pat", "CREATE", "AGENT", String.valueOf(stored.get(0).getId()));
+        assertTrue(persistedAudit.getAll().stream().anyMatch(entry -> entry.getUsername().equals("pat")
+                && entry.getAction().equals("CREATE") && entry.getContentType().equals("AGENT")
+                && entry.getContentIdentifier().equals(String.valueOf(stored.get(0).getId()))));
     }
 
     @Test
