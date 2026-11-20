@@ -65,7 +65,8 @@ public class PageHandler implements HttpHandler {
                 WebServer.redirect(exchange, "/");
             }
             case "/menu" -> showMenu(exchange, user);
-            case "/audit" -> send(exchange, user, 200, "Audit Log", HtmlPage.list(controller.auditLog(user), null));
+            case "/audit" -> send(exchange, user, user.isAdmin() ? 200 : 403, "Audit Log",
+                    HtmlPage.list(controller.auditLog(user), null));
             default -> showRecords(exchange, user, path);
         }
     }
