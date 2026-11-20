@@ -1,7 +1,10 @@
 package org.controller.messaging;
 
+import org.model.messaging.Message;
 import org.model.messaging.MessageService;
 import org.view.messaging.MessageView;
+
+import java.util.List;
 
 /** Messaging controller used by the authenticated terminal interface. The service must
  * already be bound to a verified session. There is deliberately no sender or
@@ -31,7 +34,17 @@ public final class MessageController {
         }
     }
 
-    public void showInbox() {
-        view.showInbox(service.getInbox());
+    /** Displays the inbox and returns messages for terminal selection. */
+    public List<Message> showInbox() {
+        List<Message> inbox = service.getInbox();
+        view.showInbox(inbox);
+
+        return inbox;
+    }
+
+    /** Opens a message through the authenticated service. */
+    public void readMessage(long messageId) {
+        Message message = service.readMessage(messageId);
+        view.showMessageDetail(message);
     }
 }
