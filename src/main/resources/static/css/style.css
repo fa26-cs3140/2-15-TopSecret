@@ -15,6 +15,11 @@ h2 {
     color: #54a454;
 }
 
+h3 {
+    font-family: monospace;
+    color: #54a454;
+}
+
 hr {
     color: #54a454;
     animation: color-change 1s infinite;

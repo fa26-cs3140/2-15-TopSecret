@@ -39,7 +39,6 @@ public final class HtmlPage {
                 .append("<a class = \"topdown-on-load\" href=\"/agents\">Agents</a> | ")
                 .append("<a class = \"topdown-on-load\" href=\"/facilities\">Facilities</a> | ")
                 .append("<a class = \"topdown-on-load\" href=\"/countries\">Countries</a> |")
-                .append("<a class = \"topdown-on-load\" href=\"/facilities\">Facilities</a> | ")
                 .append("<a class = \"topdown-on-load\" href=\"/missions\">Missions</a> | ")
                 .append("<a class = \"topdown-on-load\" href=\"/messages\">Messages</a>");
 
