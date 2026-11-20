@@ -103,12 +103,3 @@ sourceSets {
         }
     }
 }
-
-if (project.hasProperty("messagingOnly")) {
-    tasks.named<JavaCompile>("compileTestJava") {
-        include("org/model/messaging/**")
-        include("org/controller/messaging/**")
-        include("org/view/messaging/**")
-        include("org/controller/MessageWebHandlerIntegrationTest.java")
-    }
-}

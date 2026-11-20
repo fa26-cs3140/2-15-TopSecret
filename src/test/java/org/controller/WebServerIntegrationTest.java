@@ -3,7 +3,6 @@ package org.controller;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
-import org.managers.MissionManager;
 import org.managers.AuditLogService;
 import org.model.UserAccount;
 import org.managers.UserAccountManager;
@@ -11,14 +10,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.model.Brief;
-import org.model.Mission;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Clock;
-import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,8 +27,6 @@ class WebServerIntegrationTest {
 
     private UserAccountManager accounts;
     private WebServer server;
-    private SessionManager sessions;
-    private Clock clock;
     private final HttpClient client = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.NEVER)
             .build();
@@ -50,20 +44,14 @@ class WebServerIntegrationTest {
         BriefManager briefs = mock(BriefManager.class);
         when(briefs.getRecords("id", "%")).thenReturn(List.of(
                 new Brief(1, "Operation <Sandtrap>", "1970-11-03", "Bug the pouch.", null)));
-        MissionManager missions = mock(MissionManager.class);
-        when(missions.getRecords("id", "%")).thenReturn(List.of(
-                new Mission(4, "Joint Op", new int[]{1}, new int[]{2}, 1)));
-        AppController controller = new AppController(briefs, mock(AgentManager.class), missions,
+        AppController controller = new AppController(briefs, mock(AgentManager.class),
                 mock(FacilityManager.class), mock(AuditLogService.class));
-        clock = mock(Clock.class);
-        when(clock.instant()).thenReturn(Instant.EPOCH);
-        sessions = new SessionManager(clock);
-        server = new WebServer(controller, accounts, sessions, TEST_PORT);
+        server = new WebServer(controller, accounts, new SessionManager(), TEST_PORT);
         server.start();
     }
 
     private static AppController newController() {
-        return new AppController(mock(BriefManager.class), mock(AgentManager.class), mock(MissionManager.class),
+        return new AppController(mock(BriefManager.class), mock(AgentManager.class),
                 mock(FacilityManager.class), mock(AuditLogService.class));
     }
 
@@ -124,7 +112,7 @@ class WebServerIntegrationTest {
 
     @Test
     void pagesRedirectToLoginWithoutCookie() throws Exception {
-        for (String path : new String[]{"/menu", "/briefs", "/agents", "/facilities", "/missions", "/audit"}) {
+        for (String path : new String[]{"/menu", "/briefs", "/agents", "/facilities", "/audit"}) {
             HttpResponse<String> response = get(path, null);
 
             assertEquals(303, response.statusCode(), path);
@@ -141,15 +129,6 @@ class WebServerIntegrationTest {
     }
 
     @Test
-    void missionsListAndDetailLoadWithSessionCookie() throws Exception {
-        String cookie = sessionCookie(login("pat", "Secret1"));
-
-        assertTrue(get("/menu", cookie).body().contains("href=\"/missions\""));
-        assertTrue(get("/missions", cookie).body().contains("<a href=\"/missions/4\">4. Joint Op</a>"));
-        assertEquals(200, get("/missions/4", cookie).statusCode());
-    }
-
-    @Test
     void fakeCookieIsRejected() throws Exception {
         assertEquals(303, get("/menu", "session=made-up").statusCode());
     }
@@ -160,32 +139,6 @@ class WebServerIntegrationTest {
 
         get("/logout", cookie);
 
-        assertEquals(303, get("/menu", cookie).statusCode());
-    }
-
-    @Test
-    void expiredAndRevokedCookiesRedirectOnTheNextRequest() throws Exception {
-        String idleCookie = sessionCookie(login("agent7", "Agent77"));
-        when(clock.instant()).thenReturn(Instant.EPOCH.plusSeconds(30 * 60));
-        assertEquals(303, get("/menu", idleCookie).statusCode());
-
-        String revokedCookie = sessionCookie(login("agent7", "Agent77"));
-        String token = SessionManager.tokenFromCookieHeader(revokedCookie);
-        sessions.revokeSession(new UserAccount("pat", true), token);
-
-        HttpResponse<String> response = get("/menu", revokedCookie);
-        assertEquals(303, response.statusCode());
-        assertEquals("/", response.headers().firstValue("Location").orElseThrow());
-    }
-
-    @Test
-    void requestsKeepTheSessionAliveBeyondItsInitialLifetime() throws Exception {
-        String cookie = sessionCookie(login("pat", "Secret1"));
-        when(clock.instant()).thenReturn(Instant.EPOCH.plusSeconds(29 * 60));
-        assertEquals(200, get("/menu", cookie).statusCode());
-        when(clock.instant()).thenReturn(Instant.EPOCH.plusSeconds(58 * 60));
-        assertEquals(200, get("/briefs", cookie).statusCode());
-        when(clock.instant()).thenReturn(Instant.EPOCH.plusSeconds(88 * 60));
         assertEquals(303, get("/menu", cookie).statusCode());
     }
 

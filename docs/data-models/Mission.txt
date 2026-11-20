@@ -1,0 +1,65 @@
+Author: Mike Ly (mch3jy) - Teammate C
+
+The Mission class represents an operation conducted by the agency. Each Mission is conducted by exactly one Facility and at least one Agent. Note that this is separated from Brief.
+
+Relationships between Missions and Agents should be maintained by DatabaseManager rather than storing a list of Agents directly in the Mission class.
+
+Responsibilities & Requirements:
+- Stores a Mission's unique ID and assigned Facility ID
+- Every Mission must be conducted by exactly one existing Facility
+- Every Mission must have at least one assigned Agent
+- An Agent may participate in multiple Missions
+
+Class Design:
+    Attributes:
+        id: private final int
+        - Unique database identifier for the Mission
+        - Must be positive
+        - Cannot be changed after construction
+
+        facilityId: private int
+        - ID of the Facility conducting the Mission
+        - Must be positive
+        - Can be updated
+        - References Facility.id in the database
+
+    Constructors:
+        Mission(int id, int facilityId)
+        - Creates a Mission with the specified attributes
+        - Initializes the final id field
+        - Validates both IDs
+        - Throws IllegalArgumentException for invalid values
+        - Does not independently verify whether the Facility exists
+
+    Methods:
+        getId(): int
+        - Returns the unique Mission ID
+
+        getFacilityId(): int
+        - Returns the ID of the Facility conducting the Mission
+
+        setFacilityId(int facilityId): void
+        - Updates the assigned Facility ID
+        - Rejects nonpositive values
+        - IMPORTANT: Does not independently verify whether the Facility exists
+
+Interactions with other classes:
+- Each Mission is conducted by exactly one Facility
+- Each Mission must have at least one assigned Agent
+- An Agent may participate in multiple Missions
+- Mission may be associated with Brief through a proposed one-to-one relationship
+- DatabaseManager handles inserting, retrieving, updating, and deleting Mission records
+- DatabaseManager handles assigning and removing Agents from Missions
+- IMPORTANT: Changing a Mission object does not automatically update its database record
+
+Database considerations:
+- Mission.id is the primary key of the missions table
+- Mission.facilityId corresponds to missions.facility_id, a foreign key referencing facilities.id
+- SQLite generates Mission IDs during insertion
+- DatabaseManager retrieves the generated ID before constructing a persisted Mission object
+- The mission_agents junction table stores Mission-Agent assignments
+- Foreign keys must reference existing Missions and Agents
+- DatabaseManager must ensure each persisted Mission has at least one assigned Agent
+- Removing Agents from a Mission must not leave the Mission with zero Agents
+- Deleting a Mission must safely handle its associated Agent assignments
+- Facility deletion must not leave Missions referencing nonexistent Facilities

@@ -10,7 +10,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
-import org.managers.MissionManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -23,7 +22,6 @@ import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class AgencyInterfaceAuditLogManagerTest {
 
@@ -95,13 +93,11 @@ class AgencyInterfaceAuditLogManagerTest {
     }
 
     private String run(UserAccount user, String input) {
-        when(userManager.getUser(user.getUsername())).thenReturn(user);
         new AgencyInterface(
                 agentManager,
                 facilityManager,
                 briefManager,
                 userManager,
-                mock(MissionManager.class),
                 auditLogManager,
                 user,
                 new Scanner(input),
@@ -116,7 +112,7 @@ class AgencyInterfaceAuditLogManagerTest {
         run(standard, "1\n2\n1\n0\n0\n");
 
         List<AuditLogEntry> entries =
-                auditLogManager.getAuditLog().stream().filter(e -> !"LOGOUT".equals(e.getAction())).toList();
+                auditLogManager.getAuditLog();
 
         assertEquals(1, entries.size());
 
@@ -131,10 +127,10 @@ class AgencyInterfaceAuditLogManagerTest {
 
     @Test
     void addingAFacilityIsStoredInAuditLog() {
-        run(admin, "3\n3\nFairbanks Point\nFP\n1\n0\n0\n");
+        run(admin, "3\n3\nFairbanks Point\nFP\n0\n0\n");
 
         List<AuditLogEntry> entries =
-                auditLogManager.getAuditLog().stream().filter(e -> !"LOGOUT".equals(e.getAction())).toList();
+                auditLogManager.getAuditLog();
 
         assertEquals(1, entries.size());
         assertEquals("pat", entries.get(0).getUsername());
@@ -149,7 +145,7 @@ class AgencyInterfaceAuditLogManagerTest {
                 "2\n3\nOrphan\n1990-01-01\n\n\n99\n0\n0\n"
         );
 
-        assertTrue(auditLogManager.getAuditLog().stream().noneMatch(e -> !"LOGOUT".equals(e.getAction())));
+        assertTrue(auditLogManager.getAuditLog().isEmpty());
     }
 
     @Test
@@ -158,8 +154,8 @@ class AgencyInterfaceAuditLogManagerTest {
 
         output.reset();
 
-        // Audit-log review is menu option 6, not 4.
-        String text = run(admin, "6\n0\n");
+        // Audit-log review is menu option 5, not 4.
+        String text = run(admin, "5\n0\n");
 
         assertTrue(text.contains("agent_7"));
         assertTrue(text.contains("READ"));
@@ -168,16 +164,8 @@ class AgencyInterfaceAuditLogManagerTest {
 
     @Test
     void emptyAuditLogShowsMessage() {
-        String text = run(admin, "6\n0\n");
+        String text = run(admin, "5\n0\n");
 
         assertTrue(text.contains("No audit entries"));
-    }
-    @Test
-    void normalExitRecordsExactlyOneLogout() {
-        run(standard, "0\n");
-        var entries = auditLogManager.getAuditLog();
-        assertEquals(1, entries.size());
-        assertEquals("LOGOUT", entries.get(0).getAction());
-        assertEquals("agent_7", entries.get(0).getUsername());
     }
 }

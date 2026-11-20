@@ -4,9 +4,7 @@ public enum RecordType {
 
     BRIEF("Briefs", "brief"),
     AGENT("Agents", "agent"),
-    FACILITY("Facilities", "facility"),
-    COUNTRY("Countries", "country"),
-    MISSION("Missions", "mission");
+    FACILITY("Facilities", "facility");
 
     private final String title;
     private final String singular;

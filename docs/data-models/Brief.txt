@@ -1,0 +1,109 @@
+Author: Mike Ly (mch3jy) - Teammate C
+
+The Brief class represents an intelligence report stored in the secret agency's database. Each Brief contains a title, date and text describing intelligence information.
+
+Responsibilities & Requirements:
+- Stores a Brief's unique ID, title, date, and text
+- Brief IDs are immutable after construction
+- Dates are represented as Strings in yyyy-mm-dd format
+- May reference a Mission through missionId
+
+Class Design:
+    Attributes:
+        id: private final int
+        - Unique database identifier for the Brief
+        - Must be positive
+        - Cannot be changed after construction
+
+        title: private String
+        - Title of the intelligence Brief
+        - Cannot be null or blank
+        - Can be updated
+
+        date: private String
+        - Date associated with the Brief
+        - Cannot be null
+        - Format: yyyy-mm-dd
+        - Must represent a valid calendar date
+        - Can be updated
+
+        text: private String
+        - Full text of the intelligence Brief
+        - Cannot be null
+        - Can be updated
+
+        missionId: private Integer
+        - ID of the associated Mission
+        - Proposed foreign key referencing Mission.id
+        - May be null if unassigned Briefs are permitted
+        - Can be updated if reassignment is supported
+
+    Constructors:
+        Brief(int id, String title, String date, String text, Integer missionId)
+        - Creates a Brief with the specified attributes
+        - Initializes the final id field
+        - Validates all required attributes
+        - Validates the date format
+        - Throws IllegalArgumentException for invalid values
+        - IMPORTANT: Does not independently verify that the Mission exists
+
+    Methods:
+        getId(): int
+        - Returns the unique Brief ID
+        - No setId() method is provided
+
+        getTitle(): String
+        - Returns the Brief title
+
+        setTitle(String title): void
+        - Updates the Brief title
+        - Rejects null or blank values
+
+        getDate(): String
+        - Returns the Brief date in yyyy-mm-dd format
+
+        setDate(String date): void
+        - Updates the Brief date
+        - Rejects null or incorrectly formatted or invalid dates
+
+        getText(): String
+        - Returns the Brief text
+
+        setText(String text): void
+        - Updates the Brief text
+        - Rejects null values
+
+        getMissionId(): Integer
+        - Returns the associated Mission ID
+        - Returns null if no Mission is associated, when permitted
+
+        setMissionId(Integer missionId): void
+        - Updates the associated Mission ID
+        - Rejects nonpositive non-null IDs
+        - Allows null only if unassigned Briefs are permitted
+        - Does not independently verify that the Mission exists
+
+    Internal Methods:
+        parseDate(String date): LocalDate
+        - Private helper method for date validation
+        - Parses dates in ISO yyyy-MM-dd format
+        - Rejects invalid dates
+        - Throws IllegalArgumentException if parsing fails
+        - Not exposed to other classes
+
+Interactions with other classes:
+- Brief may be associated with one Mission
+- Under the proposed 1:1 design, a Mission can have at most one Brief
+- DatabaseManager handles inserting, retrieving, updating, and deleting Brief records
+- MissionSearch uses DatabaseManager to search Brief text
+- UserInterface uses Brief objects to display and modify Brief information
+- Changing a Brief object does not automatically update its database record
+
+Database considerations:
+- Brief.id is the primary key of the briefs table
+- Brief.missionId corresponds to briefs.mission_id, a proposed foreign key referencing missions.id
+- A UNIQUE constraint on mission_id prevents multiple Briefs from referencing the same Mission
+- A NOT NULL constraint would require every Brief to reference a Mission
+- SQLite generates Brief IDs during insertion
+- Existing mission_briefs records must be preserved during migration
+- The existing search functionality must continue working after database changes

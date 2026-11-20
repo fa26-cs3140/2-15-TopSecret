@@ -12,7 +12,7 @@ class LoginHandlerTest {
 
     @Test
     void parseFormDecodesValues() {
-        Map<String, String> form = WebServer.parseForm("username=pat&password=Se%26cret+1");
+        Map<String, String> form = LoginHandler.parseForm("username=pat&password=Se%26cret+1");
 
         assertEquals("pat", form.get("username"));
         assertEquals("Se&cret 1", form.get("password"));
@@ -20,7 +20,7 @@ class LoginHandlerTest {
 
     @Test
     void parseFormIgnoresMalformedPairs() {
-        assertEquals(Map.of("a", "1"), WebServer.parseForm("a=1&broken&"));
+        assertEquals(Map.of("a", "1"), LoginHandler.parseForm("a=1&broken&"));
     }
 
     @Test

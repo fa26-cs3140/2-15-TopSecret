@@ -10,7 +10,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
-import org.managers.MissionManager;
 import org.model.Facility;
 
 import java.io.ByteArrayOutputStream;
@@ -33,8 +32,6 @@ class AgencyInterfaceFacilityManagerTest {
     private UserAccountManager userManager;
     private AuditLogService auditLog;
 
-    private org.managers.SqliteAuditLogStore persistedAudit;
-
     private ByteArrayOutputStream output;
 
     private final UserAccount admin = new UserAccount("pat", true);
@@ -55,10 +52,6 @@ class AgencyInterfaceFacilityManagerTest {
         userManager = mock(UserAccountManager.class);
         auditLog = mock(AuditLogService.class);
 
-        persistedAudit = new org.managers.SqliteAuditLogStore(url);
-        var accountStore = new org.managers.SqliteUserAccountStore(url);
-        accountStore.addUser(admin);
-        accountStore.addUser(standard);
         output = new ByteArrayOutputStream();
     }
 
@@ -69,19 +62,16 @@ class AgencyInterfaceFacilityManagerTest {
 
     private String run(UserAccount user, String input) {
         output.reset();
-        when(userManager.getUser(user.getUsername())).thenReturn(user);
 
         AgencyInterface ui = new AgencyInterface(
                 agentManager,
                 facilityManager,
                 briefManager,
                 userManager,
-                mock(MissionManager.class),
                 auditLog,
                 user,
                 new Scanner(input),
-                new PrintStream(output),
-                new org.managers.SqliteRecordStore(facilityManager.getURL())
+                new PrintStream(output)
         );
 
         ui.run();
@@ -89,23 +79,9 @@ class AgencyInterfaceFacilityManagerTest {
     }
 
     @Test
-    void facilityCountryCanBeSelectedByName() {
-        String text = run(admin, "3\n3\nNamed HQ\nNHQ\nAfghanistan\n0\n0\n");
-        assertTrue(text.contains("Added facility"));
-        assertEquals(1, facilityManager.getRecords("name", "Named HQ").getFirst().getCountryID());
-    }
-
-    @Test
-    void countryPromptCanBeCancelledWithoutSaving() {
-        run(admin, "3\n3\nCancelled HQ\nCHQ\nNo such country\nExit\n0\n0\n");
-        assertTrue(facilityManager.getRecords("id", "%").isEmpty());
-        verify(auditLog, never()).log(anyString(), eq("CREATE"), anyString(), anyString());
-    }
-
-    @Test
     void listsFacilitiesFromSQLite() {
-        facilityManager.addRecord("Blackwood Annex", "BA", 1);
-        facilityManager.addRecord("Rose Garden", "RG", 1);
+        facilityManager.addRecord("Blackwood Annex", "BA");
+        facilityManager.addRecord("Rose Garden", "RG");
 
         String text = run(standard, "3\n1\n0\n0\n");
 
@@ -115,7 +91,7 @@ class AgencyInterfaceFacilityManagerTest {
 
     @Test
     void readsFacilityFromSQLiteAndLogsAction() {
-        Facility facility = facilityManager.addRecord("Meridian Observatory", "MO", 1);
+        Facility facility = facilityManager.addRecord("Meridian Observatory", "MO");
 
         String text = run(
                 standard,
@@ -132,7 +108,7 @@ class AgencyInterfaceFacilityManagerTest {
     void addingFacilityThroughUIActuallyPersistsToSQLite() {
         String text = run(
                 admin,
-                "3\n3\nFairbanks Point\nFP\n1\n0\n0\n"
+                "3\n3\nFairbanks Point\nFP\n0\n0\n"
         );
 
         assertTrue(text.contains("Added"));
@@ -143,16 +119,14 @@ class AgencyInterfaceFacilityManagerTest {
         assertEquals("Fairbanks Point", stored.get(0).getName());
         assertEquals("FP", stored.get(0).getAbbreviation());
 
-        assertTrue(persistedAudit.getAll().stream().anyMatch(entry -> entry.getUsername().equals("pat")
-                && entry.getAction().equals("CREATE") && entry.getContentType().equals("FACILITY")
-                && entry.getContentIdentifier().equals(String.valueOf(stored.get(0).getId()))));
+        verify(auditLog).log("pat", "CREATE", "FACILITY", String.valueOf(stored.get(0).getId()));
     }
 
     @Test
     void newlyAddedFacilityAppearsInList() {
         String text = run(
                 admin,
-                "3\n3\nFairbanks Point\nFP\n1\n1\n0\n0\n"
+                "3\n3\nFairbanks Point\nFP\n1\n0\n0\n"
         );
 
         assertTrue(text.contains("Fairbanks Point (FP)"));
@@ -162,14 +136,14 @@ class AgencyInterfaceFacilityManagerTest {
     void invalidFacilityDataDoesNotPersist() {
         String text = run(
                 admin,
-                "3\n3\n\nFP\n1\n0\n0\n"
+                "3\n3\n\nFP\n0\n0\n"
         );
 
         assertTrue(text.contains("Unable to add facility"));
 
         assertTrue(facilityManager.getRecords("name", "").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -187,6 +161,6 @@ class AgencyInterfaceFacilityManagerTest {
 
         assertTrue(facilityManager.getRecords("id", "%").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
     }
 }

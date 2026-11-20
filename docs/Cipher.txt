@@ -26,8 +26,3 @@ Methods:
     - Leaves characters not found in the ciphered array unchanged.
     - Returns the deciphered String.
     - Throws an IllegalArgumentException if the provided text is null.
-
-The cipher(text) method performs the inverse mapping, from original characters
-to ciphered characters. It rejects null input and preserves characters absent
-from the mapping. The current account manager uses cipher and decipher with
-per-user credential files.

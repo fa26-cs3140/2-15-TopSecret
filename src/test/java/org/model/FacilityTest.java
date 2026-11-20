@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class FacilityTest {
     @Test
     void testConstructorAndGetters() {
-        Facility facility = new Facility(1, "Blackwood Annex", "BA", 1);
+        Facility facility = new Facility(1, "Blackwood Annex", "BA");
 
         assertEquals(1, facility.getId());
         assertEquals("Blackwood Annex", facility.getName());
@@ -15,7 +15,7 @@ public class FacilityTest {
 
     @Test
     void testSetters() {
-        Facility facility = new Facility(1, "Blackwood Annex", "BA", 1);
+        Facility facility = new Facility(1, "Blackwood Annex", "BA");
 
         facility.setName("Rose Garden");
         facility.setAbbreviation("RG");
@@ -27,27 +27,27 @@ public class FacilityTest {
 
     @Test
     void testInvalidId() {
-        assertThrows(IllegalArgumentException.class, () -> new Facility(0, "Blackwood Annex", "BA", 1));
-        assertThrows(IllegalArgumentException.class, () -> new Facility(-1, "Blackwood Annex", "BA", 1));
+        assertThrows(IllegalArgumentException.class, () -> new Facility(0, "Blackwood Annex", "BA"));
+        assertThrows(IllegalArgumentException.class, () -> new Facility(-1, "Blackwood Annex", "BA"));
     }
 
     @Test
     void testInvalidName() {
-        assertThrows(IllegalArgumentException.class, () -> new Facility(1, null, "BA", 1));
-        assertThrows(IllegalArgumentException.class, () -> new Facility(1, "", "BA", 1));
-        assertThrows(IllegalArgumentException.class, () -> new Facility(1, "   ", "BA", 1));
+        assertThrows(IllegalArgumentException.class, () -> new Facility(1, null, "BA"));
+        assertThrows(IllegalArgumentException.class, () -> new Facility(1, "", "BA"));
+        assertThrows(IllegalArgumentException.class, () -> new Facility(1, "   ", "BA"));
     }
 
     @Test
     void testInvalidAbbreviation() {
-        assertThrows(IllegalArgumentException.class, () -> new Facility(1, "Blackwood Annex", null, 1));
-        assertThrows(IllegalArgumentException.class, () -> new Facility(1, "Blackwood Annex", "", 1));
-        assertThrows(IllegalArgumentException.class, () -> new Facility(1, "Blackwood Annex", "   ", 1));
+        assertThrows(IllegalArgumentException.class, () -> new Facility(1, "Blackwood Annex", null));
+        assertThrows(IllegalArgumentException.class, () -> new Facility(1, "Blackwood Annex", ""));
+        assertThrows(IllegalArgumentException.class, () -> new Facility(1, "Blackwood Annex", "   "));
     }
 
     @Test
     void testInvalidNameSetter() {
-        Facility facility = new Facility(1, "Blackwood Annex", "BA", 1);
+        Facility facility = new Facility(1, "Blackwood Annex", "BA");
 
         assertThrows(IllegalArgumentException.class, () -> facility.setName(null));
         assertThrows(IllegalArgumentException.class, () -> facility.setName(""));
@@ -57,7 +57,7 @@ public class FacilityTest {
 
     @Test
     void testInvalidAbbreviationSetter() {
-        Facility facility = new Facility(1, "Blackwood Annex", "BA", 1);
+        Facility facility = new Facility(1, "Blackwood Annex", "BA");
 
         assertThrows(IllegalArgumentException.class, () -> facility.setAbbreviation(null));
         assertThrows(IllegalArgumentException.class, () -> facility.setAbbreviation(""));
@@ -67,7 +67,7 @@ public class FacilityTest {
 
     @Test
     void testMinimumValidValues() {
-        Facility facility = new Facility(1, "A", "B", 1);
+        Facility facility = new Facility(1, "A", "B");
 
         assertEquals(1, facility.getId());
         assertEquals("A", facility.getName());

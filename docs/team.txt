@@ -1,21 +1,21 @@
-Homework 7 Team
+Homework 4 Team
 
 Team Member A
 Name: Zaid Al Falah
-Role: View styling, countries, and command-line help
+Role: Database / SQLite
 GitHub ID: za-uv
 
 Team Member B
-Name: Dillon Kao
-Role: Control and web create/edit workflow
-GitHub ID: dcow12
+Name: [NAME]
+Role: Password / Credential Management
+GitHub ID: [GITHUB ID]
 
 Team Member C
 Name: Mike Ly
-Role: Web messaging center
+Role: Mission Search
 GitHub ID: ductrl
 
 Team Member D
 Name: Vrisag Desinani
-Role: Model, audit logging, related records, search, and session access control
-GitHub ID: VrisagDesinani
+Role: User Interface
+GitHub ID: fae9xd

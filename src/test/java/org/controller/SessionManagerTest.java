@@ -58,7 +58,6 @@ class SessionManagerTest {
 
         assertTrue(header.startsWith("session=abc123"));
         assertTrue(header.contains("HttpOnly"));
-        assertTrue(header.contains("SameSite=Lax"));
         assertTrue(header.contains("Path=/"));
         assertFalse(header.contains("Expires"));
         assertFalse(header.contains("Max-Age"));

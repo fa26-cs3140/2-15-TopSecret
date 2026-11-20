@@ -2,7 +2,6 @@ package org.managers;
 
 import org.model.AuditLogEntry;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 
 /**
@@ -35,7 +34,7 @@ public class AuditLogManager implements AuditLogService {
                 action,
                 contentType,
                 contentIdentifier,
-                LocalDateTime.now(ZoneOffset.UTC)
+                LocalDateTime.now()
         ));
     }
 

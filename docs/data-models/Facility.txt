@@ -1,0 +1,70 @@
+Author: Mike Ly (mch3jy) - Teammate C
+
+The Facility class represents a facility in the agency. Each facility has a unique ID, name, and abbreviation. A facility may have multiple agents assigned to it and may conduct multiple missions.
+
+Responsibilities & Requirements:
+- Stores a facility's unique ID, name and abbreviation
+- ID is immutable after construction
+- A facility can have multiple Agents assigned to it
+- A facility can conduct multiple Missions
+
+Class Design:
+    Attributes:
+        id: private final int
+        - Unique database identifier for the facility
+        - Must be positive
+        - Cannot be changed after construction
+
+        name: private String
+        - Name of the facility
+        - Cannot be null or blank
+        - Can be updated
+
+        abbreviation: private String
+        - Abbreviation of the facility
+        - Cannot be null or blank
+        - Can be updated
+
+    Constructors:
+        Facility(int id, String name, String abbreviation)
+        - Creates a Facility with the specified attributes
+        - Initializes the final id field
+        - Validates all required attributes
+        - Throws IllegalArgumentException for invalid values
+
+    Methods:
+        getId(): int
+        - Returns the unique facility ID
+
+        getName(): String
+        - Returns the facility name
+
+        setName(String name): void
+        - Updates the facility name
+        - Rejects null or blank values
+
+        getAbbreviation(): String
+        - Returns the facility abbreviation
+
+        setAbbreviation(String abbreviation): void
+        - Updates the facility abbreviation
+        - Rejects null or blank values
+
+Interactions With Other Classes:
+- Each Facility may have multiple Agents
+- Each Agent must belong to exactly one Facility
+- Each Facility may conduct multiple Missions
+- Each Mission must be conducted by exactly one Facility
+- Agent and Mission reference Facility using facilityId
+- DatabaseManager handles inserting, retrieving, updating, and deleting Facility records
+- UserInterface uses Facility objects to display and modify facility information
+- IMPORTANT: Changing a Facility object does not automatically update its database record
+
+Database Considerations:
+- Facility.id is the primary key of the facilities table
+- Agent.facilityId corresponds to agents.facility_id, a foreign key referencing facilities.id
+- Mission.facilityId corresponds to missions.facility_id, a foreign key referencing facilities.id
+- SQLite generates facility IDs during insertion
+- DatabaseManager retrieves the generated ID before constructing a persisted Facility object
+- Deleting a Facility referenced by Agents or Missions must be restricted until its dependencies are resolved
+- DatabaseManager is responsible for maintaining referential integrity

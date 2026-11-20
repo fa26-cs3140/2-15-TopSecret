@@ -10,7 +10,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
-import org.managers.MissionManager;
 import org.model.Agent;
 
 import java.io.ByteArrayOutputStream;
@@ -33,8 +32,6 @@ class AgencyInterfaceAgentManagerTest {
     private UserAccountManager userManager;
     private AuditLogService auditLog;
 
-    private org.managers.SqliteAuditLogStore persistedAudit;
-
     private ByteArrayOutputStream output;
 
     private final UserAccount admin = new UserAccount("pat", true);
@@ -55,10 +52,6 @@ class AgencyInterfaceAgentManagerTest {
         userManager = mock(UserAccountManager.class);
         auditLog = mock(AuditLogService.class);
 
-        persistedAudit = new org.managers.SqliteAuditLogStore(url);
-        var accountStore = new org.managers.SqliteUserAccountStore(url);
-        accountStore.addUser(admin);
-        accountStore.addUser(standard);
         output = new ByteArrayOutputStream();
     }
 
@@ -71,19 +64,16 @@ class AgencyInterfaceAgentManagerTest {
 
     private String run(UserAccount user, String input) {
         output.reset();
-        when(userManager.getUser(user.getUsername())).thenReturn(user);
 
         AgencyInterface ui = new AgencyInterface(
                 agentManager,
                 facilityManager,
                 briefManager,
                 userManager,
-                mock(MissionManager.class),
                 auditLog,
                 user,
                 new Scanner(input),
-                new PrintStream(output),
-                new org.managers.SqliteRecordStore(agentManager.getURL())
+                new PrintStream(output)
         );
 
         ui.run();
@@ -92,14 +82,14 @@ class AgencyInterfaceAgentManagerTest {
 
     private int createFacility() {
         return facilityManager
-                .addRecord("Blackwood Annex", "BA", 1)
+                .addRecord("Blackwood Annex", "BA")
                 .getId();
     }
 
     @Test
     void listsAgentsFromSQLite() {
-        int facility1 = facilityManager.addRecord("Blackwood Annex", "BA", 1).getId();
-        int facility2 = facilityManager.addRecord("Rose Garden", "RG", 1).getId();
+        int facility1 = facilityManager.addRecord("Blackwood Annex", "BA").getId();
+        int facility2 = facilityManager.addRecord("Rose Garden", "RG").getId();
 
         agentManager.addRecord("Vanguard", "1985-06-14", null, null, facility1);
         agentManager.addRecord("Ghost", "1992-11-22", null, null, facility2);
@@ -149,9 +139,7 @@ class AgencyInterfaceAgentManagerTest {
         assertEquals("Double agent.", stored.get(0).getNotes());
         assertEquals(facilityId, stored.get(0).getFacilityId());
 
-        assertTrue(persistedAudit.getAll().stream().anyMatch(entry -> entry.getUsername().equals("pat")
-                && entry.getAction().equals("CREATE") && entry.getContentType().equals("AGENT")
-                && entry.getContentIdentifier().equals(String.valueOf(stored.get(0).getId()))));
+        verify(auditLog).log("pat", "CREATE", "AGENT", String.valueOf(stored.get(0).getId()));
     }
 
     @Test
@@ -167,7 +155,6 @@ class AgencyInterfaceAgentManagerTest {
         assertTrue(text.contains("Jackal"));
     }
 
-    // TODO: Ask Mike about this one, not sure exactly what the expected behavior is
     @Test
     void invalidFacilityIdDoesNotPersistAgent() {
         String text = run(
@@ -178,7 +165,7 @@ class AgencyInterfaceAgentManagerTest {
         assertTrue(text.contains("Unable to add agent"));
         assertTrue(agentManager.getRecords("name", "Orphan").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -195,6 +182,6 @@ class AgencyInterfaceAgentManagerTest {
         assertTrue(text.contains("Invalid selection"));
         assertTrue(agentManager.getRecords("id", "%").isEmpty());
 
-        verify(auditLog, never()).log(anyString(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), anyString(), anyString());
+        verify(auditLog, never()).log(anyString(), anyString(), anyString(), anyString());
     }
 }
