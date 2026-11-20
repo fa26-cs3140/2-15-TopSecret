@@ -109,5 +109,6 @@ if (project.hasProperty("messagingOnly")) {
         include("org/model/messaging/**")
         include("org/controller/messaging/**")
         include("org/view/messaging/**")
+        include("org/controller/MessageWebHandlerIntegrationTest.java")
     }
 }
