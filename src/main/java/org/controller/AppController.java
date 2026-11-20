@@ -91,7 +91,7 @@ public class AppController {
                     "Facility ID: " + a.getFacilityId()));
             case FACILITY -> facility(id).map(f -> List.of("Name: " + f.getName(),
                     "Abbreviation: " + f.getAbbreviation()));
-            case COUNTRY -> country(id).map(c -> List.of("Name: " + c.getName()));
+            case COUNTRY -> countryName(id).map(name -> List.of("Name: " + name));
             case MISSION -> mission(id).map(m -> List.of("Title: " + m.getTitle(),
                     "Brief Ids: " + m.getBriefIdsAsString(), "Agent Ids: " + m.getAgentIdsAsString(),
                     "Facility Id: " + m.getFacilityId()));
@@ -137,6 +137,7 @@ public class AppController {
                     "facilityId", String.valueOf(a.getFacilityId())));
             case FACILITY -> facility(id).map(f -> values("name", f.getName(), "abbreviation", f.getAbbreviation(),
                     "countryId", String.valueOf(f.getCountryID())));
+            case COUNTRY -> countryName(id).map(name -> values("name", name));
             case MISSION -> mission(id).map(m -> values("title", m.getTitle(),
                     "facilityId", String.valueOf(m.getFacilityId()),
                     "briefIds", joinIds(m.getBriefIds()), "agentIds", joinIds(m.getAgentIds())));
@@ -149,19 +150,8 @@ public class AppController {
     public int createRecord(RecordType type, Map<String, String> values, UserAccount user) {
         requireEditor(user);
         Map<String, String> v = cleaned(type, values);
-        // The model constructors validate (dates, blanks); ID 1 is a placeholder until the database assigns one.
-        int id = switch (type) {
-            case BRIEF -> briefManager.addRecord(new Brief(1, v.get("title"), v.get("date"), v.get("text"), null))
-                    .getId();
-            case AGENT -> agentManager.addRecord(new Agent(1, v.get("name"), v.get("dateOfBirth"),
-                    v.get("dateOfDeath"), v.get("notes"), facilityId(v))).getId();
-            case FACILITY -> facilityManager.addRecord(new Facility(1, v.get("name"), v.get("abbreviation"),
-                    countryId(v))).getId();
-            case MISSION -> missionManager.addRecord(new Mission(1, v.get("title"), briefIds(v), agentIds(v),
-                    facilityId(v))).getId();
-        };
-        auditLog.log(user.getUsername(), "CREATE", type.name(), String.valueOf(id));
-        return id;
+        Object record = model(type, 1, v);
+        return editor(type).create(user, record);
     }
 
     public void updateRecord(RecordType type, int id, Map<String, String> values, UserAccount user) {
@@ -169,29 +159,9 @@ public class AppController {
         if (formValues(type, id) == null) {
             throw new IllegalArgumentException("No " + type.getSingular() + " found with ID " + id + ".");
         }
-        Map<String, String> v = cleaned(type, values);
-        // Build the model object first so invalid values are rejected before anything is saved.
-        switch (type) {
-            case BRIEF -> {
-                new Brief(id, v.get("title"), v.get("date"), v.get("text"), null);
-                save(briefManager, id, v, "title", "date", "text");
-            }
-            case AGENT -> {
-                new Agent(id, v.get("name"), v.get("dateOfBirth"), v.get("dateOfDeath"), v.get("notes"), facilityId(v));
-                save(agentManager, id, v, "name", "dateOfBirth", "dateOfDeath", "notes", "facilityId");
-            }
-            case FACILITY -> {
-                int countryId = countryId(v);
-                new Facility(id, v.get("name"), v.get("abbreviation"), countryId);
-                save(facilityManager, id, v, "name", "abbreviation");
-                // the form field is countryId; the facilities column is country_id
-                facilityManager.updateRecord("id", String.valueOf(id), "country_id", String.valueOf(countryId));
-            }
-            case MISSION -> {
-                Mission mission = new Mission(id, v.get("title"), briefIds(v), agentIds(v), facilityId(v));
-                save(missionManager, id, v, "title", "facilityId");
-                missionManager.replaceAssignments(id, mission.getBriefIds(), mission.getAgentIds());
-            }
+        Object record = model(type, id, cleaned(type, values));
+        if (!editor(type).update(user, record)) {
+            throw new IllegalArgumentException("The record no longer exists.");
         }
     }
 
