@@ -158,6 +158,7 @@ class EditWorkflowIntegrationTest {
 
     @Test
     void validEditRedirectsToRecordAndLogsUpdate() throws Exception {
+        when(changes.update(eq(1), any(), any())).thenReturn(true);
         HttpResponse<String> response = post("/facilities/1/edit", "name=Blackwood+Annex&abbreviation=BWA&countryId=62",
                 login("pat", "Secret1"));
 

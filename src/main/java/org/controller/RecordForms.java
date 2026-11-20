@@ -30,6 +30,7 @@ public final class RecordForms {
                     new FormField("name", "Name", Kind.TEXT, true),
                     new FormField("abbreviation", "Abbreviation", Kind.TEXT, true),
                     new FormField("countryId", "Country ID", Kind.NUMBER, true));
+            case COUNTRY -> List.of(new FormField("name", "Name", Kind.TEXT, true));
             case MISSION -> List.of(
                     new FormField("title", "Title", Kind.TEXT, true),
                     new FormField("facilityId", "Facility ID", Kind.NUMBER, true),

@@ -543,8 +543,8 @@ class AgencyInterfaceTest {
 
     @Test
     void addFacilityPromptsForPropertiesAndIsAudited() {
-        when(facilityManager.addRecord("Fairbanks Point", "FP", 1))
-                .thenReturn(new Facility(6, "Fairbanks Point", "FP", 1));
+        when(facilityManager.getCountry(1)).thenReturn(new Country("Afghanistan", 1, new Facility[0]));
+        when(changes.create(any(Facility.class), any())).thenReturn(6);
 
         createInterface(admin, "3\n3\nFairbanks Point\nFP\n1\n0\n0\n").run();
 
@@ -557,8 +557,7 @@ class AgencyInterfaceTest {
 
     @Test
     void addFacilityRejectedByServiceShowsError() {
-        when(facilityManager.addRecord(any(), any(), anyInt()))
-                .thenThrow(new IllegalArgumentException("Name cannot be blank."));
+        when(facilityManager.getCountry(1)).thenReturn(new Country("Afghanistan", 1, new Facility[0]));
 
         createInterface(admin, "3\n3\n\nFP\n1\n0\n0\n").run();
 
