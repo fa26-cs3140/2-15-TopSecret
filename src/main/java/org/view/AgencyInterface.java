@@ -389,10 +389,12 @@ public class AgencyInterface {
     {
         String input = prompt(prompt);
         Country country = fManager.getCountry(input);
-        if (country == null)
+        while (country == null)
         {
-            DebugHelper.debugPrintln("Country was null!");
-            return promptCountry(prompt); // for now, reprompt
+            output.println("Country not found. Try again. Type 'Exit' to exit.");
+            input = prompt(prompt);
+            country = fManager.getCountry(input);
+            if (input.trim().toLowerCase().equals("exit")) return -1;
         }
 
         return country.getID();
