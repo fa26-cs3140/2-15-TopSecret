@@ -35,11 +35,16 @@ A valid web request refreshes the session's activity. Thirty minutes without
 a request expires the token, including at the exact deadline. Each production
 session lookup reloads current account permissions. A deleted account loses
 access and a demoted administrator loses permission to edit. Session tokens
-live in the web server process and are cleared on restart.
+live in the web server process and are cleared on restart. Terminal admin checks
+also reload current permissions. Cross-origin browser POSTs are rejected and
+session cookies explicitly use SameSite=Lax; ordinary same-origin forms and
+clients without browser origin metadata remain supported.
 
 ## Record editing and audit
 
 Team B's existing create/edit routes and form rendering call `AppController`.
+Terminal content creation also calls that controller, refreshing the actor's
+permissions immediately before saving.
 It validates the complete submitted model and passes the authenticated actor
 to `RecordEditor`. `SqliteRecordStore` writes all fields, mission junction
 rows, and one CREATE or UPDATE audit row using one SQLite transaction.
@@ -48,10 +53,15 @@ A failure rolls back both the content and audit writes. Missing update targets
 create no audit entry. Multiline text and apostrophes persist literally.
 
 Audit entries retain username, action, content type, content identifier, and
-timestamp. CREATE uses the generated record ID. Existing READ auditing is
+timestamp in UTC. Historical entries without offsets are preserved unchanged.
+CREATE uses the generated record ID. Existing READ auditing is
 preserved, and missing detail pages return 404 without a READ event.
 
 ## Relationships and search
+
+Mission and assignment reads fail explicitly on storage errors, so an outage
+cannot be presented as an empty edit form. The web server returns 503 and
+preserves the saved assignments.
 
 `RecordRelationships` supplies related records through the existing managers.
 `RelatedRecordView` builds internal links from record types and IDs and escapes

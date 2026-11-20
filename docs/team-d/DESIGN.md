@@ -258,3 +258,24 @@ Country ID (see Countries) [1]
 
 New/Edit actions are available to administrators. A new country form requests
 a name. Changing a facility's Country ID changes its association.
+
+## Follow-up reliability changes
+
+Terminal content prompts feed AppController's existing form-value contract.
+The controller validates references and uses RecordEditor/SqliteRecordStore for
+one content-and-audit transaction. The package-visible AgencyInterface
+constructor permits injecting that persistence boundary for isolated tests.
+Terminal administrator checks reload account metadata, including after prompts
+and immediately before creation or permission changes.
+
+MissionManager propagates mission/junction read failures as IllegalStateException.
+WebServer responds with 503, so EditHandler cannot render a failed read as an
+empty association list. New audit entries use UTC consistently; historical
+naive timestamps are retained without guessing their original time zone.
+
+WebServer rejects POST requests with a foreign or opaque Origin, or cross-site
+fetch metadata, before dispatching handlers. Session cookies use SameSite=Lax.
+The application serves HTTP directly; origin validation compares against its
+HTTP Host header. HTTPS reverse-proxy deployments would need explicit trusted
+public-origin configuration rather than accepting arbitrary forwarded headers.
+The schema, ERD, and wireframe remain unchanged by these reliability fixes.

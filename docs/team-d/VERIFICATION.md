@@ -10,12 +10,12 @@ Executed with Java 26 and the repository's Gradle wrapper:
 
 | Check | Result |
 | --- | --- |
-| Full test suite | 441 passed, zero failures, zero errors, zero skips |
+| Full test suite | 448 passed, zero failures, zero errors, zero skips |
 | Separate unit task | 366 passed |
-| Separate integration task | 75 passed |
+| Separate integration task | 82 passed |
 | Gradle build and packaged JAR | Passed |
-| Project method coverage, complete suite | 442 / 442 methods, 100% |
-| Project method coverage, unit task | 398 / 442 methods, 90.0% |
+| Project method coverage, complete suite | 443 / 443 methods, 100% |
+| Project method coverage, unit task | 398 / 443 methods, 89.8% |
 | New Team D services, link view, and session manager | 100% method coverage in both the isolated unit task and complete suite |
 
 The Team D coverage statement includes RecordEditor and AuditEvent,
@@ -103,3 +103,34 @@ attempt role spoofing in form fields, use forged/missing/deleted-account cookies
 and create countries concurrently. Values stay literal, labels are escaped,
 unauthorized changes are rejected, and concurrent IDs and audit entries remain
 consistent. The full suite passes with zero failed, errored, or skipped tests.
+
+## Follow-up adversarial review
+
+The packaged application exposed four further bugs that are now covered by
+regression tests:
+
+- Terminal role checks reload the account, including a second check after a
+  creation prompt and before saving. A demoted administrator cannot create
+  content or review the audit log through an existing terminal login.
+- Terminal creation of all five content types uses AppController and the same
+  transactional store as web creation. A rejected audit insert rolls back the
+  record and mission assignments. The terminal reports the failure and remains
+  usable; logout reports an unavailable audit store without crashing.
+- Mission and mission-assignment read failures throw a storage exception.
+  HTTP edit requests return 503 rather than offering a misleading empty form;
+  submissions during the outage preserve all existing assignments.
+- All new audit timestamps use UTC, including terminal and READ events.
+  A regression test changes the process time zone to America/New_York and
+  checks CREATE, UPDATE, and READ timestamps against the same UTC interval.
+  Historical timestamps have no stored offset and are preserved as-is.
+
+Cross-origin POSTs carrying a foreign/null Origin or cross-site fetch metadata
+are rejected before login or content handling. Cookies explicitly use
+SameSite=Lax. Tests confirm that a valid administrator cookie does not bypass
+that check and same-origin forms still save normally. Requests without browser
+origin metadata remain supported for terminal/system-test clients. This verifies
+the server behavior; it is not a claim of a complete browser security audit.
+
+The packaged-JAR country/session workflow was rerun successfully after these
+changes. No database schema or wireframe changes were needed. The shared class
+diagram was regenerated to include the terminal persistence injection boundary.

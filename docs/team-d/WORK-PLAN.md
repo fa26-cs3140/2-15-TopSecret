@@ -29,7 +29,7 @@ for the available content types.
 2. **Team C web messaging.** The shared branch still has terminal messaging.
    The Homework 7 web center and read indicators belong to Team C.
 3. **Whole-project method coverage completed.** The complete test suite exercises
-   all 442 measured methods. Added checks cover startup argument handling,
+   all 443 measured methods. Added checks cover startup argument handling,
    directory changes, search-result accessors, diagnostics, and terminal
    account/import/mission workflows. The unused audit-table stub had no
    callers and has been removed.
@@ -46,7 +46,8 @@ now delegates complete writes to Team D's transactional store. Controller unit
 tests inject a mock of that store and check the submitted audit metadata.
 PageHandler adds related links and returns 404 for missing details. ProgramControl
 shares a session manager between the terminal and web server in `-web-admin`
-mode. The shared MissionManager implementation is retained.
+mode. MissionManager retains its data model and SQL layout; read failures now
+propagate instead of being mistaken for an empty record or assignment list.
 
 ## Country compatibility corrections
 
@@ -69,3 +70,10 @@ the hard-coded facility ID in terminal mission navigation, and the crash on
 an unknown facility name. Regression tests exercise each failure through
 the HTTP server or terminal menu. SQL/HTML injection strings, forged roles
 and tokens, deleted accounts, and concurrent writes are also exercised.
+
+The follow-up review also fixed stale terminal permissions, non-transactional
+terminal CREATE auditing, misleading empty mission forms after read errors,
+and mixed audit time zones. Terminal creation now uses the same controller and
+transactional store as web creation. Browser POST origins are checked and the
+session cookie explicitly uses SameSite=Lax. Regression tests and the packaged
+system workflow pass with these changes.
