@@ -97,7 +97,7 @@ c.setTitle("HW7 Team D class diagram")
 header(c, "Team D - Class Model", "solid: retained dependency; dashed: use or realization")
 box(c, 34, 430, 180, 95, "AppController / terminal", ["External entry-point boundary", "Validates forms / current actor"], True)
 box(c, 280, 430, 205, 95, "RecordEditor<T>", ["Authorizes administrator changes", "Creates AuditEvent" ])
-box(c, 555, 430, 203, 95, "<<interface>> Store<T>", ["create(record, event): int", "update(id, record, event): boolean"])
+box(c, 555, 430, 203, 95, "<<interface>> Store<T>", ["create(record, event): int", "createAll(records, event): List<Integer>", "update(id, record, event): boolean"])
 box(c, 555, 270, 203, 100, "SqliteRecordStore", ["Implements Store<Object>", "Record + junctions + audit", "One SQLite transaction"])
 box(c, 280, 270, 205, 100, "<<record>> AuditEvent", ["username, action, type, timestamp", "forRecord(id): AuditLogEntry"])
 box(c, 34, 270, 180, 100, "AuditLogManager", ["Implements AuditLogService", "Uses AuditLogStore"])
@@ -138,6 +138,7 @@ c.save()
 
 # Build declaration appendix from compiled classes, then merge with overview.
 classes = [
+    "org.managers.RecordImport", "org.managers.FileHandler",
     "org.managers.RecordEditor", "org.managers.RecordEditor$Store", "org.managers.RecordEditor$AuditEvent",
     "org.managers.SqliteRecordStore", "org.managers.RecordRelationships", "org.managers.RecordSearch",
     "org.managers.RecordSearch$Match", "org.model.RelatedRecord", "org.view.RelatedRecordView",
