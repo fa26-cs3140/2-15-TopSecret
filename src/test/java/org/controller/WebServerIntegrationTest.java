@@ -218,6 +218,17 @@ class WebServerIntegrationTest {
     }
 
     @Test
+    void stylesheetIsServedWithoutLoginAndOtherFilesAreNot() throws Exception {
+        HttpResponse<String> css = get("/css/style.css", null);
+        assertEquals(200, css.statusCode());
+        assertTrue(css.headers().firstValue("Content-Type").orElse("").startsWith("text/css"));
+        assertFalse(css.body().isBlank());
+
+        assertEquals(404, get("/css/missing.css", null).statusCode());
+        assertEquals(404, get("/css/..%2F..%2Fkey.txt", null).statusCode());
+    }
+
+    @Test
     void unknownPagesAndBadIdsReturnNotFound() throws Exception {
         String cookie = sessionCookie(login("pat", "Secret1"));
 
