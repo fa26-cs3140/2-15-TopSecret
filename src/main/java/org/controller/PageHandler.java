@@ -75,6 +75,7 @@ public class PageHandler implements HttpHandler {
                 + "<ul>\n<li><a href=\"/briefs\">Briefs</a></li>\n<li><a href=\"/agents\">Agents</a></li>\n"
                 + "<li><a href=\"/facilities\">Facilities</a></li>\n<li><a href=\"/missions\">Missions</a></li>\n"
                 + "<li><a href=\"/countries\">Countries</a></li>\n"
+                + "<li><a href=\"/messages\">Messages</a></li>\n"
                 + (user.isAdmin() ? "<li><a href=\"/audit\">Review audit log</a></li>\n" : "") + "</ul>";
         send(exchange, user, 200, "Main Menu", body);
     }
