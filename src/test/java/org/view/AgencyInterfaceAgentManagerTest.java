@@ -84,14 +84,14 @@ class AgencyInterfaceAgentManagerTest {
 
     private int createFacility() {
         return facilityManager
-                .addRecord("Blackwood Annex", "BA")
+                .addRecord("Blackwood Annex", "BA", 1)
                 .getId();
     }
 
     @Test
     void listsAgentsFromSQLite() {
-        int facility1 = facilityManager.addRecord("Blackwood Annex", "BA").getId();
-        int facility2 = facilityManager.addRecord("Rose Garden", "RG").getId();
+        int facility1 = facilityManager.addRecord("Blackwood Annex", "BA", 1).getId();
+        int facility2 = facilityManager.addRecord("Rose Garden", "RG", 1).getId();
 
         agentManager.addRecord("Vanguard", "1985-06-14", null, null, facility1);
         agentManager.addRecord("Ghost", "1992-11-22", null, null, facility2);
