@@ -12,6 +12,7 @@ import org.managers.MissionManager;
 import org.model.Agent;
 import org.model.AuditLogEntry;
 import org.model.Brief;
+import org.model.Country;
 import org.model.Facility;
 import org.model.Mission;
 import org.model.RecordType;
@@ -66,6 +67,8 @@ public class AppController {
                     .map(b -> b.getId() + ". " + b.getTitle()).toList();
             case AGENT -> agentManager.getRecords("id", "%").stream()
                     .map(a -> a.getId() + ". " + a.getName()).toList();
+            case COUNTRY -> facilityManager.getCountries().stream()
+                    .map(country -> country.getID() + ". " + country.getName()).toList();
             case FACILITY -> facilityManager.getRecords("id", "%").stream()
                     .map(f -> f.getId() + ". " + f.getName() + " (" + f.getAbbreviation() + ")").toList();
             case MISSION -> missionManager.getRecords("id", "%").stream()
@@ -87,6 +90,7 @@ public class AppController {
                     "Facility ID: " + a.getFacilityId()));
             case FACILITY -> facility(id).map(f -> List.of("Name: " + f.getName(),
                     "Abbreviation: " + f.getAbbreviation()));
+            case COUNTRY -> country(id).map(c -> List.of("Name: " + c.getName()));
             case MISSION -> mission(id).map(m -> List.of("Title: " + m.getTitle(),
                     "Brief Ids: " + m.getBriefIdsAsString(), "Agent Ids: " + m.getAgentIdsAsString(),
                     "Facility Id: " + m.getFacilityId()));
@@ -130,7 +134,9 @@ public class AppController {
             case AGENT -> agent(id).map(a -> values("name", a.getName(), "dateOfBirth", a.getDateOfBirth(),
                     "dateOfDeath", a.getDateOfDeath(), "notes", a.getNotes(),
                     "facilityId", String.valueOf(a.getFacilityId())));
-            case FACILITY -> facility(id).map(f -> values("name", f.getName(), "abbreviation", f.getAbbreviation()));
+            case FACILITY -> facility(id).map(f -> values("name", f.getName(), "abbreviation", f.getAbbreviation(),
+                    "countryId", f.getCountryID() == 0 ? "" : String.valueOf(f.getCountryID())));
+            case COUNTRY -> country(id).map(c -> values("name", c.getName()));
             case MISSION -> mission(id).map(m -> values("title", m.getTitle(),
                     "facilityId", String.valueOf(m.getFacilityId()),
                     "briefIds", joinIds(m.getBriefIds()), "agentIds", joinIds(m.getAgentIds())));
@@ -163,6 +169,7 @@ public class AppController {
             case Brief brief -> brief.getId();
             case Agent agent -> agent.getId();
             case Facility facility -> facility.getId();
+            case Country country -> country.getID();
             case Mission mission -> mission.getId();
             default -> throw new IllegalArgumentException("Unsupported content record.");
         }, Clock.systemUTC());
@@ -173,7 +180,8 @@ public class AppController {
             case BRIEF -> new Brief(id, values.get("title"), values.get("date"), values.get("text"), null);
             case AGENT -> new Agent(id, values.get("name"), values.get("dateOfBirth"),
                     values.get("dateOfDeath"), values.get("notes"), facilityId(values));
-            case FACILITY -> new Facility(id, values.get("name"), values.get("abbreviation"));
+            case FACILITY -> new Facility(id, values.get("name"), values.get("abbreviation"), countryId(values));
+            case COUNTRY -> new Country(values.get("name"), id, new Facility[0]);
             case MISSION -> new Mission(id, values.get("title"), briefIds(values), agentIds(values), facilityId(values));
         };
     }
@@ -228,6 +236,18 @@ public class AppController {
             throw new IllegalArgumentException("No facility found with ID " + id + ".");
         }
         return id;
+    }
+
+    private int countryId(Map<String, String> values) {
+        int id = parseId(values.get("countryId"), "Country ID");
+        if (country(id).isEmpty()) {
+            throw new IllegalArgumentException("No country found with ID " + id + ".");
+        }
+        return id;
+    }
+
+    private Optional<Country> country(int id) {
+        return Optional.ofNullable(facilityManager.getCountry(id));
     }
 
     private int[] briefIds(Map<String, String> v) {

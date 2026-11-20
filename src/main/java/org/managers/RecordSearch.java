@@ -52,6 +52,11 @@ public final class RecordSearch {
                 results.add(new Match(RecordType.MISSION, mission.getId(), mission.getTitle()));
             }
         }
+        for (var country : facilities.getCountries()) {
+            if (contains(term, country.getName())) {
+                results.add(new Match(RecordType.COUNTRY, country.getID(), country.getName()));
+            }
+        }
         return List.copyOf(results);
     }
 

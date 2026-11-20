@@ -46,6 +46,7 @@ class EditWorkflowIntegrationTest {
         briefs = mock(BriefManager.class);
         FacilityManager facilities = mock(FacilityManager.class);
         when(facilities.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA")));
+        when(facilities.getCountry(1)).thenReturn(new org.model.Country("Afghanistan", 1, new Facility[0]));
         audit = mock(AuditLogService.class);
         changes = mock(RecordEditor.Store.class);
 
@@ -156,7 +157,7 @@ class EditWorkflowIntegrationTest {
     @Test
     void validEditRedirectsToRecordAndLogsUpdate() throws Exception {
         when(changes.update(eq(1), any(), any())).thenReturn(true);
-        HttpResponse<String> response = post("/facilities/1/edit", "name=Blackwood+Annex&abbreviation=BWA",
+        HttpResponse<String> response = post("/facilities/1/edit", "name=Blackwood+Annex&abbreviation=BWA&countryId=1",
                 login("pat", "Secret1"));
 
         assertEquals(303, response.statusCode());

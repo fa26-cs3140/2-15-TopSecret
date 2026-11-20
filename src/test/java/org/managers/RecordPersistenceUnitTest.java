@@ -41,11 +41,13 @@ class RecordPersistenceUnitTest {
             assertTrue(store.update(7, new Facility(7, "HQ", "HQ"), event));
             assertEquals(7, store.create(new Mission(1, "Recon", new int[]{2}, new int[]{3}, 1), event));
 
+            assertEquals(7, store.create(new org.model.Country("Country", 1, new Facility[0]), event));
+
             verify(prepared).setObject(1, "O'Brien");
-            verify(connection, times(3)).setAutoCommit(false);
-            verify(connection, times(3)).commit();
+            verify(connection, times(4)).setAutoCommit(false);
+            verify(connection, times(4)).commit();
             verify(connection, never()).rollback();
-            verify(connection, times(3)).prepareStatement(startsWith("INSERT INTO audit_log"));
+            verify(connection, times(4)).prepareStatement(startsWith("INSERT INTO audit_log"));
             verify(connection, never()).prepareStatement(contains("O'Brien"));
         }
     }

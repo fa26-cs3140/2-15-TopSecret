@@ -38,7 +38,15 @@ public final class RecordRelationships {
                         .forEach(mission -> related.add(new RelatedRecord(
                                 RecordType.MISSION, mission.getId(), mission.getTitle())));
             }
+            case COUNTRY -> facilities.getRecords("country_id", String.valueOf(id)).forEach(facility ->
+                    related.add(new RelatedRecord(RecordType.FACILITY, facility.getId(), facility.getName())));
             case FACILITY -> {
+                facilities.getRecords("id", String.valueOf(id)).forEach(facility -> {
+                    var country = facilities.getCountry(facility.getCountryID());
+                    if (country != null) {
+                        related.add(new RelatedRecord(RecordType.COUNTRY, country.getID(), country.getName()));
+                    }
+                });
                 agents.getRecords("facilityId", String.valueOf(id)).forEach(agent ->
                         related.add(new RelatedRecord(RecordType.AGENT, agent.getId(), agent.getName())));
                 missions.getRecords("facilityId", String.valueOf(id)).forEach(mission ->

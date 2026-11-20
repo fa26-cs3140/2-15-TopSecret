@@ -26,10 +26,11 @@ public final class RecordForms {
                     new FormField("dateOfDeath", "Date of death", Kind.DATE, false),
                     new FormField("notes", "Notes", Kind.TEXTAREA, false),
                     new FormField("facilityId", "Facility ID", Kind.NUMBER, true));
-            // TODO (week 2): add a country field once Team A adds the Country type
             case FACILITY -> List.of(
                     new FormField("name", "Name", Kind.TEXT, true),
-                    new FormField("abbreviation", "Abbreviation", Kind.TEXT, true));
+                    new FormField("abbreviation", "Abbreviation", Kind.TEXT, true),
+                    new FormField("countryId", "Country ID (see Countries)", Kind.NUMBER, true));
+            case COUNTRY -> List.of(new FormField("name", "Name", Kind.TEXT, true));
             case MISSION -> List.of(
                     new FormField("title", "Title", Kind.TEXT, true),
                     new FormField("facilityId", "Facility ID", Kind.NUMBER, true),

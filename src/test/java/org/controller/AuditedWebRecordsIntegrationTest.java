@@ -76,7 +76,7 @@ class AuditedWebRecordsIntegrationTest {
 
     @Test
     void createsEditsAndNavigatesAllContentTypesWithPersistedAudit() throws Exception {
-        int facility = create("facilities", Map.of("name", "HQ <West>", "abbreviation", "HQ"));
+        int facility = create("facilities", Map.of("name", "HQ <West>", "abbreviation", "HQ", "countryId", "1"));
         int brief = create("briefs", Map.of("title", "O'Brien", "date", "2020-01-01", "text", "  Line one\nLine two\n"));
         int agent = create("agents", Map.of("name", "Ghost", "dateOfBirth", "1990-01-01", "facilityId", "" + facility));
         int mission = create("missions", Map.of("title", "Recon", "facilityId", "" + facility,
@@ -89,7 +89,7 @@ class AuditedWebRecordsIntegrationTest {
         assertLink(get("/briefs/" + brief, cookie), "/missions/" + mission);
         assertTrue(get("/facilities/" + facility, cookie).body().contains("HQ &lt;West&gt;"));
 
-        edit("facilities", facility, Map.of("name", "New HQ", "abbreviation", "NH"));
+        edit("facilities", facility, Map.of("name", "New HQ", "abbreviation", "NH", "countryId", "1"));
         edit("briefs", brief, Map.of("title", "Changed", "date", "2021-02-03", "text", "  O'Brien\n100%\n"));
         edit("agents", agent, Map.of("name", "Ghost", "dateOfBirth", "1990-01-01",
                 "facilityId", "" + facility, "notes", "Field update"));
@@ -109,10 +109,56 @@ class AuditedWebRecordsIntegrationTest {
     }
 
     @Test
+    void countryRenamesAndReassignmentAppearAtFacilityLinks() throws Exception {
+        int country = create("countries", Map.of("name", "O'Brien <Islands>"));
+        int facility = create("facilities", Map.of("name", "Island HQ", "abbreviation", "IHQ",
+                "countryId", String.valueOf(country)));
+        assertLink(get("/facilities/" + facility, standardCookie), "/countries/" + country);
+        assertLink(get("/countries/" + country, standardCookie), "/facilities/" + facility);
+
+        edit("countries", country, Map.of("name", "Updated <Islands>"));
+        assertTrue(get("/facilities/" + facility, cookie).body().contains("Updated &lt;Islands&gt;"));
+        var manager = new FacilityManager(url);
+        var results = new org.managers.RecordSearch(new BriefManager(url), new AgentManager(url),
+                manager, new MissionManager(url)).find("updated <islands>");
+        assertTrue(results.stream().anyMatch(match -> match.type() == org.model.RecordType.COUNTRY
+                && match.id() == country));
+        manager.createTable();
+        assertEquals("Updated <Islands>", manager.getCountry(country).getName());
+
+        edit("facilities", facility, Map.of("name", "Island HQ", "abbreviation", "IHQ", "countryId", "1"));
+        assertLink(get("/facilities/" + facility, cookie), "/countries/1");
+        assertFalse(get("/countries/" + country, cookie).body().contains("href=\"/facilities/" + facility + "\""));
+        assertEquals(403, post("/countries/" + country + "/edit", Map.of("name", "Denied"), standardCookie).statusCode());
+        assertTrue(audit.getAuditLog().stream().anyMatch(entry ->
+                entry.getContentType().equals("COUNTRY") && entry.getAction().equals("UPDATE")
+                        && entry.getContentIdentifier().equals(String.valueOf(country))));
+    }
+
+    @Test
+    void invalidCountryAndAuditFailureLeaveAssociationsAndNamesIntact() throws Exception {
+        int country = create("countries", Map.of("name", "Original islands"));
+        int facility = create("facilities", Map.of("name", "HQ", "abbreviation", "HQ",
+                "countryId", String.valueOf(country)));
+        HttpResponse<String> invalid = post("/facilities/" + facility + "/edit",
+                Map.of("name", "Bad", "abbreviation", "BAD", "countryId", "999999"), cookie);
+        assertTrue(invalid.body().contains("role=\"alert\""));
+        assertEquals(country, new FacilityManager(url).getRecords("id", "" + facility).getFirst().getCountryID());
+
+        try (var connection = DriverManager.getConnection(url); var statement = connection.createStatement()) {
+            statement.execute("CREATE TRIGGER reject_country_audit BEFORE INSERT ON audit_log "
+                    + "BEGIN SELECT RAISE(ABORT, 'test'); END");
+        }
+        HttpResponse<String> failed = post("/countries/" + country + "/edit", Map.of("name", "Partial"), cookie);
+        assertTrue(failed.body().contains("role=\"alert\""));
+        assertEquals("Original islands", new FacilityManager(url).getCountry(country).getName());
+    }
+
+    @Test
     void rollbackAndAccessDenialAreVisibleThroughActualPostRoutes() throws Exception {
-        int facility = create("facilities", Map.of("name", "Original", "abbreviation", "HQ"));
+        int facility = create("facilities", Map.of("name", "Original", "abbreviation", "HQ", "countryId", "1"));
         long before = audit.getAuditLog().size();
-        assertEquals(403, post("/facilities/" + facility + "/edit", Map.of("name", "No", "abbreviation", "NO"),
+        assertEquals(403, post("/facilities/" + facility + "/edit", Map.of("name", "No", "abbreviation", "NO", "countryId", "1"),
                 standardCookie).statusCode());
 
         try (var connection = DriverManager.getConnection(url); var statement = connection.createStatement()) {
@@ -120,7 +166,7 @@ class AuditedWebRecordsIntegrationTest {
                     + "BEGIN SELECT RAISE(ABORT, 'test'); END");
         }
         HttpResponse<String> failed = post("/facilities/" + facility + "/edit",
-                Map.of("name", "Partial", "abbreviation", "BAD"), cookie);
+                Map.of("name", "Partial", "abbreviation", "BAD", "countryId", "1"), cookie);
         assertTrue(failed.body().contains("role=\"alert\""));
         assertFalse(failed.headers().firstValue("Location").isPresent());
         assertEquals("Original", new FacilityManager(url).getRecords("id", "" + facility).getFirst().getName());

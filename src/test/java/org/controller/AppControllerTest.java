@@ -207,7 +207,7 @@ class AppControllerTest {
     void formValuesReturnCurrentRecordFields() {
         when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA")));
 
-        assertEquals(Map.of("name", "Blackwood Annex", "abbreviation", "BA"),
+        assertEquals(Map.of("name", "Blackwood Annex", "abbreviation", "BA", "countryId", ""),
                 controller.formValues(RecordType.FACILITY, 1));
         assertNull(controller.formValues(RecordType.FACILITY, 9));
     }
@@ -262,6 +262,7 @@ class AppControllerTest {
 
     @Test
     void adminCreatesAgentAndFacility() {
+        when(facilityManager.getCountry(1)).thenReturn(new org.model.Country("Afghanistan", 1, new Facility[0]));
         when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "Blackwood Annex", "BA")));
         when(changes.create(any(Agent.class), any())).thenReturn(11);
         when(changes.create(any(Facility.class), any())).thenReturn(7);
@@ -269,7 +270,7 @@ class AppControllerTest {
         assertEquals(11, controller.createRecord(RecordType.AGENT, Map.of("name", "Nova", "dateOfBirth", "1999-09-09",
                 "dateOfDeath", "", "facilityId", "1"), admin));
         assertEquals(7, controller.createRecord(RecordType.FACILITY, Map.of("name", "Glass House",
-                "abbreviation", "GH"), admin));
+                "abbreviation", "GH", "countryId", "1"), admin));
         verify(changes).create(any(), argThat(event -> event.username().equals("pat") && event.action().equals("CREATE")
                 && event.type() == RecordType.AGENT));
         verify(changes).create(any(), argThat(event -> event.username().equals("pat") && event.action().equals("CREATE")
@@ -299,12 +300,13 @@ class AppControllerTest {
 
     @Test
     void adminUpdatesBriefAndFacility() {
+        when(facilityManager.getCountry(1)).thenReturn(new org.model.Country("Afghanistan", 1, new Facility[0]));
         when(changes.update(anyInt(), any(), any())).thenReturn(true);
         when(briefManager.getRecords("id", "%")).thenReturn(List.of(new Brief(1, "Old", "2020-01-01", "a", null)));
         when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(2, "Rose Garden", "RG")));
 
         controller.updateRecord(RecordType.BRIEF, 1, Map.of("title", "New", "date", "2021-02-03", "text", "b"), admin);
-        controller.updateRecord(RecordType.FACILITY, 2, Map.of("name", "Rose Garden", "abbreviation", "RGN"), admin);
+        controller.updateRecord(RecordType.FACILITY, 2, Map.of("name", "Rose Garden", "abbreviation", "RGN", "countryId", "1"), admin);
 
         verify(changes).update(eq(1), any(Brief.class), any());
         verify(changes).update(eq(2), any(Facility.class), any());

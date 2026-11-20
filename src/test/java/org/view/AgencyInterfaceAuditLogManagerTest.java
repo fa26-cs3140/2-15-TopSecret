@@ -129,7 +129,7 @@ class AgencyInterfaceAuditLogManagerTest {
 
     @Test
     void addingAFacilityIsStoredInAuditLog() {
-        run(admin, "3\n3\nFairbanks Point\nFP\n0\n0\n");
+        run(admin, "3\n3\nFairbanks Point\nFP\n1\n0\n0\n");
 
         List<AuditLogEntry> entries =
                 auditLogManager.getAuditLog().stream().filter(e -> !"LOGOUT".equals(e.getAction())).toList();

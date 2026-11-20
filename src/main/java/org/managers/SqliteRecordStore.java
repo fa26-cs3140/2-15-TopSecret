@@ -2,6 +2,7 @@ package org.managers;
 
 import org.model.Agent;
 import org.model.Brief;
+import org.model.Country;
 import org.model.Facility;
 import org.model.Mission;
 
@@ -81,8 +82,14 @@ public final class SqliteRecordStore implements RecordEditor.Store<Object> {
             }
             case Facility facility -> {
                 table = "facilities";
-                columns = new String[]{"name", "abbreviation"};
-                values = new Object[]{facility.getName(), facility.getAbbreviation()};
+                columns = new String[]{"name", "abbreviation", "country_id"};
+                values = new Object[]{facility.getName(), facility.getAbbreviation(),
+                        facility.getCountryID() == 0 ? null : facility.getCountryID()};
+            }
+            case Country country -> {
+                table = "countries";
+                columns = new String[]{"name"};
+                values = new Object[]{country.getName()};
             }
             case Mission mission -> {
                 table = "missions";

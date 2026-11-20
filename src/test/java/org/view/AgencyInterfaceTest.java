@@ -541,10 +541,11 @@ class AgencyInterfaceTest {
 
     @Test
     void addFacilityPromptsForPropertiesAndIsAudited() {
-        when(facilityManager.addRecord("Fairbanks Point", "FP"))
+        when(facilityManager.getCountry(1)).thenReturn(new org.model.Country("Afghanistan", 1, new Facility[0]));
+        when(facilityManager.addRecord("Fairbanks Point", "FP", 1))
                 .thenReturn(new Facility(6, "Fairbanks Point", "FP"));
 
-        createInterface(admin, "3\n3\nFairbanks Point\nFP\n0\n0\n").run();
+        createInterface(admin, "3\n3\nFairbanks Point\nFP\n1\n0\n0\n").run();
 
         assertTrue(text().contains("Name:"));
         assertTrue(text().contains("Abbreviation:"));
@@ -553,10 +554,11 @@ class AgencyInterfaceTest {
 
     @Test
     void addFacilityRejectedByServiceShowsError() {
-        when(facilityManager.addRecord(any(), any()))
+        when(facilityManager.getCountry(1)).thenReturn(new org.model.Country("Afghanistan", 1, new Facility[0]));
+        when(facilityManager.addRecord(any(), any(), eq(1)))
                 .thenThrow(new IllegalArgumentException("Name cannot be blank."));
 
-        createInterface(admin, "3\n3\n\nFP\n0\n0\n").run();
+        createInterface(admin, "3\n3\n\nFP\n1\n0\n0\n").run();
 
         assertTrue(text().contains("Unable to add facility"));
         verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());

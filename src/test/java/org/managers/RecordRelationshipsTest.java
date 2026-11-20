@@ -29,10 +29,12 @@ class RecordRelationshipsTest {
         when(missions.getRecords("id", "%")).thenReturn(List.of(mission));
         when(missions.getRecords("id", "4")).thenReturn(List.of(mission));
         when(missions.getRecords("facilityId", "3")).thenReturn(List.of(mission));
-        when(facilities.getRecords("id", "3")).thenReturn(List.of(new Facility(3, "HQ", "HQ")));
         when(briefs.getRecords("id", "%")).thenReturn(List.of(
                 new Brief(1, "Notes", "2020-01-01", "text", null),
                 new Brief(9, "Unassigned", "2020-01-01", "text", null)));
+        when(facilities.getCountry(1)).thenReturn(new org.model.Country("Afghanistan", 1, new Facility[0]));
+        when(facilities.getRecords("country_id", "1")).thenReturn(List.of(new Facility(3, "HQ", "HQ", 1)));
+        when(facilities.getRecords("id", "3")).thenReturn(List.of(new Facility(3, "HQ", "HQ", 1)));
         RecordRelationships relationships = new RecordRelationships(briefs, agents, facilities, missions);
         RelatedRecord facilityLink = new RelatedRecord(RecordType.FACILITY, 3, "HQ");
         RelatedRecord agentLink = new RelatedRecord(RecordType.AGENT, 2, "Ghost");
@@ -40,7 +42,9 @@ class RecordRelationshipsTest {
 
         assertEquals(List.of(missionLink), relationships.find(RecordType.BRIEF, 1));
         assertEquals(List.of(facilityLink, missionLink), relationships.find(RecordType.AGENT, 2));
-        assertEquals(List.of(agentLink, missionLink), relationships.find(RecordType.FACILITY, 3));
+        assertEquals(List.of(new RelatedRecord(RecordType.COUNTRY, 1, "Afghanistan"), agentLink, missionLink),
+                relationships.find(RecordType.FACILITY, 3));
+        assertEquals(List.of(facilityLink), relationships.find(RecordType.COUNTRY, 1));
         assertEquals(List.of(facilityLink, new RelatedRecord(RecordType.BRIEF, 1, "Notes"), agentLink),
                 relationships.find(RecordType.MISSION, 4));
         assertEquals(List.of(), relationships.find(RecordType.BRIEF, 9));

@@ -110,7 +110,7 @@ class AgencyInterfaceFacilityManagerTest {
     void addingFacilityThroughUIActuallyPersistsToSQLite() {
         String text = run(
                 admin,
-                "3\n3\nFairbanks Point\nFP\n0\n0\n"
+                "3\n3\nFairbanks Point\nFP\n1\n0\n0\n"
         );
 
         assertTrue(text.contains("Added"));
@@ -128,7 +128,7 @@ class AgencyInterfaceFacilityManagerTest {
     void newlyAddedFacilityAppearsInList() {
         String text = run(
                 admin,
-                "3\n3\nFairbanks Point\nFP\n1\n0\n0\n"
+                "3\n3\nFairbanks Point\nFP\n1\n1\n0\n0\n"
         );
 
         assertTrue(text.contains("Fairbanks Point (FP)"));
@@ -138,7 +138,7 @@ class AgencyInterfaceFacilityManagerTest {
     void invalidFacilityDataDoesNotPersist() {
         String text = run(
                 admin,
-                "3\n3\n\nFP\n0\n0\n"
+                "3\n3\n\nFP\n1\n0\n0\n"
         );
 
         assertTrue(text.contains("Unable to add facility"));

@@ -56,6 +56,7 @@ public class PageHandler implements HttpHandler {
         String body = "<p>Logged in as " + HtmlPage.escape(user.getUsername()) + ".</p>\n"
                 + "<ul>\n<li><a href=\"/briefs\">Briefs</a></li>\n<li><a href=\"/agents\">Agents</a></li>\n"
                 + "<li><a href=\"/facilities\">Facilities</a></li>\n<li><a href=\"/missions\">Missions</a></li>\n"
+                + "<li><a href=\"/countries\">Countries</a></li>\n"
                 + (user.isAdmin() ? "<li><a href=\"/audit\">Review audit log</a></li>\n" : "") + "</ul>";
         send(exchange, user, 200, "Main Menu", body);
     }
@@ -105,6 +106,7 @@ public class PageHandler implements HttpHandler {
             case "briefs" -> RecordType.BRIEF;
             case "agents" -> RecordType.AGENT;
             case "facilities" -> RecordType.FACILITY;
+            case "countries" -> RecordType.COUNTRY;
             case "missions" -> RecordType.MISSION;
             default -> null;
         };

@@ -30,6 +30,8 @@ class RecordSearchTest {
         when(agents.getRecords("id", "%")).thenReturn(List.of(
                 new Agent(2, "Mira", "1961-03-04", "2004-07-06", "Alias: nightbird", 3),
                 new Agent(5, "Robin", "1975-01-01", null, null, 3)));
+        when(facilities.getCountries()).thenReturn(List.of(new org.model.Country("Test islands", 301,
+                new Facility[0])));
         when(facilities.getRecords("id", "%")).thenReturn(List.of(new Facility(3, "Headquarters", "HQ")));
         when(missions.getRecords("id", "%")).thenReturn(List.of(
                 new Mission(4, "Sandstorm", new int[]{1}, new int[]{2}, 3)));
@@ -47,7 +49,8 @@ class RecordSearchTest {
             "nightbird, AGENT, 2, Mira",
             "Headquarters, FACILITY, 3, Headquarters",
             "hq, FACILITY, 3, Headquarters",
-            "Sandstorm, MISSION, 4, Sandstorm"
+            "Sandstorm, MISSION, 4, Sandstorm",
+            "islands, COUNTRY, 301, Test islands"
     })
     void searchesEveryCurrentTextFieldAndReturnsEachRecordOnce(
             String query, RecordType type, int id, String title) {

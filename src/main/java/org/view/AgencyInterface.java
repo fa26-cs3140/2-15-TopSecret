@@ -77,6 +77,7 @@ public class AgencyInterface {
                     case "9" -> sendAgentMessage();
                     case "10" -> showMyMessages();
                     case "11" -> searchRecords();
+                    case "13" -> runTypeMenu(RecordType.COUNTRY);
                     case "12" -> manageWebSessions();
                     case "0" -> { exit(); return; } // Make sure to run exit() to log logut info
                     default -> invalidSelection();
@@ -102,6 +103,7 @@ public class AgencyInterface {
         output.println("8. Change Password");
         if (messages != null) output.println("9. Send an agent message\n10. My messages");
         output.println("11. Search records");
+        output.println("13. Countries");
         if (webSessions != null && isAdmin()) {
             output.println("12. Manage web sessions");
         }
@@ -155,7 +157,7 @@ public class AgencyInterface {
         if (isAdmin()) {
             output.println("3. Add");
             // Cannot import missions
-            if (type != RecordType.MISSION) output.println("4. Import");
+            if (type != RecordType.MISSION && type != RecordType.COUNTRY) output.println("4. Import");
         }
         output.print("0. Back\nSelect an option: ");
     }
@@ -391,7 +393,7 @@ public class AgencyInterface {
                 case "1" -> listRecords(type);
                 case "2" -> readRecord(type);
                 case "3" -> { if (isAdmin()) addRecord(type); else invalidSelection(); }
-                case "4" -> { if (isAdmin() && type != RecordType.MISSION) importRecords(type); else invalidSelection(); }
+                case "4" -> { if (isAdmin() && type != RecordType.MISSION && type != RecordType.COUNTRY) importRecords(type); else invalidSelection(); }
                 case "0" -> { return; }
                 default -> invalidSelection();
             }
@@ -422,7 +424,8 @@ public class AgencyInterface {
                 case BRIEF -> bManager.addRecord(prompt("Title: "), prompt("Date (yyyy-mm-dd): "),
                         prompt("Text: ")).getId();
                 case AGENT -> addAgent();
-                case FACILITY -> fManager.addRecord(prompt("Name: "), prompt("Abbreviation: ")).getId();
+                case COUNTRY -> fManager.addCountry(prompt("Name: ")).getID();
+                case FACILITY -> addFacility();
                 case MISSION -> addMission();
             };
             if (id != null) {
@@ -433,6 +436,19 @@ public class AgencyInterface {
             output.println("Unable to add " + type.getSingular() + ": " + e.getMessage());
         }
         output.println(this.SEPARATOR);
+    }
+
+    private Integer addFacility() {
+        String name = prompt("Name: ");
+        String abbreviation = prompt("Abbreviation: ");
+        Integer countryId = readId("Country ID (see Countries): ");
+        if (countryId == null) {
+            return null;
+        }
+        if (fManager.getCountry(countryId) == null) {
+            throw new IllegalArgumentException("No country found with ID " + countryId + ".");
+        }
+        return fManager.addRecord(name, abbreviation, countryId).getId();
     }
 
     private Boolean importRecords(RecordType type)
@@ -448,7 +464,7 @@ public class AgencyInterface {
                 case BRIEF -> bManager.importTSV(pathToTSV, bManager.getTableName(), "data", "mission_database.db");
                 case AGENT -> aManager.importTSV(pathToTSV, aManager.getTableName(), "data", "mission_database.db");
                 case FACILITY -> fManager.importTSV(pathToTSV, fManager.getTableName(), "data", "mission_database.db");
-                case MISSION -> 0;
+                case MISSION, COUNTRY -> 0;
             };
         } catch (IllegalArgumentException e) {
             output.println("Unable to import TSV file.");
