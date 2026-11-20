@@ -16,6 +16,9 @@ BriefManager, AgentManager, FacilityManager, and MissionManager load these
 records. RecordEditor and SqliteRecordStore save complete web edits and their
 audit entries in one transaction. RecordRelationships supplies related record
 references, and RelatedRecordView renders escaped links in web details.
+RecordImport validates a complete supported TSV before RecordEditor/SqliteRecordStore
+write its records and per-record CREATE/aggregate IMPORT events in one transaction.
+Brief and agent lookups bind values and report read failures explicitly.
 RecordSearch searches the current content text fields for terminal option 11.
 
 Model objects validate positive IDs and date/string constraints. Database
@@ -30,3 +33,10 @@ FacilityManager seeds countries once from the Countries enum and migrates old
 facilities by adding country_id. Existing unassigned records remain unassigned
 until edited. Country names, links, and forms use the persisted country table.
 Country renames are reflected dynamically at assigned facilities.
+
+Message stores sender username, recipient agent ID/name, body, sent time, and
+persistent read state in agent_messages. AuthenticatedMessageService restricts reads
+to the matching recipient username; administrator status grants no override.
+MessageWebHandler and MessageHtmlView provide inbox, compose, and detail pages.
+Account insertion rejects case-equivalent usernames to avoid ambiguous recipients.
+This insertion guard preserves existing legacy rows; it does not rename accounts.

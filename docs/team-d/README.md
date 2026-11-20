@@ -4,7 +4,7 @@ Team D's Homework 7 work provides audited content persistence, related-record
 navigation, terminal search, and web session administration. The current integrated
 branch is `NewDatabaseManagerRefactor`; the Week 1
 and Week 2 feature commits remain in its history. Documentation was checked
-against `18a534c` on 2026-11-20. Main is not the team's current working branch.
+against `65e2fd2` on 2026-11-20. Main is not the team's current working branch.
 
 - [Current design, ERD, and wireframes](DESIGN.md)
 - [Completed work and remaining team dependencies](WORK-PLAN.md)
@@ -111,22 +111,28 @@ Team C's Homework 7 web messaging center and read indicators are integrated.
 The shared navigation opens `/messages`; Team C maintains its inbox, compose,
 and message-detail behavior. The same session manager authenticates messaging
 and record requests. The content edit/search services operate on agency records.
-Case-duplicate accounts currently trigger an ambiguous-identity error in messaging;
-this is an open account/messaging integration issue, not a privacy override.
+New account provisioning rejects case-equivalent usernames at both service and
+SQLite insertion boundaries. Existing legacy ambiguous accounts still fail
+closed in messaging; the recipient privacy guard is preserved.
 
 ## Tests and remaining work
 
 Run `./gradlew test build` for the complete suite/build, and use
 `./gradlew unitTest integrationTest jacocoTestReport jacocoUnitTestReport` for
-separate tasks and reports. Current combined method coverage is 464/468 (99.15%);
-it exceeds the pasted >95% threshold but misses this homework's 100% target.
-The explicitly listed core services have 61/61 method coverage. Consult
-VERIFICATION.md for exact scope; some legacy integration tests run in unitTest.
+separate tasks and reports. The final complete suite passes 501 tests with
+475/475 methods covered (100%). Unit-only coverage is reported separately in
+VERIFICATION.md; it is lower and is not presented as 100% isolated-unit coverage.
 
-The documentation does not certify that the application is bug-free. Open Team
-D/shared failures include partial-import audit counts, quoted terminal mission
-lookups, silent brief/agent read errors, failed credential-file bootstrap, and
-case-duplicate messaging identities. Startup help, shared screen designs, and
-the current whole-system UML need their owners' attention. DELIVERABLES.md
-contains the actionable handoff and distinguishes grading gaps from optional
-hardening. No production code was changed for this documentation update.
+Complete-file TSV imports now use the same transactional persistence boundary.
+Each row receives a CREATE event, and the batch receives an IMPORT event. Parsing,
+foreign-key, and audit failures roll back the entire batch. Brief/agent lookups
+bind values and report read errors instead of returning misleading empty lists.
+First-account file-write failures leave no account row; metadata failures attempt
+to remove the written credential file so bootstrap can be retried.
+
+The shared server isolates requests with a bounded worker pool and rejects forms
+larger than 64 KiB. A single incomplete login form no longer blocks other clients.
+This does not guarantee unlimited capacity or protection from all stalled clients.
+
+See DELIVERABLES.md for remaining teammate-specific documentation/carry-over
+questions. Passing tests and method coverage do not establish absence of all bugs.

@@ -2,7 +2,7 @@
 
 ## Class diagram
 
-Verified against NewDatabaseManagerRefactor at `18a534c` on 2026-11-20.
+Verified against NewDatabaseManagerRefactor at `65e2fd2` on 2026-11-20.
 This is Team D's scope; gray external boundaries in the PDF are maintained by
 other roles. The whole-system class PDF is a separate shared deliverable.
 
@@ -34,14 +34,20 @@ classDiagram
     }
     class AgencyInterface
     class RecordEditor {
+        +importRecords(UserAccount, records) List~Integer~
         +create(UserAccount, record) int
         +update(UserAccount, record) boolean
     }
     class EditStore["RecordEditor.Store"] {
         <<interface>>
+        +createAll(records, AuditEvent) List~Integer~
         +create(record, AuditEvent) int
         +update(id, record, AuditEvent) boolean
     }
+    class RecordImport {
+        +read(RecordType, Path) List~Object~
+    }
+    AppController ..> RecordImport : validates complete TSV
     class SqliteRecordStore
     class AuditLogEntry
     class AuditEvent {
@@ -352,5 +358,18 @@ CREATE TABLE users (username TEXT NOT NULL PRIMARY KEY, is_admin INTEGER NOT NUL
 No passwords or session tokens are stored in these tables. Credential files are
 ciphered separately; web sessions and last-activity instants live in memory.
 Content CREATE/UPDATE, assignments, and audit commit together through
-SqliteRecordStore. TSV import is a separate legacy path and currently has the
-partial-import audit gap documented in VERIFICATION.md.
+SqliteRecordStore. Administrator terminal TSV imports now parse the entire file
+through RecordImport before createAll writes the batch, one CREATE per record,
+and one aggregate IMPORT event atomically. Invalid rows/references/audit writes
+leave no partial imported records. Startup sample loading retains its existing
+empty-table bootstrap path.
+
+Account insertion uses the additive users_unique_identity trigger to reject
+case-equivalent usernames. Existing legacy ambiguous rows are retained; messaging
+continues to fail closed for them. First-account bootstrap writes the ciphered
+credential file before metadata and attempts file cleanup if either step fails.
+SQLite and the filesystem do not share a distributed transaction.
+
+The shared HTTP server uses a bounded worker pool so one incomplete form cannot
+block all clients; forms larger than 64 KiB are rejected. This is not a guarantee
+against exhausting every worker with stalled connections.

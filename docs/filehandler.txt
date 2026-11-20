@@ -1,11 +1,11 @@
-The FileHandler class is responsible for reading data files. Other parts of the program should not directly access files. Instead, they should request file information or file contents through FileHandler.
+FileHandler lists and reads configuration/credential files and writes or deletes per-user credential files. SQLite managers own database access; RecordImport owns complete-file TSV parsing.
 
 During normal program execution, FileHandler uses the "data" directory by default. A different directory can also be specified (this was just implemented mainly for testing purposes).
 
 Responsibilities & requirements:
 - The program should expect files in a folder named 'data' (in the same directory of the program, or in the root of the project folder).
 - When a request for a file is received, this part of the program will return the file contents.
-- This part of the program should handle all direct access to files.
+- Configuration and ciphered credential operations use this boundary.
 - The program should not end the program on a file error (For example if the file does not exist).
 
 Class design:
@@ -18,8 +18,8 @@ Class design:
         FileHandler()
         - Creates a FileHandler that uses the default directory "data"
 
-        FileHandler()
-        - Creates a FilesHandler that accesses the specified directory instead of the default "data" directory
+        FileHandler(String dataDirectory)
+        - Creates a FileHandler that accesses the specified directory instead of the default "data" directory
 
     Methods:
         getAvailableFiles(): List<String>
@@ -31,6 +31,13 @@ Class design:
         - Returns the contents of the file as a String
         - Returns null if the file cannot be opened or read for some reason
         - Caller should check for null and determine what happens next
+
+        writeFile(String filename, String contents): boolean
+        - Writes contents beneath dataDirectory; returns false on an IOException.
+
+        deleteFile(String filename): boolean
+        - Deletes the named file if present; a missing file is also success.
+        - Returns false on an IOException. Used to clean up failed account bootstrap.
 
         getDataDirectory(): String
         - Accessor. Returns the current directory being used by the FileHandler instance

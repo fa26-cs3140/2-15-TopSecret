@@ -22,6 +22,7 @@ java -jar build/libs/TopSecret.jar -web
 ```
 
 The web view listens at http://localhost:3002/. Accounts must already exist.
+Use `java -jar build/libs/TopSecret.jar -h` for command-line help.
 The browser login uses session cookies. The server expires a token after 30
 minutes of inactivity and refreshes activity on an authenticated request.
 Administrators can create and edit records over the web. Each content change and
@@ -53,6 +54,16 @@ Messages may be sent before the recipient account exists. For example, a message
 to agent Ghost becomes visible when the `ghost` account is created and logs in.
 On startup, the app attempts to load the sample TSVs into empty tables.
 
+In the web view, **Messages** opens `/messages`. **Compose Message** opens
+`/messages/new`, where an agent dropdown selects the recipient. Opening a message
+shows its body and persists its Read indicator; unopened messages remain Unread.
+Other users, including administrators, cannot read the recipient's messages.
+New account provisioning rejects case variants of existing usernames.
+
+Administrator terminal TSV imports validate the complete file before writing.
+All imported records, their CREATE events, and the IMPORT count commit together;
+an invalid row, reference, or audit failure rolls back the batch.
+
 ## Source layout
 
 - `org.runtime`: application entry point (`TopSecret`).
@@ -78,4 +89,11 @@ See the [documentation index](docs/README.md) for current component references.
 [Team D documentation](docs/team-d/README.md) includes messaging, account/audit
 schemas, the prioritized backlog, test evidence, and current design diagrams.
 Older Team D plans and duplicate diagrams were removed; Git retains their history.
-Shared component documentation remains subject to its owners' refactor review.
+The current [system UML](docs/HW7-ClassDiagram.pdf),
+[entity-only ERD](docs/team-d/TeamD-ERD.pdf),
+[shared wireframes](docs/HW7-Wireframe.pdf), and
+[physical schema notes](docs/team-d/DESIGN.md#physical-schema-notes-separate-from-the-erd)
+cover the integrated version. Passwords are ciphered in per-user files;
+SQLite stores account metadata and audit/content/message records.
+See the [final checklist and teammate handoff](docs/team-d/DELIVERABLES.md)
+for the remaining owner-specific documentation and carry-over questions.
