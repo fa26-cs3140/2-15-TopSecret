@@ -90,7 +90,8 @@ public class AppController {
                     "Date of death: " + orNA(a.getDateOfDeath()), "Notes: " + orNA(a.getNotes()),
                     "Facility ID: " + a.getFacilityId()));
             case FACILITY -> facility(id).map(f -> List.of("Name: " + f.getName(),
-                    "Abbreviation: " + f.getAbbreviation()));
+                    "Abbreviation: " + f.getAbbreviation(),
+                    "Country: " + countryName(f.getCountryID()).orElse("N/A")));
             case COUNTRY -> countryName(id).map(name -> List.of("Name: " + name));
             case MISSION -> mission(id).map(m -> List.of("Title: " + m.getTitle(),
                     "Brief Ids: " + m.getBriefIdsAsString(), "Agent Ids: " + m.getAgentIdsAsString(),
