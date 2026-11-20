@@ -58,6 +58,16 @@ public class WebServer {
 
     private static void handleSafely(HttpExchange exchange, HttpHandler handler) throws IOException {
         try {
+            if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                String origin = exchange.getRequestHeaders().getFirst("Origin");
+                String site = exchange.getRequestHeaders().getFirst("Sec-Fetch-Site");
+                String expectedOrigin = "http://" + exchange.getRequestHeaders().getFirst("Host");
+                if ("cross-site".equalsIgnoreCase(site)
+                        || (origin != null && !origin.equalsIgnoreCase(expectedOrigin))) {
+                    send(exchange, 403, "<p>Cross-origin form submissions are not allowed.</p>");
+                    return;
+                }
+            }
             handler.handle(exchange);
         } catch (IllegalArgumentException malformed) {
             send(exchange, 400, "<p>Invalid request data.</p>");

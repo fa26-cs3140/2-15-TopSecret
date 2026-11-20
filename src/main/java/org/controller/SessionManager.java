@@ -119,7 +119,7 @@ public class SessionManager {
 
     // Set-Cookie value with no Expires/Max-Age, so the browser drops it when closed.
     public static String cookieHeader(String token) {
-        return COOKIE_NAME + "=" + token + "; HttpOnly; Path=/";
+        return COOKIE_NAME + "=" + token + "; HttpOnly; SameSite=Lax; Path=/";
     }
 
     // Finds the session token in a Cookie request header, or returns null.

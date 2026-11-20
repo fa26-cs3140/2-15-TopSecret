@@ -354,6 +354,30 @@ class AuditedWebRecordsIntegrationTest {
                 && !entry.getTimestamp().isAfter(after)));
     }
 
+    @Test
+    void crossOriginFormsAreRejectedEvenWithAValidAdministratorCookie() throws Exception {
+        for (var headers : java.util.List.of(Map.of("Origin", "https://untrusted.example"),
+                Map.of("Origin", "null"), Map.of("Sec-Fetch-Site", "cross-site"))) {
+            var submission = request("/countries/new", cookie)
+                    .header("Content-Type", "application/x-www-form-urlencoded");
+            headers.forEach(submission::header);
+            var response = client.send(submission.POST(HttpRequest.BodyPublishers.ofString("name=Denied"))
+                    .build(), HttpResponse.BodyHandlers.ofString());
+            assertEquals(403, response.statusCode());
+        }
+        assertNull(new FacilityManager(url).getCountry("Denied"));
+        assertTrue(audit.getAuditLog().isEmpty());
+
+        var valid = client.send(request("/countries/new", cookie)
+                .header("Origin", "http://localhost:" + server.getPort())
+                .header("Sec-Fetch-Site", "same-origin")
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString("name=Allowed")).build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertEquals(303, valid.statusCode());
+        assertNotNull(new FacilityManager(url).getCountry("Allowed"));
+    }
+
     private String login(String username, String password) throws Exception {
         HttpResponse<String> response = post("/login", Map.of("username", username, "password", password), null);
         assertEquals(303, response.statusCode());
