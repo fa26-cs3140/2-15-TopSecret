@@ -1,7 +1,5 @@
 package org.view;
 
-import jdk.jshell.spi.ExecutionControl;
-
 import java.util.List;
 
 /**
@@ -39,7 +37,8 @@ public final class HtmlPage {
                 .append("<a href=\"/menu\">Menu</a> | ")
                 .append("<a href=\"/briefs\">Briefs</a> | ")
                 .append("<a href=\"/agents\">Agents</a> | ")
-                .append("<a href=\"/facilities\">Facilities</a>");
+                .append("<a href=\"/facilities\">Facilities</a> | ")
+                .append("<a href=\"/countries\">Countries</a>");
 
             // TODO: add Missions when the controller supports it
 
@@ -149,19 +148,6 @@ public final class HtmlPage {
             .append("</form>");
 
         return html.toString();
-    }
-
-    /**
-     * Displays audit records in an HTML table
-     *
-     * Expected format:
-     * timestamp | username | action | record
-     *
-     * NOTE: Status messages are displayed as paragraphs instead
-     */
-    // TODO: Assignment doc didn't specify audit log having to be presented as a table, but I think it could look nice
-    public static String auditTable(String text) throws ExecutionControl.NotImplementedException {
-        throw new ExecutionControl.NotImplementedException("Maybe implemented and integrate this if time allows");
     }
 
     /**

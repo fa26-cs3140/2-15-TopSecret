@@ -1,6 +1,7 @@
 package org.controller;
 
 import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.managers.UserAccountManager;
 
@@ -12,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-// HTTP server for the read-only web view, started with the -web switch.
+// HTTP server for authenticated record viewing and editing.
 public class WebServer {
 
     public static final int DEFAULT_PORT = 3002;
@@ -43,15 +44,36 @@ public class WebServer {
         PageHandler pages = new PageHandler(controller, sessions);
 
         server = HttpServer.create(new InetSocketAddress(port), 0);
-        server.createContext("/login", login);
-        server.createContext("/", exchange -> {
+        server.createContext("/login", exchange -> handleSafely(exchange, login));
+        HttpHandler navigation = exchange -> {
             if (exchange.getRequestURI().getPath().equals("/")) {
                 login.handle(exchange);
             } else {
                 pages.handle(exchange);
             }
-        });
+        };
+        server.createContext("/", exchange -> handleSafely(exchange, navigation));
         server.start();
+    }
+
+    private static void handleSafely(HttpExchange exchange, HttpHandler handler) throws IOException {
+        try {
+            if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                String origin = exchange.getRequestHeaders().getFirst("Origin");
+                String site = exchange.getRequestHeaders().getFirst("Sec-Fetch-Site");
+                String expectedOrigin = "http://" + exchange.getRequestHeaders().getFirst("Host");
+                if ("cross-site".equalsIgnoreCase(site)
+                        || (origin != null && !origin.equalsIgnoreCase(expectedOrigin))) {
+                    send(exchange, 403, "<p>Cross-origin form submissions are not allowed.</p>");
+                    return;
+                }
+            }
+            handler.handle(exchange);
+        } catch (IllegalArgumentException malformed) {
+            send(exchange, 400, "<p>Invalid request data.</p>");
+        } catch (IllegalStateException unavailable) {
+            send(exchange, 503, "<p>The requested data is temporarily unavailable.</p>");
+        }
     }
 
     public void stop() {
@@ -62,7 +84,7 @@ public class WebServer {
     }
 
     public int getPort() {
-        return port;
+        return server == null ? port : server.getAddress().getPort();
     }
 
     static void send(HttpExchange exchange, int status, String html) throws IOException {

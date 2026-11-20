@@ -126,7 +126,7 @@ public class MissionManager extends IDatabaseManager<Mission>
 
             // Now create a list of all the missions
         } catch (SQLException e) {
-            DebugHelper.debugPrintln(e.getMessage());
+            throw new IllegalStateException("Unable to read missions.", e);
         }
 
         // Now we can FINALLY return it
@@ -144,7 +144,7 @@ public class MissionManager extends IDatabaseManager<Mission>
                 ids.add(rs.getInt("briefId"));
             }
         } catch (SQLException e) {
-            DebugHelper.debugPrintln(e.getMessage() + "\n" + e.getStackTrace());
+            throw new IllegalStateException("Unable to read mission assignments.", e);
         }
 
         // Create a return array here
@@ -169,7 +169,7 @@ public class MissionManager extends IDatabaseManager<Mission>
                 ids.add(rs.getInt("agentId"));
             }
         } catch (SQLException e) {
-            DebugHelper.debugPrintln(e.getMessage() + "\n" + e.getStackTrace());
+            throw new IllegalStateException("Unable to read mission assignments.", e);
         }
 
         // Create a return array here

@@ -2,6 +2,7 @@ package org.view;
 
 import org.model.*;
 import org.managers.UserAccountManager;
+import org.managers.RecordEditor;
 import org.managers.AuditLogService;
 import org.managers.AgentManager;
 import org.managers.FacilityManager;
@@ -57,6 +58,9 @@ class AgencyInterfaceTest {
     @Mock
     private MissionManager missionManager;
 
+    @Mock
+    private RecordEditor.Store<Object> changes;
+
     private ByteArrayOutputStream output;
 
     private final UserAccount admin = new UserAccount("pat", true);
@@ -65,9 +69,11 @@ class AgencyInterfaceTest {
     @BeforeEach
     void setUp() {
         output = new ByteArrayOutputStream();
+        lenient().when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(2, "HQ", "HQ")));
     }
 
     private AgencyInterface createInterface(UserAccount user, String input) {
+        lenient().when(userManager.getUser(user.getUsername())).thenReturn(user);
         return new AgencyInterface(
                 agentManager,
                 facilityManager,
@@ -77,7 +83,8 @@ class AgencyInterfaceTest {
                 auditLog,
                 user,
                 new Scanner(input),
-                new PrintStream(output)
+                new PrintStream(output),
+                changes
         );
     }
 
@@ -350,8 +357,7 @@ class AgencyInterfaceTest {
 
     @Test
     void addBriefPromptsForPropertiesAndIsAudited() {
-        when(briefManager.addRecord("Operation Nightfall", "1980-05-15", "New report."))
-                .thenReturn(new Brief(101, "Operation Nightfall", "1980-05-15", "New report.", null));
+        when(changes.create(any(Brief.class), any())).thenReturn(101);
 
         createInterface(admin, "1\n3\nOperation Nightfall\n1980-05-15\nNew report.\n0\n0\n").run();
 
@@ -359,8 +365,11 @@ class AgencyInterfaceTest {
         assertTrue(text().contains("Date (yyyy-mm-dd):"));
         assertTrue(text().contains("Text:"));
         assertTrue(text().contains("Added"));
-        verify(briefManager).addRecord("Operation Nightfall", "1980-05-15", "New report.");
-        verify(auditLog).log("pat", "CREATE", "BRIEF", "101");
+        verify(changes).create(argThat(record -> record instanceof Brief brief
+                && brief.getTitle().equals("Operation Nightfall") && brief.getText().equals("New report.")),
+                argThat(event -> event.username().equals("pat") && event.action().equals("CREATE")
+                        && event.type() == RecordType.BRIEF));
+        verify(auditLog, never()).log(any(), eq("CREATE"), any(), any());
     }
 
     @Test
@@ -368,12 +377,11 @@ class AgencyInterfaceTest {
         List<Brief> briefs = new ArrayList<>();
         briefs.add(new Brief(1, "Operation Sandtrap", "1970-11-03", "Bug the pouch.", null));
         when(briefManager.getRecords("id", "%")).thenAnswer(invocation -> List.copyOf(briefs));
-        when(briefManager.addRecord("Operation Nightfall", "1980-05-15", "New report."))
-                .thenAnswer(invocation -> {
-                    Brief brief = new Brief(2, "Operation Nightfall", "1980-05-15", "New report.", null);
-                    briefs.add(brief);
-                    return brief;
-                });
+        when(changes.create(any(Brief.class), any())).thenAnswer(invocation -> {
+            Brief record = invocation.getArgument(0);
+            briefs.add(new Brief(2, record.getTitle(), record.getDate(), record.getText(), null));
+            return 2;
+        });
 
         createInterface(admin, "1\n3\nOperation Nightfall\n1980-05-15\nNew report.\n1\n0\n0\n").run();
 
@@ -382,9 +390,6 @@ class AgencyInterfaceTest {
 
     @Test
     void addBriefWithInvalidDataShowsErrorAndIsNotAudited() {
-        when(briefManager.addRecord(any(), eq("November 3"), any()))
-                .thenThrow(new IllegalArgumentException("Invalid date."));
-
         createInterface(admin, "1\n3\nBad Brief\nNovember 3\nText\n0\n0\n").run();
 
         assertTrue(text().contains("Unable to add brief"));
@@ -452,8 +457,7 @@ class AgencyInterfaceTest {
 
     @Test
     void addAgentPromptsForPropertiesAndIsAudited() {
-        when(agentManager.addRecord("Jackal", "1991-02-11", "2024-01-01", "Double agent.", 2))
-                .thenReturn(new Agent(11, "Jackal", "1991-02-11", "2024-01-01", "Double agent.", 2));
+        when(changes.create(any(Agent.class), any())).thenReturn(11);
 
         createInterface(admin, "2\n3\nJackal\n1991-02-11\n2024-01-01\nDouble agent.\n2\n0\n0\n").run();
 
@@ -462,17 +466,18 @@ class AgencyInterfaceTest {
         assertTrue(text().contains("Date of death"));
         assertTrue(text().contains("Notes"));
         assertTrue(text().contains("Facility ID:"));
-        verify(auditLog).log("pat", "CREATE", "AGENT", "11");
+        verify(changes).create(any(Agent.class), argThat(event -> event.type() == RecordType.AGENT
+                && event.username().equals("pat")));
     }
 
     @Test
     void addAgentTreatsBlankOptionalFieldsAsNull() {
-        when(agentManager.addRecord("Jackal", "1991-02-11", null, null, 2))
-                .thenReturn(new Agent(11, "Jackal", "1991-02-11", null, null, 2));
+        when(changes.create(any(Agent.class), any())).thenReturn(11);
 
         createInterface(admin, "2\n3\nJackal\n1991-02-11\n\n\n2\n0\n0\n").run();
 
-        verify(agentManager).addRecord("Jackal", "1991-02-11", null, null, 2);
+        verify(changes).create(argThat(record -> record instanceof Agent agent
+                && agent.getDateOfDeath() == null && agent.getNotes() == null && agent.getFacilityId() == 2), any());
     }
 
     @Test
@@ -486,9 +491,6 @@ class AgencyInterfaceTest {
 
     @Test
     void addAgentRejectedByServiceShowsError() {
-        when(agentManager.addRecord(any(), any(), any(), any(), anyInt()))
-                .thenThrow(new IllegalArgumentException("Facility does not exist."));
-
         createInterface(admin, "2\n3\nJackal\n1991-02-11\n\n\n99\n0\n0\n").run();
 
         assertTrue(text().contains("Unable to add agent"));
@@ -544,11 +546,13 @@ class AgencyInterfaceTest {
         when(facilityManager.addRecord("Fairbanks Point", "FP", 1))
                 .thenReturn(new Facility(6, "Fairbanks Point", "FP", 1));
 
-        createInterface(admin, "3\n3\nFairbanks Point\nFP\n0\n0\n").run();
+        createInterface(admin, "3\n3\nFairbanks Point\nFP\n1\n0\n0\n").run();
 
         assertTrue(text().contains("Name:"));
         assertTrue(text().contains("Abbreviation:"));
-        verify(auditLog).log("pat", "CREATE", "FACILITY", "6");
+        verify(changes).create(argThat(record -> record instanceof Facility facility
+                && facility.getName().equals("Fairbanks Point") && facility.getCountryID() == 1),
+                argThat(event -> event.type() == RecordType.FACILITY));
     }
 
     @Test
@@ -556,7 +560,7 @@ class AgencyInterfaceTest {
         when(facilityManager.addRecord(any(), any(), anyInt()))
                 .thenThrow(new IllegalArgumentException("Name cannot be blank."));
 
-        createInterface(admin, "3\n3\n\nFP\n0\n0\n").run();
+        createInterface(admin, "3\n3\n\nFP\n1\n0\n0\n").run();
 
         assertTrue(text().contains("Unable to add facility"));
         verify(auditLog, never()).log(any(), org.mockito.AdditionalMatchers.not(eq("LOGOUT")), any(), any());

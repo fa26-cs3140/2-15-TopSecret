@@ -1,13 +1,16 @@
 # Documentation index
 
-- [Team D: messaging, accounts, audit, schemas and verification](team-d/README.md)
-- [Team D current class diagram, ERD and terminal wireframes](team-d/TeamD-Messaging-Architecture.pdf)
-- [Class diagram for the current code (HW7)](HW7-ClassDiagram.pdf), regenerated with [tools/make_class_diagram.py](tools/make_class_diagram.py)
-- [Team B work plan, backlog and refactoring list (HW7)](HW7-TeamB-WorkPlan.txt)
+- [Team D model, sessions, accounts, audit, and verification](team-d/README.md)
+- [Team D class diagram, ERD, and wireframes](team-d/DESIGN.md)
+- [Shared class diagram](HW7-ClassDiagram.pdf)
+- [Team B work plan and backlog](HW7-TeamB-WorkPlan.txt)
 - [Shared model notes](data-models/DataModelOverview.txt)
 
-Team D documentation is consolidated under a stable component directory rather
-than accumulating homework/week-specific copies. Its obsolete drafts are available
-in Git history. Other existing component notes and diagrams are retained for their
-owners to validate against the MVC refactor; older filenames are not evidence that
-a class or API is still current.
+The class PDF is generated from compiled classes. The maintained ERD and current
+record/session wireframes are in Team D's design document. The model overview
+describes the implemented persistence paths. Superseded class notes, diagrams,
+and documentation for removed classes are available in Git history.
+
+Country storage, facility associations, and related navigation are represented
+in the current diagrams. The final team wireframes also need Team C's web
+messaging implementation when it is available.

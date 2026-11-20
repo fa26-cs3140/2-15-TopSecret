@@ -44,10 +44,10 @@ def parse_class(fq):
             else "record" if "extends Record" in header else
             "abstract class" if "abstract class" in header else "class")
     ext = re.search(r"extends (\w+)", header)
-    impl = re.search(r"implements ([\w, <>]+?) \{", header)
+    impl = re.search(r"implements ([\w., <>]+?) \{", header)
     c = dict(name=name, pkg=fq.rsplit(".", 1)[0], kind=kind, fields=[], methods=[], consts=[],
              extends=ext.group(1) if ext and kind not in ("enum", "record") else None,
-             implements=[s.strip() for s in impl.group(1).split(",")] if impl else [],
+             implements=[re.sub(r"<.*>", "", item.strip()) for item in impl.group(1).split(",")] if impl else [],
              generic=(re.search(r"class \w+(<\w+>)", header) or [None, ""])[1])
     for line in lines[1:-1]:
         line = line.rstrip(";")
@@ -107,7 +107,12 @@ def box(c):
     if rel:
         out += f'<div class="rel">{html.escape("; ".join(rel))}</div>'
     if c["kind"] == "enum":
-        out += '<div class="sec">' + "".join(f"<div>{x}</div>" for x in c["consts"]) + "</div>"
+        constants = c["consts"]
+        visible = constants[:8] if len(constants) > 12 else constants
+        out += '<div class="sec">' + "".join(f"<div>{html.escape(value)}</div>" for value in visible)
+        if len(visible) < len(constants):
+            out += f'<div>... {len(constants) - len(visible)} further constants in {html.escape(c["name"])}.java</div>'
+        out += "</div>"
     out += '<div class="sec">' + ("".join(f'<div class="{"u" if s else ""}">{html.escape(f)}</div>'
                                          for f, s in c["fields"]) or "&nbsp;") + "</div>"
     out += '<div class="sec">' + ("".join(f'<div class="{"u" if s else ""} {"it" if a else ""}">'
@@ -220,7 +225,7 @@ out_path.write_text(f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>
 @page {{ size: letter landscape; margin: 0.4in; }}
 body {{ font-family: Helvetica, Arial, sans-serif; font-size: 8.5pt; color: #000; }}
 h1 {{ font-size: 18pt; margin: 0 0 4px; }} h2 {{ font-size: 12pt; margin: 0 0 2px; }}
-.ov {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }}
+.ov {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; font-size: 7.5pt; line-height: 1.1; }}
 .pkg {{ border: 1.5px solid #000; padding: 6px; break-inside: avoid; }}
 .pname {{ font-weight: bold; border-bottom: 1px solid #000; margin-bottom: 3px; }}
 .prole {{ color: #333; font-style: italic; margin: 0 0 4px; }}

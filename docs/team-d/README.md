@@ -1,131 +1,102 @@
-# Team D - completed agent messaging
+# Team D model and access control
 
-Base: origin/NewDatabaseManagerRefactor at a053676.
-Feature branch: team-d-messaging-week2. PR target: NewDatabaseManagerRefactor.
-Review: [PR #13](https://github.com/fa26-cs3140/2-15-TopSecret/pull/13). No merge or submission has been performed.
+Team D's Homework 7 work provides audited content persistence, related-record
+navigation, terminal search, and web session administration. The feature branch
+is `team-d-hw7-week2`, based on the shared `NewDatabaseManagerRefactor` branch
+and preserving the Week 1 commits.
 
-## Use
+- [Current design, ERD, and wireframes](DESIGN.md)
+- [Completed work and remaining team dependencies](WORK-PLAN.md)
+- [Test results and coverage](VERIFICATION.md)
 
-Build with ./gradlew assemble; launch java -jar build/libs/TopSecret.jar.
-Use the existing first-account/login flow. From the authenticated terminal menu:
-8 sends to an agent selected by numeric ID; enter multiple lines, then a single
-`.` line to send. `/cancel` or EOF cancels without saving. 9 displays your inbox.
-Any logged-in account can send and read its own inbox, regardless of admin status.
-Messages never appear in the web interface or public audit log. No CSS, JavaScript,
-new web routes or changes to the existing session-cookie mechanism were added.
+## Running the application
 
-To reproduce the Ghost example on an empty database, create the first admin,
-then add facility HQ/HQ and agent Ghost (1990-01-01, blank death/notes, facility 1)
-using the existing terminal add menus. Send to Ghost before creating the `ghost`
-account with the existing Create User menu. Log out, log in as ghost, select 9.
-The existing account validator requires lowercase usernames; `ghost` matches
-Ghost case-insensitively. Agent TSV files currently in the shared branch do not
-match its import format, and startup does not auto-load them. Do not claim
-preloaded sample agents; the packaged-JAR smoke explicitly created Ghost through
-real terminal menus, without SQL bypassing the application.
+Build with `./gradlew build`, then run from the repository root.
 
-## MVC and privacy
+```sh
+java -jar build/libs/TopSecret.jar
+java -jar build/libs/TopSecret.jar -web
+java -jar build/libs/TopSecret.jar -web-admin
+```
 
-org.model.messaging contains Message, MessageService, AuthenticatedMessageService,
-MessageStore and SqliteMessageStore. org.controller.messaging.MessageController
-coordinates operations; org.view.messaging.TerminalMessageView renders text.
-AgencyInterface owns prompts. ProgramControl constructs messaging only AFTER
-successful first-user bootstrap or password verification. The service constructor
-is a trusted application boundary, not an authentication endpoint. Never expose
-it as a route accepting a caller-selected UserAccount. It captures the username
-as immutable text so mutating the session account object cannot switch inboxes.
+The default mode opens the authenticated terminal. `-web` starts the web
+interface on port 3002 after accounts exist. `-web-admin` authenticates the
+terminal user and starts the web server in the same process. The server stops
+when that terminal exits. Accounts and passwords are managed through the
+existing terminal workflow.
 
-Every operation checks that the account still exists and exactly one account
-matches its name ignoring case. Legacy case-duplicate accounts fail closed.
-No admin override and no user-supplied inbox/sender parameter exist. The low-level
-store is not an authorization endpoint. SQL values use prepared statements.
-A deleted/renamed recipient between selection and save causes rejection, not
-misdelivery. Existing message name snapshots survive future agent renames.
+Terminal option 11 searches content text fields. Option 12 in `-web-admin`
+lists current web sessions for administrators, including username, full token,
+and last activity in UTC. Enter a token to revoke it, `r` to refresh the list,
+or an empty line to return. The next request with a revoked token goes to
+login. The list operation preserves the recorded last-activity times.
 
-## Authoritative additive schema
+A valid web request refreshes the session's activity. Thirty minutes without
+a request expires the token, including at the exact deadline. Each production
+session lookup reloads current account permissions. A deleted account loses
+access and a demoted administrator loses permission to edit. Session tokens
+live in the web server process and are cleared on restart. Terminal admin checks
+also reload current permissions. Cross-origin browser POSTs are rejected and
+session cookies explicitly use SameSite=Lax; ordinary same-origin forms and
+clients without browser origin metadata remain supported.
 
-Resource: src/main/resources/org/model/messaging/schema.sql (packaged in JAR).
-The terminal initializes it against the SAME AgentManager database URL after
-shared tables exist. It never writes passwords or changes existing tables.
+## Record editing and audit
 
-agent_messages:
-- id INTEGER PRIMARY KEY AUTOINCREMENT
-- sender_username TEXT NOT NULL REFERENCES users(username)
-- recipient_agent_id INTEGER NOT NULL REFERENCES agents(id)
-- recipient_name TEXT NOT NULL COLLATE NOCASE, CHECK nonblank
-- body TEXT NOT NULL, CHECK not empty/whitespace-only
-- sent_at TEXT NOT NULL, ISO LocalDateTime generated by service
+Team B's existing create/edit routes and form rendering call `AppController`.
+Terminal content creation also calls that controller, refreshing the actor's
+permissions immediately before saving.
+It validates the complete submitted model and passes the authenticated actor
+to `RecordEditor`. `SqliteRecordStore` writes all fields, mission junction
+rows, and one CREATE or UPDATE audit row using one SQLite transaction.
+SQL values use bound parameters and updates use the exact numeric record ID.
+A failure rolls back both the content and audit writes. Missing update targets
+create no audit entry. Multiline text and apostrophes persist literally.
 
-Index idx_agent_messages_recipient(recipient_name COLLATE NOCASE,id).
-Each connection enables foreign_keys. Default FK NO ACTION prevents deleting
-referenced senders/agents; no cascade is introduced. Recipient account is not
-required at send time, so recipient_name has no users FK. Inbox query filters
-recipient_name=? COLLATE NOCASE and orders by id. NOCASE follows current ASCII
-username rules. Names that cannot be registered under current username rules
-still require coordinated alias/account policy; no implicit alias is invented.
-The proposed snapshot/ambiguity policies from Week 1 are implemented.
+Audit entries retain username, action, content type, content identifier, and
+timestamp in UTC. Historical entries without offsets are preserved unchanged.
+CREATE uses the generated record ID. Existing READ auditing is
+preserved, and missing detail pages return 404 without a READ event.
 
-## Verification and PR scope
+## Relationships and search
 
-All MissionManager/Mission implementation and test changes have been removed
-from this PR at the owner's request. These four files exactly match the shared
-base: org.managers.MissionManager, org.model.Mission and their test classes.
-Mission persistence, TSV import, schema and validation remain with Team A.
-Earlier Mission changes remain visible in commit history but have no net PR diff.
+Mission and assignment reads fail explicitly on storage errors, so an outage
+cannot be presented as an empty edit form. The web server returns 503 and
+preserves the saved assignments.
 
-The previous 322-test green build included the now-removed Mission fixes and is
-historical, not a passing result for the current revision. The shared MissionTest
-still calls the old two-argument constructor, so the ordinary full test/build
-commands cannot currently compile that test. No test exclusion is committed.
+`RecordRelationships` supplies related records through the existing managers.
+`RelatedRecordView` builds internal links from record types and IDs and escapes
+the display labels.
 
-After this scope correction, ./gradlew assemble passes. A diagnostic run of
-all 26 messaging tests also passes, using an external Gradle init script that
-excludes only the inherited, uncompilable org/model/MissionTest.java from test
-compilation. No source/build exclusions are committed. This is not a passing
-complete-suite result. The packaged JAR workflow was verified before the scope
-correction; no messaging source changed.
+- Facilities link to their country, agents, and missions.
+- Countries link to their assigned facilities.
+- Agents link to their facility and assigned missions.
+- Missions link to their facility, briefs, and agents.
+- Briefs link to assigned missions.
 
-Audit assertions still distinguish content-operation actions from the legitimate
-LOGOUT action. A real-store regression test requires exactly one logout entry;
-production logout logging is unchanged. The sixteen outdated audit expectations
-are addressed here; the remaining Mission compilation/failures belong to the
-shared branch and are left for its owner.
+`RecordSearch` performs literal, case-insensitive substring matching across
+brief title/date/text, agent name/birth/death/notes, facility name/abbreviation,
+mission title, and country name. A record appears once even if several fields match. Empty
+queries produce no matches. Search returns content references to the terminal.
 
-## Accounts and audit (current reference)
+Countries are seeded from Team A's supplied enum and can be created or renamed
+through the existing web forms. The facility form requires a Country ID from
+the Countries list. Related links connect countries and facilities, and terminal
+search matches country names. Terminal option 13 opens Countries. Terminal facility creation accepts a
+country name or numeric ID, and Exit cancels country selection.
 
-The active account classes are org.model.UserAccount and org.managers.
-UserAccountManager, UserAccountStore and SqliteUserAccountStore. The manager
-accepts either a store or a database URL plus FileHandler and Cipher. UserAccount
-contains username and admin status, never a password. Usernames follow
-[a-z0-9_-]{3,}; passwords require at least five characters with upper/lowercase.
-The first account is admin; subsequent accounts start without a password until
-initial credentials are set. Current terminal creation prompts perform that setup.
-Admin updates persist through setUserAdmin; menu policy prevents self-demotion.
+Legacy facilities retain their IDs and other values during migration. The
+three-argument Facility constructor and two-column sample TSVs remain compatible.
+Their country is unassigned until a user selects one. Reinitialization preserves
+edited country names and prevents duplicate seed rows.
 
-Passwords remain in credentials-<lowercase hex UTF-8 username>.cip files. The
-existing substitution Cipher is retained; it is not modern password hashing.
-Database/file writes are not one atomic transaction; failed password-file writing
-requires correcting file access and completing initial password setup. The legacy
-CredentialManagerLibrary is separate and does not migrate credentials automatically.
+## Existing accounts and messaging
 
-users: username TEXT NOT NULL PRIMARY KEY, is_admin INTEGER NOT NULL DEFAULT 0.
-audit_log: id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL REFERENCES
-users(username), action TEXT NOT NULL, content_type TEXT NOT NULL,
-content_identifier TEXT NOT NULL, accessed_at TEXT NOT NULL (ISO local time).
-AuditLogManager implements AuditLogService through SqliteAuditLogStore. Content
-READ/CREATE and existing account/login/logout actions remain recorded. Only admins
-can review audit history; message bodies are deliberately not copied into it.
-SQLite read failures propagate instead of appearing to be empty persistence.
+Passwords remain in separate `credentials-<hex username>.cip` files. SQLite
+stores username and admin metadata. Username and password rules are enforced
+by the existing account manager. Tests verify separate passwords, password
+replacement, and the account-table columns.
 
-Current tests reside under src/test/java/org/managers, org/model, org/controller
-and org/view. Account and audit tests remain active; messaging acceptance,
-SQLite persistence and terminal tests are under their messaging subpackages.
-
-## Documentation maintenance
-
-This is the maintained Team D reference, with the adjacent current class/ERD and
-terminal-wireframe PDF. Superseded HW5 plans, duplicate account/audit text diagrams,
-old HW5 PDFs and the HW4 UI planning draft were removed from the working tree.
-Their history remains recoverable through Git. No account/audit production code
-or tests were deleted. Shared and teammate-owned documentation remains for its
-owners to review, rather than treating every older file as safe to delete.
+Terminal option 9 sends a message and option 10 opens the current user's inbox.
+Team C owns Homework 7's web messaging center and read indicators. The content
+edit/search services operate on agency records. The existing messaging privacy
+tests remain active.

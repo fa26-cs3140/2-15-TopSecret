@@ -84,7 +84,7 @@ public class FacilityManagerTest {
 
         assertEquals(testUrl, manager.getURL());
         assertEquals("facilities", manager.getTableName());
-        assertArrayEquals(new String[]{"id", "name", "abbreviation", "mission_id"}, manager.getColumnNames());
+        assertArrayEquals(new String[]{"id", "name", "abbreviation", "country_id", "mission_id"}, manager.getColumnNames());
     }
 
     @Test
@@ -125,8 +125,8 @@ public class FacilityManagerTest {
             }
         }
 
-        assertEquals(List.of("id", "name", "abbreviation", "mission_id"), columns);
-        assertEquals(List.of("INTEGER", "TEXT", "TEXT", "INTEGER"), types);
+        assertEquals(List.of("id", "name", "abbreviation", "country_id", "mission_id"), columns);
+        assertEquals(List.of("INTEGER", "TEXT", "TEXT", "INTEGER", "INTEGER"), types);
     }
 
     // NOTE: This test is unnecessary

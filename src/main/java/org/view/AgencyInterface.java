@@ -2,6 +2,9 @@ package org.view;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Map;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -9,6 +12,10 @@ import java.util.Scanner;
 import java.util.function.Predicate;
 
 import org.controller.AppController;
+import org.controller.SessionManager;
+import org.managers.RecordSearch;
+import org.managers.RecordEditor;
+import org.managers.SqliteRecordStore;
 import org.controller.DebugHelper;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
@@ -33,12 +40,21 @@ public class AgencyInterface {
     private final AppController controller;
 
     private org.controller.messaging.MessageController messages;
+    private SessionManager webSessions;
 
     private final String SEPARATOR = "-----------------";
 
     public AgencyInterface(AgentManager aManager, FacilityManager fManager, BriefManager bManager, UserAccountManager uManager, MissionManager mManager,
                            AuditLogService auditLog, UserAccount currentUser, Scanner scanner, PrintStream output) {
-        if (aManager == null || fManager == null || bManager == null || auditLog == null || currentUser == null || scanner == null || output == null) {
+        this(aManager, fManager, bManager, uManager, mManager, auditLog, currentUser, scanner, output,
+                new SqliteRecordStore(bManager == null ? null : bManager.getURL()));
+    }
+
+    AgencyInterface(AgentManager aManager, FacilityManager fManager, BriefManager bManager,
+                    UserAccountManager uManager, MissionManager mManager, AuditLogService auditLog,
+                    UserAccount currentUser, Scanner scanner, PrintStream output,
+                    RecordEditor.Store<Object> changes) {
+        if (aManager == null || fManager == null || bManager == null || uManager == null || auditLog == null || currentUser == null || scanner == null || output == null) {
             throw new IllegalArgumentException("Arguments cannot be null.");
         }
         // this.data = data;
@@ -51,7 +67,7 @@ public class AgencyInterface {
         this.currentUser = currentUser;
         this.scanner = scanner;
         this.output = output;
-        this.controller = new AppController(bManager, aManager, mManager, fManager, auditLog);
+        this.controller = new AppController(bManager, aManager, mManager, fManager, auditLog, changes);
     }
 
     public UserAccount getCurrentUser() {
@@ -73,6 +89,9 @@ public class AgencyInterface {
                     case "8" -> changePasswordMenu();
                     case "9" -> sendAgentMessage();
                     case "10" -> showMyMessages();
+                    case "11" -> searchRecords();
+                    case "12" -> manageWebSessions();
+                    case "13" -> runTypeMenu(RecordType.COUNTRY);
                     case "0" -> { exit(); return; } // Make sure to run exit() to log logut info
                     default -> invalidSelection();
                 }
@@ -96,7 +115,54 @@ public class AgencyInterface {
         }
         output.println("8. Change Password");
         if (messages != null) output.println("9. Send an agent message\n10. My messages");
+        output.println("11. Search records");
+        if (webSessions != null && isAdmin()) {
+            output.println("12. Manage web sessions");
+        }
+        output.println("13. Countries");
         output.print("0. Exit\nSelect an option: ");
+    }
+
+    public void enableSessionManagement(SessionManager sessions) {
+        webSessions = java.util.Objects.requireNonNull(sessions);
+    }
+
+    private void manageWebSessions() {
+        if (webSessions == null) {
+            invalidSelection();
+            return;
+        }
+        try {
+            while (true) {
+                UserAccount actor = uManager.getUser(currentUser.getUsername());
+                List<SessionManager.SessionSummary> sessions = webSessions.listSessions(actor);
+                output.println("Username | Token | Last activity (UTC)");
+                for (SessionManager.SessionSummary session : sessions) {
+                    output.println(session.username() + " | " + session.token() + " | " + session.lastActivity());
+                }
+                String token = prompt("Token to revoke, r to refresh, or Enter to return: ");
+                if (token.isBlank()) {
+                    return;
+                }
+                if (!token.equals("r")) {
+                    webSessions.revokeSession(uManager.getUser(currentUser.getUsername()), token);
+                    output.println("Session revoked.");
+                }
+            }
+        } catch (SecurityException denied) {
+            output.println(denied.getMessage());
+        }
+    }
+
+    private void searchRecords() {
+        String query = prompt("Search text: ");
+        List<RecordSearch.Match> matches = new RecordSearch(bManager, aManager, fManager, mManager).find(query);
+        if (matches.isEmpty()) {
+            output.println("No matching records.");
+        }
+        for (RecordSearch.Match match : matches) {
+            output.println(match.type().getSingular() + " " + match.id() + ". " + match.title());
+        }
     }
 
     public void displayTypeMenu(RecordType type) {
@@ -104,7 +170,7 @@ public class AgencyInterface {
         if (isAdmin()) {
             output.println("3. Add");
             // Cannot import missions
-            if (type != RecordType.MISSION) output.println("4. Import");
+            if (type != RecordType.MISSION && type != RecordType.COUNTRY) output.println("4. Import");
         }
         output.print("0. Back\nSelect an option: ");
     }
@@ -192,7 +258,11 @@ public class AgencyInterface {
 
     private void exit()
     {
-        auditLog.log(currentUser.getUsername(), "LOGOUT", "LOGOUT", "x");
+        try {
+            auditLog.log(currentUser.getUsername(), "LOGOUT", "LOGOUT", "x");
+        } catch (IllegalStateException unavailable) {
+            output.println("Unable to record logout: audit storage is unavailable.");
+        }
         output.println("Exiting Top Secret.");
     }
 
@@ -274,6 +344,10 @@ public class AgencyInterface {
         }
         output.println(this.SEPARATOR);
         if (option == 0) return; // Exit code means to leave
+        if (!isAdmin()) {
+            output.println("Access denied. Only administrators can manage permissions.");
+            return;
+        }
         if (option == 1) // Grant admin 
         {
             if (!selectedUser.isAdmin())
@@ -329,7 +403,7 @@ public class AgencyInterface {
 
     private void runTypeMenu(RecordType type) {
         // Can only create missions if there exists at least one facility
-        if (type == RecordType.MISSION && fManager.getRecords("id", "1").isEmpty())
+        if (type == RecordType.MISSION && fManager.getRecords("id", "%").isEmpty())
         {
             output.println("Cannot create a mission: No available facilities.");
             return;
@@ -340,7 +414,7 @@ public class AgencyInterface {
                 case "1" -> listRecords(type);
                 case "2" -> readRecord(type);
                 case "3" -> { if (isAdmin()) addRecord(type); else invalidSelection(); }
-                case "4" -> { if (isAdmin() && type != RecordType.MISSION) importRecords(type); else invalidSelection(); }
+                case "4" -> { if (isAdmin() && type != RecordType.MISSION && type != RecordType.COUNTRY) importRecords(type); else invalidSelection(); }
                 case "0" -> { return; }
                 default -> invalidSelection();
             }
@@ -368,40 +442,56 @@ public class AgencyInterface {
         output.println(this.SEPARATOR);
         try {
             Integer id = switch (type) {
-                case BRIEF -> bManager.addRecord(prompt("Title: "), prompt("Date (yyyy-mm-dd): "),
-                        prompt("Text: ")).getId();
+                case BRIEF -> createRecord(type, Map.of("title", prompt("Title: "),
+                        "date", prompt("Date (yyyy-mm-dd): "), "text", prompt("Text: ")));
                 case AGENT -> addAgent();
-                case FACILITY -> fManager.addRecord(prompt("Name: "), prompt("Abbreviation: "), promptCountry("Country: ")).getId();
+                case COUNTRY -> createRecord(type, Map.of("name", prompt("Name: ")));
+                case FACILITY -> addFacility();
                 case MISSION -> addMission();
             };
             if (id != null) {
-                auditLog.log(currentUser.getUsername(), "CREATE", type.name(), String.valueOf(id));
                 output.println("Added " + type.getSingular() + " with ID " + id + ".");
             }
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
             output.println("Unable to add " + type.getSingular() + ": " + e.getMessage());
         }
         output.println(this.SEPARATOR);
     }
-    
-    // Helper function for addRecord
-    private int promptCountry(String prompt)
-    {
-        String input = prompt(prompt);
-        Country country = fManager.getCountry(input);
-        while (country == null)
-        {
-            output.println("Country not found. Try again. Type 'Exit' to exit.");
-            input = prompt(prompt);
-            country = fManager.getCountry(input);
-            if (input.trim().toLowerCase().equals("exit")) return -1;
-        }
 
-        return country.getID();
+    private Integer addFacility() {
+        String name = prompt("Name: ");
+        String abbreviation = prompt("Abbreviation: ");
+        int countryId = promptCountry("Country (name or ID, Exit to cancel): ");
+        if (countryId < 0) {
+            return null;
+        }
+        return createRecord(RecordType.FACILITY, Map.of("name", name, "abbreviation", abbreviation,
+                "countryId", String.valueOf(countryId)));
+    }
+
+    private int promptCountry(String label) {
+        while (true) {
+            String input = prompt(label);
+            if (input.equalsIgnoreCase("exit")) {
+                return -1;
+            }
+            Country country;
+            try {
+                country = fManager.getCountry(Integer.parseInt(input));
+            } catch (NumberFormatException nameInput) {
+                country = fManager.getCountry(input);
+            }
+            if (country != null) {
+                return country.getID();
+            }
+            output.println("Country not found. Try again or type Exit to cancel.");
+        }
     }
 
     private Boolean importRecords(RecordType type)
     {
+        // TODO: Log imports. Rewrite aManager to allow for dynamic parameters (only first two are
+        // guarenteed not null)
         output.println(this.SEPARATOR);
         output.print("Input path to file: ");
         String pathToTSV = readLine();
@@ -411,7 +501,7 @@ public class AgencyInterface {
                 case BRIEF -> bManager.importTSV(pathToTSV, bManager.getTableName(), "data", "mission_database.db");
                 case AGENT -> aManager.importTSV(pathToTSV, aManager.getTableName(), "data", "mission_database.db");
                 case FACILITY -> fManager.importTSV(pathToTSV, fManager.getTableName(), "data", "mission_database.db");
-                case MISSION -> 0;
+                case MISSION, COUNTRY -> 0;
             };
         } catch (IllegalArgumentException e) {
             output.println("Unable to import TSV file.");
@@ -439,10 +529,12 @@ public class AgencyInterface {
     private Integer addAgent() {
         String name = prompt("Name: ");
         String born = prompt("Date of birth (yyyy-mm-dd): ");
-        String died = blankToNull(prompt("Date of death (yyyy-mm-dd, blank if none): "));
-        String notes = blankToNull(prompt("Notes (blank if none): "));
+        String died = prompt("Date of death (yyyy-mm-dd, blank if none): ");
+        String notes = prompt("Notes (blank if none): ");
         Integer facilityId = readId("Facility ID: ");
-        return facilityId == null ? null : aManager.addRecord(name, born, died, notes, facilityId).getId();
+        return facilityId == null ? null : createRecord(RecordType.AGENT, Map.of("name", name,
+                "dateOfBirth", born, "dateOfDeath", died, "notes", notes,
+                "facilityId", String.valueOf(facilityId)));
     }
 
     private Integer addMission() {
@@ -482,11 +574,20 @@ public class AgencyInterface {
         }
 
         String facilityName = prompt("Facility name: ");
-        int facilityId = fManager.getRecords(fManager.getColumnNames()[1], facilityName).get(0).getId();
+        List<Facility> matchingFacilities = fManager.getRecords(fManager.getColumnNames()[1], facilityName);
+        if (matchingFacilities.isEmpty()) {
+            throw new IllegalArgumentException("No facility found with that name.");
+        }
+        int facilityId = matchingFacilities.getFirst().getId();
 
-        Integer id = mManager.addRecord(title, briefIds, agentIds, facilityId).getId();
+        return createRecord(RecordType.MISSION, Map.of("title", title, "facilityId", String.valueOf(facilityId),
+                "briefIds", Arrays.stream(briefIds).mapToObj(String::valueOf).collect(Collectors.joining(",")),
+                "agentIds", Arrays.stream(agentIds).mapToObj(String::valueOf).collect(Collectors.joining(","))));
+    }
 
-        return id;
+    private int createRecord(RecordType type, Map<String, String> values) {
+        UserAccount actor = uManager.getUser(currentUser.getUsername());
+        return controller.createRecord(type, values, actor);
     }
 
     private void displayAuditLog() {
@@ -496,7 +597,8 @@ public class AgencyInterface {
     }
 
     private boolean isAdmin() {
-        return currentUser.isAdmin();
+        UserAccount account = uManager == null ? null : uManager.getUser(currentUser.getUsername());
+        return account != null && account.isAdmin();
     }
 
     private String readLine() {
@@ -521,7 +623,4 @@ public class AgencyInterface {
         output.println("Invalid selection. Please try again.");
     }
 
-    private static String blankToNull(String value) {
-        return value.isEmpty() ? null : value;
-    }
 }

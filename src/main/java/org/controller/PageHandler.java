@@ -56,6 +56,7 @@ public class PageHandler implements HttpHandler {
         String body = "<p>Logged in as " + HtmlPage.escape(user.getUsername()) + ".</p>\n"
                 + "<ul>\n<li><a href=\"/briefs\">Briefs</a></li>\n<li><a href=\"/agents\">Agents</a></li>\n"
                 + "<li><a href=\"/facilities\">Facilities</a></li>\n<li><a href=\"/missions\">Missions</a></li>\n"
+                + "<li><a href=\"/countries\">Countries</a></li>\n"
                 + (user.isAdmin() ? "<li><a href=\"/audit\">Review audit log</a></li>\n" : "") + "</ul>";
         send(exchange, user, 200, "Main Menu", body);
     }
@@ -63,6 +64,10 @@ public class PageHandler implements HttpHandler {
     // /briefs, /briefs/3, /agents, /agents/2, /facilities, /facilities/1, /missions, /missions/4
     private void showRecords(HttpExchange exchange, UserAccount user, String path) throws IOException {
         String[] parts = path.substring(1).split("/");
+        if (parts.length == 0) {
+            send(exchange, user, 404, "Not Found", "<p>Page not found.</p>");
+            return;
+        }
         RecordType type = typeFor(parts[0]);
         if (type == null || parts.length > 2) {
             send(exchange, user, 404, "Not Found", "<p>Page not found.</p>");
@@ -87,8 +92,13 @@ public class PageHandler implements HttpHandler {
     // Admins also get a link to edit the record when it exists.
     private void showDetail(HttpExchange exchange, UserAccount user, RecordType type, String segment, int id)
             throws IOException {
+        if (controller.formValues(type, id) == null) {
+            send(exchange, user, 404, "Not Found", "<p>Record not found.</p>");
+            return;
+        }
         String body = HtmlPage.paragraphs(controller.readRecord(type, id, user));
-        if (controller.canEdit(user) && controller.formValues(type, id) != null) {
+        body += org.view.RelatedRecordView.links(controller.relatedRecords(type, id));
+        if (controller.canEdit(user)) {
             body += "<p><a href=\"/" + segment + "/" + id + "/edit\">Edit " + type.getSingular() + "</a></p>\n";
         }
         send(exchange, user, 200, type.getTitle(), body);
@@ -100,6 +110,7 @@ public class PageHandler implements HttpHandler {
             case "briefs" -> RecordType.BRIEF;
             case "agents" -> RecordType.AGENT;
             case "facilities" -> RecordType.FACILITY;
+            case "countries" -> RecordType.COUNTRY;
             case "missions" -> RecordType.MISSION;
             default -> null;
         };

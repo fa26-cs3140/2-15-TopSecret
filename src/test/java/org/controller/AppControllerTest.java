@@ -1,5 +1,6 @@
 package org.controller;
 
+import org.managers.RecordEditor;
 import org.managers.AgentManager;
 import org.managers.BriefManager;
 import org.managers.FacilityManager;
@@ -47,6 +48,9 @@ class AppControllerTest {
     @Mock
     private AuditLogService auditLog;
 
+    @Mock
+    private RecordEditor.Store<Object> changes;
+
     private AppController controller;
 
     private final UserAccount admin = new UserAccount("pat", true);
@@ -54,7 +58,7 @@ class AppControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new AppController(briefManager, agentManager, missionManager, facilityManager, auditLog);
+        controller = new AppController(briefManager, agentManager, missionManager, facilityManager, auditLog, changes);
     }
 
     @Test
@@ -169,13 +173,14 @@ class AppControllerTest {
 
     @Test
     void adminCreatesBriefAndLogsCreate() {
-        when(briefManager.addRecord(any(Brief.class))).thenReturn(new Brief(101, "Op Nightfall", "2026-01-01", "Watch the port.", null));
+        when(changes.create(any(Brief.class), any())).thenReturn(101);
 
         int id = controller.createRecord(RecordType.BRIEF,
                 Map.of("title", "Op Nightfall", "date", "2026-01-01", "text", "Watch the port."), admin);
 
         assertEquals(101, id);
-        verify(auditLog).log("pat", "CREATE", "BRIEF", "101");
+        verify(changes).create(any(), argThat(event -> event.username().equals("pat") && event.action().equals("CREATE")
+                && event.type() == RecordType.BRIEF));
     }
 
     @Test
@@ -187,6 +192,7 @@ class AppControllerTest {
 
     @Test
     void adminUpdatesAgentAndLogsUpdate() {
+        when(changes.update(anyInt(), any(), any())).thenReturn(true);
         when(agentManager.getRecords("id", "%"))
                 .thenReturn(List.of(new Agent(2, "Ghost", "1992-11-22", null, null, 2)));
         when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(3, "Rose Garden", "RG", 1)));
@@ -194,7 +200,8 @@ class AppControllerTest {
         controller.updateRecord(RecordType.AGENT, 2, Map.of("name", "Ghost", "dateOfBirth", "1992-11-22",
                 "dateOfDeath", "", "notes", "Back in the field", "facilityId", "3"), admin);
 
-        verify(auditLog).log("pat", "UPDATE", "AGENT", "2");
+        verify(changes).update(eq(2), any(), argThat(event -> event.username().equals("pat") && event.action().equals("UPDATE")
+                && event.type() == RecordType.AGENT));
     }
 
     @Test
@@ -233,12 +240,13 @@ class AppControllerTest {
                 "briefIds", "1, 2, 2,", "agentIds", "2"), admin);
 
         ArgumentCaptor<Mission> saved = ArgumentCaptor.forClass(Mission.class);
-        verify(missionManager).addRecord(saved.capture());
+        verify(changes).create(saved.capture(), any());
         assertEquals("Joint Op", saved.getValue().getTitle());
         assertArrayEquals(new int[]{1, 2}, saved.getValue().getBriefIds());
         assertArrayEquals(new int[]{2}, saved.getValue().getAgentIds());
         assertEquals(7, id);
-        verify(auditLog).log("pat", "CREATE", "MISSION", "7");
+        verify(changes).create(any(), argThat(event -> event.username().equals("pat") && event.action().equals("CREATE")
+                && event.type() == RecordType.MISSION));
     }
 
     @Test
@@ -279,6 +287,7 @@ class AppControllerTest {
 
     @Test
     void adminUpdatesMissionAndReplacesAssignments() {
+        when(changes.update(anyInt(), any(), any())).thenReturn(true);
         when(missionManager.getRecords("id", "%")).thenReturn(List.of(new Mission(4, "Op", new int[]{1},
                 new int[]{2}, 1)));
         when(briefManager.getRecords("id", "%")).thenReturn(List.of(new Brief(3, "Three", "2020-01-03", "c", null)));
@@ -287,14 +296,20 @@ class AppControllerTest {
         controller.updateRecord(RecordType.MISSION, 4, Map.of("title", "Op 2", "facilityId", "1", "briefIds", "3",
                 "agentIds", ""), admin);
 
-        verify(missionManager).updateRecord("id", "4", "title", "Op 2");
-        verify(missionManager).updateRecord("id", "4", "facilityId", "1");
-        verify(missionManager).replaceAssignments(eq(4), aryEq(new int[]{3}), aryEq(new int[]{}));
-        verify(auditLog).log("pat", "UPDATE", "MISSION", "4");
+        ArgumentCaptor<Object> updated = ArgumentCaptor.forClass(Object.class);
+        verify(changes).update(eq(4), updated.capture(), any());
+        Mission saved = (Mission) updated.getValue();
+        assertEquals("Op 2", saved.getTitle());
+        assertArrayEquals(new int[]{3}, saved.getBriefIds());
+        assertArrayEquals(new int[]{}, saved.getAgentIds());
+        verify(changes).update(eq(4), any(), argThat(event -> event.username().equals("pat") && event.action().equals("UPDATE")
+                && event.type() == RecordType.MISSION));
     }
 
     @Test
     void adminUpdatesBriefAndFacility() {
+        when(facilityManager.getCountry(1)).thenReturn(new org.model.Country("Afghanistan", 1, new Facility[0]));
+        when(changes.update(anyInt(), any(), any())).thenReturn(true);
         when(briefManager.getRecords("id", "%")).thenReturn(List.of(new Brief(1, "Old", "2020-01-01", "a", null)));
         when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(2, "Rose Garden", "RG", 1)));
 
