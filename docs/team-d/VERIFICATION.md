@@ -10,12 +10,12 @@ Executed with Java 26 and the repository's Gradle wrapper:
 
 | Check | Result |
 | --- | --- |
-| Full test suite | 439 passed, zero failures, zero errors, zero skips |
-| Separate unit task | 364 passed |
+| Full test suite | 441 passed, zero failures, zero errors, zero skips |
+| Separate unit task | 366 passed |
 | Separate integration task | 75 passed |
 | Gradle build and packaged JAR | Passed |
-| Project method coverage, complete suite | 439 / 439 methods, 100% |
-| Project method coverage, unit task | 394 / 439 methods, 89.7% |
+| Project method coverage, complete suite | 442 / 442 methods, 100% |
+| Project method coverage, unit task | 398 / 442 methods, 90.0% |
 | New Team D services, link view, and session manager | 100% method coverage in both the isolated unit task and complete suite |
 
 The Team D coverage statement includes RecordEditor and AuditEvent,

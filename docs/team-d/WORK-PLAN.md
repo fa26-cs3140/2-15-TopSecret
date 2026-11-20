@@ -29,7 +29,7 @@ for the available content types.
 2. **Team C web messaging.** The shared branch still has terminal messaging.
    The Homework 7 web center and read indicators belong to Team C.
 3. **Whole-project method coverage completed.** The complete test suite exercises
-   all 439 measured methods. Added checks cover startup argument handling,
+   all 442 measured methods. Added checks cover startup argument handling,
    directory changes, search-result accessors, diagnostics, and terminal
    account/import/mission workflows. The unused audit-table stub had no
    callers and has been removed.
