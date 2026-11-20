@@ -103,3 +103,10 @@ sourceSets {
         }
     }
 }
+
+if (project.hasProperty("messagingOnly")) {
+    tasks.named<JavaCompile>("compileTestJava") {
+        include("org/model/messaging/**")
+        include("org/controller/messaging/**")
+    }
+}
