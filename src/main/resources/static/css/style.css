@@ -1,22 +1,46 @@
+
+html, body {
+    min-height: 100%;
+    background-color: #111416;
+}
+
 h1 {
     font-family: monospace;
-    color: darkred;
+    color: #54a454;
     animation: color-change 1s infinite;
- }
+}
 
 h2 {
     font-family: monospace;
-    color: darkred;
+    color: #54a454;
+}
+
+hr {
+    color: #54a454;
     animation: color-change 1s infinite;
 }
 
+nav {
+    font-family: monospace;
+    color: #54a454;
+}
+
 p {
-  font-family: monospace;
+    font-family: monospace;
+    color: #e3f6e3;
+}
+
+a {
+    color: #e3f6e3;
+}
+
+li::marker {
+  color: #e3f6e3; /* Replace with any color name, hex code, or RGB value */
 }
 
 @keyframes color-change {
-  0% { color: red; }
-  50% { color: darkred; }
+  0% { color: #e3f6e3; }
+  50% { color: #54a454; }
 }
 
 @keyframes slideFromTop {
@@ -33,18 +57,20 @@ p {
 @keyframes slideFromLeft {
     from {
         opacity: 0;
-        transform: translateX(-30);
+        transform: translateX(-30px);
     }
     to {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateX(0px);
     }
 }
 
 .topdown-on-load {
-    animation: slideFromTop 0.6s ease-out forwards;
+    animation: slideFromTop 0.6s ease-out forwards,
+                color-change 1s infinite;
 }
 
 .leftright-on-load {
-    animatiom: slideFromLeft 0.6s ease-out forwards;
+    animation: slideFromLeft 0.6s ease-out forwards,
+               color-change 1s infinite;
 }

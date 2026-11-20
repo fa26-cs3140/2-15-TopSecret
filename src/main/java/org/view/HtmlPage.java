@@ -27,34 +27,34 @@ public final class HtmlPage {
             .append("<title>Top Secret - ")
             .append(safeTitle)
             .append("</title>\n")
-            //.append("<link rel=\"stylesheet\" href=\"/view/css/style.css>\n")
+            .append("<link rel=\"stylesheet\" href=\"/css/style.css\">\n")
             .append("</head>\n<body>\n")
-            .append("<h1>Top Secret</h1>\n");
+            .append("<h1 class = \"topdown-on-load\">Top Secret</h1>\n");
 
         // Navbar (only available after login)
         if (loggedIn) {
             html.append("<nav aria-label=\"Main navigation\">\n")
-                .append("<a href=\"/menu\">Menu</a> | ")
-                .append("<a href=\"/briefs\">Briefs</a> | ")
-                .append("<a href=\"/agents\">Agents</a> | ")
-                .append("<a href=\"/facilities\">Facilities</a> | ")
-                .append("<a href=\"/countries\">Countries</a> |")
-                .append("<a href=\"/facilities\">Facilities</a> | ")
-                .append("<a href=\"/missions\">Missions</a> | ")
-                .append("<a href=\"/messages\">Messages</a>");
+                .append("<a class = \"topdown-on-load\" href=\"/menu\">Menu</a> | ")
+                .append("<a class = \"topdown-on-load\" href=\"/briefs\">Briefs</a> | ")
+                .append("<a class = \"topdown-on-load\" href=\"/agents\">Agents</a> | ")
+                .append("<a class = \"topdown-on-load\" href=\"/facilities\">Facilities</a> | ")
+                .append("<a class = \"topdown-on-load\" href=\"/countries\">Countries</a> |")
+                .append("<a class = \"topdown-on-load\" href=\"/facilities\">Facilities</a> | ")
+                .append("<a class = \"topdown-on-load\" href=\"/missions\">Missions</a> | ")
+                .append("<a class = \"topdown-on-load\" href=\"/messages\">Messages</a>");
 
             // TODO: add Missions when the controller supports it
 
             // Can review audit log if logged in as admin
             if (admin) {
-                html.append(" | <a href=\"/audit\">Audit log</a>");
+                html.append(" | <a class = \"topdown-on-load\" href=\"/audit\">Audit log</a>");
             }
 
-            html.append(" | <a href=\"/logout\">Log out</a>\n")
+            html.append(" | <a class = \"topdown-on-load\" href=\"/logout\">Log out</a>\n")
                 .append("</nav>\n<hr>\n");
         }
 
-        html.append("<main>\n<h2>")
+        html.append("<main>\n<h2 class = \"topdown-on-load\">")
             .append(safeTitle)
             .append("</h2>\n")
             .append(body == null ? "" : body)
