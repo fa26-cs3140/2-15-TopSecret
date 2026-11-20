@@ -160,16 +160,42 @@ public class FacilityManager extends IDatabaseManager<Facility>
     }
 
     public Country getCountry(int countryId) {
-        return getCountries().stream().filter(country -> country.getID() == countryId).findFirst().orElse(null);
+        if (countryId <= 0) {
+            return null;
+        }
+        String name;
+        try (Connection connection = connect();
+             PreparedStatement statement = connection.prepareStatement("SELECT id, name FROM countries WHERE id = ?")) {
+            statement.setInt(1, countryId);
+            try (ResultSet result = statement.executeQuery()) {
+                if (!result.next()) {
+                    return null;
+                }
+                name = result.getString("name");
+            }
+        } catch (SQLException failure) {
+            throw new IllegalStateException("Unable to read the country.", failure);
+        }
+        Facility[] assigned = getRecords("country_id", String.valueOf(countryId)).toArray(Facility[]::new);
+        return new Country(name, countryId, assigned);
     }
 
     public Country getCountry(String name) {
-        if (name == null) {
+        if (name == null || name.isBlank()) {
+            return null;
+        }
+        String cleaned = normalizeCountryName(name);
+        if (cleaned.isBlank()) {
             return null;
         }
         return getCountries().stream()
-                .filter(country -> country.getName().regionMatches(true, 0, name, 0, name.length()))
+                .filter(country -> normalizeCountryName(country.getName()).contains(cleaned))
                 .findFirst().orElse(null);
+    }
+
+    private static String normalizeCountryName(String name) {
+        return name.trim().replace("'", "’").replaceFirst("(?i)^the\\s+", "")
+                .toLowerCase(java.util.Locale.ROOT);
     }
 
     public List<Country> getCountries() {

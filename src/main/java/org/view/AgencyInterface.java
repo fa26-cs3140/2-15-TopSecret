@@ -441,14 +441,30 @@ public class AgencyInterface {
     private Integer addFacility() {
         String name = prompt("Name: ");
         String abbreviation = prompt("Abbreviation: ");
-        Integer countryId = readId("Country ID (see Countries): ");
-        if (countryId == null) {
+        int countryId = promptCountry("Country (name or ID, Exit to cancel): ");
+        if (countryId < 0) {
             return null;
         }
-        if (fManager.getCountry(countryId) == null) {
-            throw new IllegalArgumentException("No country found with ID " + countryId + ".");
-        }
         return fManager.addRecord(name, abbreviation, countryId).getId();
+    }
+
+    private int promptCountry(String label) {
+        while (true) {
+            String input = prompt(label);
+            if (input.equalsIgnoreCase("exit")) {
+                return -1;
+            }
+            Country country;
+            try {
+                country = fManager.getCountry(Integer.parseInt(input));
+            } catch (NumberFormatException nameInput) {
+                country = fManager.getCountry(input);
+            }
+            if (country != null) {
+                return country.getID();
+            }
+            output.println("Country not found. Try again or type Exit to cancel.");
+        }
     }
 
     private Boolean importRecords(RecordType type)

@@ -70,7 +70,7 @@ public class AppController {
             case COUNTRY -> facilityManager.getCountries().stream()
                     .map(country -> country.getID() + ". " + country.getName()).toList();
             case FACILITY -> facilityManager.getRecords("id", "%").stream()
-                    .map(f -> f.getId() + ". " + f.getName() + " (" + f.getAbbreviation() + ")").toList();
+                    .map(f -> f.getId() + ". " + f.getName() + " (" + f.getAbbreviation() + ")" + countryLabel(f.getCountryID())).toList();
             case MISSION -> missionManager.getRecords("id", "%").stream()
                     .map(m -> m.getId() + ". " + m.getTitle()).toList();
         };
@@ -236,6 +236,11 @@ public class AppController {
             throw new IllegalArgumentException("No facility found with ID " + id + ".");
         }
         return id;
+    }
+
+    private String countryLabel(int countryId) {
+        Country country = facilityManager.getCountry(countryId);
+        return country == null ? " [Unassigned country]" : " [" + country.getName() + "]";
     }
 
     private int countryId(Map<String, String> values) {
