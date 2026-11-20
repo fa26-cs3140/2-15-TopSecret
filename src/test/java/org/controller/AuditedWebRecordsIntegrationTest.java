@@ -111,6 +111,7 @@ class AuditedWebRecordsIntegrationTest {
     @Test
     void countryRenamesAndReassignmentAppearAtFacilityLinks() throws Exception {
         int country = create("countries", Map.of("name", "O'Brien <Islands>"));
+        assertTrue(get("/countries", cookie).body().contains("O&#39;Brien &lt;Islands&gt;"));
         int facility = create("facilities", Map.of("name", "Island HQ", "abbreviation", "IHQ",
                 "countryId", String.valueOf(country)));
         assertLink(get("/facilities/" + facility, standardCookie), "/countries/" + country);
