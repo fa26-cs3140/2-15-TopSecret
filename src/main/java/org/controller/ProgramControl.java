@@ -69,9 +69,9 @@ public class ProgramControl {
         // Information in the database should be ciphered
         
         // Do not run the program, just display a help menu.
-        if (args.length > 0 && args[0] == "-h")
+        if (args.length > 0 && args[0].equals("-h"))
         {
-            String text = this.fileHandler.readFile("data/help.txt");
+            String text = this.fileHandler.readFile("help.txt");
             System.out.println(text);
             return;
         }
