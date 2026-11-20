@@ -9,6 +9,7 @@ import org.managers.MissionManager;
 import org.model.Agent;
 import org.model.AuditLogEntry;
 import org.model.Brief;
+import org.model.Country;
 import org.model.Facility;
 import org.model.Mission;
 import org.model.RecordType;
@@ -54,7 +55,8 @@ public class AppController {
             case AGENT -> agentManager.getRecords("id", "%").stream()
                     .map(a -> a.getId() + ". " + a.getName()).toList();
             case FACILITY -> facilityManager.getRecords("id", "%").stream()
-                    .map(f -> f.getId() + ". " + f.getName() + " (" + f.getAbbreviation() + ") " + "[" + facilityManager.getCountry(f.getCountryID()).getName() + "]").toList();
+                    .map(f -> f.getId() + ". " + f.getName() + " (" + f.getAbbreviation() + ")"
+                            + countryName(f.getCountryID()).map(name -> " [" + name + "]").orElse("")).toList();
             case MISSION -> missionManager.getRecords("id", "%").stream()
                     .map(m -> m.getId() + ". " + m.getTitle()).toList();
         };
@@ -113,7 +115,8 @@ public class AppController {
             case AGENT -> agent(id).map(a -> values("name", a.getName(), "dateOfBirth", a.getDateOfBirth(),
                     "dateOfDeath", a.getDateOfDeath(), "notes", a.getNotes(),
                     "facilityId", String.valueOf(a.getFacilityId())));
-            case FACILITY -> facility(id).map(f -> values("name", f.getName(), "abbreviation", f.getAbbreviation()));
+            case FACILITY -> facility(id).map(f -> values("name", f.getName(), "abbreviation", f.getAbbreviation(),
+                    "countryId", String.valueOf(f.getCountryID())));
             case MISSION -> mission(id).map(m -> values("title", m.getTitle(),
                     "facilityId", String.valueOf(m.getFacilityId()),
                     "briefIds", joinIds(m.getBriefIds()), "agentIds", joinIds(m.getAgentIds())));
@@ -132,7 +135,8 @@ public class AppController {
                     .getId();
             case AGENT -> agentManager.addRecord(new Agent(1, v.get("name"), v.get("dateOfBirth"),
                     v.get("dateOfDeath"), v.get("notes"), facilityId(v))).getId();
-            case FACILITY -> facilityManager.addRecord(new Facility(1, v.get("name"), v.get("abbreviation"), Integer.parseInt(v.get("countryId")))).getId();
+            case FACILITY -> facilityManager.addRecord(new Facility(1, v.get("name"), v.get("abbreviation"),
+                    countryId(v))).getId();
             case MISSION -> missionManager.addRecord(new Mission(1, v.get("title"), briefIds(v), agentIds(v),
                     facilityId(v))).getId();
         };
@@ -159,8 +163,11 @@ public class AppController {
                 save(agentManager, id, v, "name", "dateOfBirth", "dateOfDeath", "notes", "facilityId");
             }
             case FACILITY -> {
-                new Facility(id, v.get("name"), v.get("abbreviation"), Integer.parseInt(v.get("countryId")));
+                int countryId = countryId(v);
+                new Facility(id, v.get("name"), v.get("abbreviation"), countryId);
                 save(facilityManager, id, v, "name", "abbreviation");
+                // the form field is countryId; the facilities column is country_id
+                facilityManager.updateRecord("id", String.valueOf(id), "country_id", String.valueOf(countryId));
             }
             case MISSION -> {
                 Mission mission = new Mission(id, v.get("title"), briefIds(v), agentIds(v), facilityId(v));
@@ -218,6 +225,20 @@ public class AppController {
             throw new IllegalArgumentException("No facility found with ID " + id + ".");
         }
         return id;
+    }
+
+    // Country ID from the form; must name an existing country.
+    private int countryId(Map<String, String> v) {
+        int id = parseId(v.get("countryId"), "Country ID");
+        if (countryName(id).isEmpty()) {
+            throw new IllegalArgumentException("No country found with ID " + id + ".");
+        }
+        return id;
+    }
+
+    // Country name for an ID, or empty when no such country exists.
+    private Optional<String> countryName(int countryId) {
+        return Optional.ofNullable(facilityManager.getCountry(countryId)).map(Country::getName);
     }
 
     private int[] briefIds(Map<String, String> v) {

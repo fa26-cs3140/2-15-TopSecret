@@ -11,7 +11,7 @@ class SqliteMessageStoreIntegrationTest {
  private SqliteMessageStore store;
  private String url;
  @BeforeEach void setup(){ url="jdbc:sqlite:"+dir.resolve("test.db");new SqliteUserAccountStore(url).addUser(new UserAccount("sender",false));
-  var facilities=new FacilityManager(url);facilities.createTable(); facilities.addRecord("HQ","HQ");
+  var facilities=new FacilityManager(url);facilities.createTable(); facilities.addRecord("HQ", "HQ", 1);
   var agents=new AgentManager(url);agents.createTable();agents.addRecord("Ghost","1990-01-01",null,null,1);store=new SqliteMessageStore(url); }
  @Test void roundTripAndIsolation(){var m=store.save(new Message(0,"sender",1,"Ghost","O'Brien\nMeet at dawn",LocalDateTime.now()));
   assertTrue(m.getId()>0);var inbox=new SqliteMessageStore(url).findForRecipient("gHoSt");assertEquals(m.getBody(),inbox.get(0).getBody());

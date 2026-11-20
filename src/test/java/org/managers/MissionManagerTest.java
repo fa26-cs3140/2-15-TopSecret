@@ -108,7 +108,7 @@ public class MissionManagerTest
     //     // Create the required facility table and record.
     //     FacilityManager facilities = new FacilityManager(testUrl);
     //     facilities.createTable();
-    //     facilities.addRecord("Headquarters", "HQ");
+    //     facilities.addRecord("Headquarters", "HQ", 1);
 
     //     Mission first = manager.addRecord(
     //             "Mission Alpha",
@@ -146,7 +146,7 @@ public class MissionManagerTest
     {
         FacilityManager facilities = new FacilityManager(testUrl);
         facilities.createTable();
-        facilities.addRecord("Headquarters", "HQ");
+        facilities.addRecord("Headquarters", "HQ", 1);
         BriefManager briefs = new BriefManager(testUrl);
         briefs.createTable();
         briefs.addRecord("Brief One", "2020-01-01", "First");

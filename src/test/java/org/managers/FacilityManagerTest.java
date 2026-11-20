@@ -170,7 +170,7 @@ public class FacilityManagerTest {
     void testAddRecordWithFacility() throws SQLException {
         FacilityManager manager = createManagerWithValidSchema();
 
-        Facility original = new Facility(999, "Central Intelligence Agency", "CIA");
+        Facility original = new Facility(999, "Central Intelligence Agency", "CIA", 1);
         Facility saved = manager.addRecord(original);
 
         // Should return a new object with the generated ID
@@ -198,7 +198,7 @@ public class FacilityManagerTest {
     void testAddRecordWithFields() throws SQLException {
         FacilityManager manager = createManagerWithValidSchema();
 
-        Facility saved = manager.addRecord("Federal Bureau of Investigation", "FBI");
+        Facility saved = manager.addRecord("Federal Bureau of Investigation", "FBI", 1);
 
         assertTrue(saved.getId() > 0);
         assertEquals("Federal Bureau of Investigation", saved.getName());
@@ -210,8 +210,8 @@ public class FacilityManagerTest {
     void testAddMultipleRecords() throws SQLException {
         FacilityManager manager = createManagerWithValidSchema();
 
-        Facility first = manager.addRecord("Facility Alpha", "FA");
-        Facility second = manager.addRecord("Facility Bravo", "FB");
+        Facility first = manager.addRecord("Facility Alpha", "FA", 1);
+        Facility second = manager.addRecord("Facility Bravo", "FB", 1);
 
         assertTrue(first.getId() > 0);
         assertTrue(second.getId() > 0);
@@ -224,17 +224,17 @@ public class FacilityManagerTest {
         FacilityManager manager = createManagerWithValidSchema();
 
         // empty name
-        assertThrows(IllegalArgumentException.class, () -> manager.addRecord("", "CIA"));
+        assertThrows(IllegalArgumentException.class, () -> manager.addRecord("", "CIA", 1));
         // null name
-        assertThrows(IllegalArgumentException.class, () -> manager.addRecord(null, "CIA"));
+        assertThrows(IllegalArgumentException.class, () -> manager.addRecord(null, "CIA", 1));
         // empty abbr
-        assertThrows(IllegalArgumentException.class, () -> manager.addRecord("Headquarters", ""));
+        assertThrows(IllegalArgumentException.class, () -> manager.addRecord("Headquarters", "", 1));
         // null abbr
-        assertThrows(IllegalArgumentException.class, () -> manager.addRecord("Headquarters", null));
+        assertThrows(IllegalArgumentException.class, () -> manager.addRecord("Headquarters", null, 1));
         // blank name
-        assertThrows(IllegalArgumentException.class, () -> manager.addRecord("   ", "HQ"));
+        assertThrows(IllegalArgumentException.class, () -> manager.addRecord("   ", "HQ", 1));
         // blank abbr
-        assertThrows(IllegalArgumentException.class, () -> manager.addRecord("Headquarters", "   "));
+        assertThrows(IllegalArgumentException.class, () -> manager.addRecord("Headquarters", "   ", 1));
 
         // None of the invalid records should be persisted
         assertEquals(0, countFacilities());
