@@ -50,11 +50,13 @@ class UserAccountManagerTest {
         assertTrue(manager.isValidUsername("field-agent"));
         assertTrue(manager.isValidUsername("a1_"));
 
+
         assertFalse(manager.isValidUsername(null));
         assertFalse(manager.isValidUsername("ab"));
         assertFalse(manager.isValidUsername("bad name"));
         assertFalse(manager.isValidUsername("bad!"));
         assertFalse(manager.isValidUsername("Ghost"));
+        assertFalse(manager.isValidUsername("GHOST"));
     }
 
     @Test
@@ -240,6 +242,23 @@ class UserAccountManagerTest {
         when(fileHandler.writeFile(anyString(), eq("encrypted"))).thenReturn(true);
         assertThrows(IllegalStateException.class, () -> manager.createFirstUser("fresh", "Alpha1"));
         verify(fileHandler).deleteFile("credentials-6672657368.cip");
+    }
+
+    @Test
+    void accountCreationRejectsCaseVariantsBeforeWritingMetadata() {
+        when(store.getUsers()).thenReturn(List.of(new UserAccount("Ghost", false)));
+        assertThrows(IllegalArgumentException.class, () -> manager.createUser("ghost", false));
+        verify(store, never()).addUser(any());
+    }
+
+    @Test
+    void changingAdminStatusValidatesUsernameAndDelegatesOnlyMetadata() {
+        when(store.setAdmin("ghost", true)).thenReturn(true);
+        assertTrue(manager.setUserAdmin("ghost", true));
+        assertFalse(manager.setUserAdmin("missing", false));
+        assertThrows(IllegalArgumentException.class, () -> manager.setUserAdmin("GHOST", true));
+        verify(store).setAdmin("ghost", true);
+        verifyNoInteractions(fileHandler, cipher);
     }
 
 }

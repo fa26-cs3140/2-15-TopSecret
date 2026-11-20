@@ -1,7 +1,6 @@
 # Final Team D verification
 
-Checked on 2026-11-20 against code snapshot `65e2fd2`, including the shared
-NewDatabaseManagerRefactor changes through `5b8c827`. The final documentation
+Checked on 2026-11-20 against shared snapshot `6af24d1` plus the final-unit-coverage test commits. The final documentation
 commit follows that source snapshot. Main is not the current submission branch.
 
 ## Reproducible commands and measured results
@@ -14,23 +13,23 @@ Executed with Java 26 and the checked-in Gradle wrapper. Results:
 
 | Check | Result |
 | --- | --- |
-| Complete suite | 501 passed; 0 failures, errors, or skipped tests |
-| Separate unit task | 397 passed |
+| Complete suite | 517 passed; 0 failures, errors, or skipped tests |
+| Separate unit task | 413 passed |
 | Separate integration task | 104 passed |
 | Build and executable JAR | Passed |
 | Complete-suite method coverage | 475 / 475 = 100% |
-| Unit-task method coverage | 422 / 475 = 88.84% |
+| Unit-task method coverage | 475 / 475 = 100% |
 
 Reports: build/reports/tests/test/index.html,
 build/reports/jacoco/test/html/index.html, and
 build/reports/jacoco/jacocoUnitTestReport/html/index.html.
 
-The complete-suite report now meets the assignment's 100% method target,
-including constructors/getters/setters as counted by JaCoCo. It does not mean
-100% branch coverage, exhaustive behavioral testing, or 100% isolated-unit
-coverage. If grading requires >95% from the unit task alone, that interpretation
-remains unmet. Existing filename filters classify some SQLite class-pair tests
-under unitTest. No methods were excluded to raise coverage.
+Both the complete-suite and unit-task reports now cover 475/475 methods (100%).
+The new tests isolate HTTP exchanges, controller/service dependencies, and JDBC
+using Mockito. No production methods or tests were excluded or reclassified to
+raise coverage. Existing legacy filename filters still classify some real SQLite
+class-pair tests under unitTest; the new unit tests do not open a server or SQLite.
+Method coverage is not branch coverage or a guarantee against every possible bug.
 
 Mockito isolates service, account, persistence, and JDBC boundaries in tests
 including RecordEditorTest, RecordPersistenceUnitTest, RecordSearchTest,
@@ -80,7 +79,7 @@ passed 307 assertion checks, including 80 concurrent country writes and 120
 parallel completed login/read pairs. It exercises malformed inputs, forged roles,
 foreign-origin POSTs, recipient privacy including no admin override, persistent
 read indicators, escaping, exact timeout, revocation, and audit rollback.
-These checks are additional evidence, not part of the 501 Gradle test count.
+These checks are additional evidence, not part of the 517 Gradle test count.
 
 Each teammate must personally confirm the assignment's individual system test.
 See DELIVERABLES.md for remaining owner-specific issues. No test run can certify

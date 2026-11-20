@@ -15,7 +15,7 @@ Week 2 implementation, and focused repair commits remain in Git history.
 | Account recovery | First password-file failure leaves no account; failed metadata attempts cleanup |
 | Account identity | Case-equivalent insertion rejected; existing legacy identities fail closed |
 | Shared compatibility | Bound quoted lookups, explicit storage errors, bounded HTTP form handling |
-| Tests | 501 passing; complete-suite method coverage 475/475 |
+| Tests | 517 passing; complete-suite method coverage 475/475 |
 | Documentation | Current roster, schema, class/ERD/wireframe PDFs, verification and handoffs |
 
 The prior partial-import, quoted-name, silent-read, account-bootstrap, and new
@@ -25,5 +25,5 @@ No confirmed failing Team D requirement remains in the exercised scenarios.
 
 Remaining teammate-specific issues and grading interpretation questions are in
 DELIVERABLES.md. Individual system tests must be acknowledged by every member.
-Unit-only coverage remains below 95%; the complete-suite figure must not be
-misrepresented as an isolated-unit figure. Each new merge needs revalidation.
+Both unit-task and complete-suite method coverage now reach 100%, with no
+coverage exclusions or relabeling of integration tests. Each new merge needs revalidation.

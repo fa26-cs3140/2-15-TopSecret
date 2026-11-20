@@ -110,6 +110,58 @@ class TerminalWorkflowTest {
         verify(missions, never()).addRecord(anyString(), any(int[].class), any(int[].class), anyInt());
     }
 
+    @Test
+    void sessionMenuListsAndRevokesUsingTheCurrentAdministrator() {
+        var sessions = mock(org.controller.SessionManager.class);
+        when(sessions.listSessions(admin)).thenReturn(List.of(
+                new org.controller.SessionManager.SessionSummary("ghost", "token", java.time.Instant.EPOCH)));
+        AgencyInterface terminal = ui("12\ntoken\n\n0\n");
+        terminal.enableSessionManagement(sessions);
+        terminal.run();
+        assertTrue(output.toString().contains("ghost | token | 1970-01-01T00:00:00Z"));
+        verify(sessions).revokeSession(admin, "token");
+        verify(accounts, atLeastOnce()).getUser("admin");
+    }
+
+    @Test
+    void searchMenuShowsMatchesFromMockedManagers() {
+        when(briefs.getRecords("id", "%")).thenReturn(List.of(
+                new Brief(7, "Needle", "2020-01-01", "Body", null)));
+        ui("11\nneedle\n0\n").run();
+        assertTrue(output.toString().contains("brief 7. Needle"));
+    }
+
+    @Test
+    void openingATerminalMessageUsesTheActualIdAndAuthenticatedService() {
+        var service = mock(org.model.messaging.MessageService.class);
+        var message = new org.model.messaging.Message(42, "sender", 2, "admin", "Body",
+                java.time.LocalDateTime.of(2026, 11, 20, 12, 0));
+        when(service.getInbox()).thenReturn(List.of(message));
+        when(service.readMessage(42)).thenReturn(message);
+        var terminal = ui("10\n1\n0\n");
+        terminal.enableMessaging(service);
+        terminal.run();
+        verify(service).readMessage(42);
+        verify(service, never()).readMessage(1);
+        assertTrue(output.toString().contains("Body"));
+    }
+
+    @Test
+    void terminalImportUsesTheAuditedBatchBoundaryWithFreshPermissions() throws Exception {
+        var record = new Brief(1, "Imported", "2020-01-01", "Body", null);
+        try (var parser = mockConstruction(org.managers.RecordImport.class, (mock, context) ->
+                when(mock.read(org.model.RecordType.BRIEF, java.nio.file.Path.of("briefs.tsv")))
+                        .thenReturn(List.of(record)))) {
+            when(changes.createAll(eq(List.of(record)), any())).thenReturn(List.of(17));
+            ui("1\n4\nbriefs.tsv\n0\n0\n").run();
+            verify(changes).createAll(eq(List.of(record)), argThat(event -> event.username().equals("admin")
+                    && event.type() == org.model.RecordType.BRIEF && event.action().equals("CREATE")));
+            assertTrue(output.toString().contains("TSV Successfully imported"));
+            verify(audit, never()).log(any(), eq("IMPORT"), any(), any());
+            assertEquals(1, parser.constructed().size());
+        }
+    }
+
     private AgencyInterface ui(String input) {
         when(accounts.getUser("admin")).thenReturn(admin);
         return new AgencyInterface(agents, facilities, briefs, accounts, missions, audit, admin,

@@ -161,4 +161,24 @@ class AuthenticatedMessageServiceTest {
         // The service must reject access before touching message storage.
         verify(store, never()).markAsRead(anyLong(), anyString());
     }
+    @Test
+    void sendingResolvesCurrentRecipientAndRejectsMissingOrBlankMessages() {
+        var users = mock(UserAccountStore.class);
+        var agents = mock(AgentManager.class);
+        var store = mock(MessageStore.class);
+        var service = createService(users, agents, store);
+        var recipient = new org.model.Agent(2, "Other", "1990-01-01", null, null, 1);
+        when(agents.getRecords("id", "%")).thenReturn(List.of(recipient));
+        when(store.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        var message = service.sendMessage(2, "O'Brien's briefing");
+        org.junit.jupiter.api.Assertions.assertEquals("ghost", message.getSenderUsername());
+        org.junit.jupiter.api.Assertions.assertEquals("Other", message.getRecipientName());
+        org.junit.jupiter.api.Assertions.assertEquals("O'Brien's briefing", message.getBody());
+        assertThrows(UnsupportedOperationException.class, () -> service.getAgents().clear());
+        assertThrows(IllegalArgumentException.class, () -> service.sendMessage(99, "Hello"));
+        assertThrows(IllegalArgumentException.class, () -> service.sendMessage(2, " "));
+        assertThrows(IllegalArgumentException.class, () -> service.sendMessage(2, null));
+        verify(store, times(1)).save(any());
+    }
+
 }

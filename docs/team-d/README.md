@@ -119,9 +119,8 @@ closed in messaging; the recipient privacy guard is preserved.
 
 Run `./gradlew test build` for the complete suite/build, and use
 `./gradlew unitTest integrationTest jacocoTestReport jacocoUnitTestReport` for
-separate tasks and reports. The final complete suite passes 501 tests with
-475/475 methods covered (100%). Unit-only coverage is reported separately in
-VERIFICATION.md; it is lower and is not presented as 100% isolated-unit coverage.
+separate tasks and reports. The final complete suite passes 517 tests with
+475/475 methods covered (100%). The separate unit task also covers 475/475 methods (100%); see VERIFICATION.md.
 
 Complete-file TSV imports now use the same transactional persistence boundary.
 Each row receives a CREATE event, and the batch receives an IMPORT event. Parsing,

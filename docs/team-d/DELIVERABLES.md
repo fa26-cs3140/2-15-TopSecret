@@ -1,8 +1,8 @@
 # Final working-branch deliverables review
 
 Reviewed 2026-11-20. Source snapshot: `65e2fd2`, including shared branch
-NewDatabaseManagerRefactor through `5b8c827`. This feature branch includes the
-Team D/shared fixes; they must be merged before this report applies to submission.
+NewDatabaseManagerRefactor through `5b8c827`. PR #30 fixes are merged. The coverage follow-up must also be merged before
+this report applies to submission.
 
 ## Rubric evidence
 
@@ -13,7 +13,7 @@ Team D/shared fixes; they must be merged before this report applies to submissio
 | Current system UML PDF | Regenerated from compiled declarations including RecordImport and updated persistence API; existing messaging/read-state declarations retained |
 | ERD with entities/relationships, no columns | TeamD-ERD.pdf and DESIGN entity-only diagram; column DDL kept separately |
 | Current wireframes | Shared HW7-Wireframe.pdf has records/countries/inbox/compose; Team D PDF covers related data/search/session administration; see message-detail handoff |
-| 100% method coverage | Complete suite 475/475; isolated unit task is 422/475 (88.84%), disclosed separately |
+| 100% method coverage | Complete suite 475/475; unit task is also 475/475 (100%), measured separately |
 | Unit tests/Mockito | Service, account, search, relationship, and JDBC boundary mocks; some legacy tests remain misclassified by filename filters |
 | Integration test ClassAClassB naming | AgencyInterfaceAuditLogManagerTest and AgencyInterfaceMissionManagerTest integrate real components |
 | Web add/edit, admin only | Real HTTP/SQLite acceptance, permissions, invalid-input and rollback tests pass |
@@ -28,8 +28,8 @@ Team D/shared fixes; they must be merged before this report applies to submissio
 
 ## Final measured runs
 
-501 tests passed; zero failures, errors, or skips. The separate tasks passed
-397 unit and 104 integration tests. Build passed. Complete-suite coverage is
+517 tests passed; zero failures, errors, or skips. The separate tasks passed
+413 unit and 104 integration tests. Build passed. Complete-suite coverage is
 475/475 methods; no production methods were excluded. The final packaged
 country/session workflow, packaged help, and 307 additional adversarial checks
 passed, including 80 concurrent writes and 120 parallel login/read pairs.
@@ -54,35 +54,17 @@ The team's latest coverage tests and PDF work were merged and preserved.
 
 ## Copy-paste owner handoffs
 
-### Zaid — Team A
+### Final follow-up on shared snapshot 6af24d1
 
-> I reran the final JAR and -h works; country create/edit, assignment, rename,
-> seeds, and restart checks pass. One small UI issue remains: HtmlPage has the
-> Facilities navbar link twice, and the shared wireframe repeats it. Please
-> remove the duplicate and refresh the affected screen export. Your country
-> functionality did not produce a failing test in this audit.
+> The coverage gap is closed: 517 tests pass, build passes, and both the unit-task
+> and complete-suite JaCoCo reports show 475/475 methods (100%). New tests use
+> mocked HTTP exchanges/services/JDBC; no coverage filters were changed. Zaid's
+> lowercase username policy, duplicate-navigation fix, and latest wireframe are
+> included. PR #30 has already been merged. Merge the final-unit-coverage follow-up
+> before submission. The previous low-unit-coverage handoff no longer applies.
 
-### Dillon — Team B
-
-> Final complete suite is 501 passing and 475/475 methods covered. Your latest
-> tests and UML are included. Please refresh HW7-TeamB-WorkPlan.txt: it still
-> describes countries as future work and lists already-fixed swapped messaging
-> options, zero-brief missions, SQL updates, and removed files as open bugs.
-> Terminal record editing is still absent: it was required by the previous
-> assignment, so confirm whether that carry-over is waived or needs completing.
-> This is separate from the current HW7 web-editing workflow, which passes.
-> If the TA requires >95% on isolated unit tests alone, we currently have 88.84%
-> there, despite 100% on the complete suite; the filename filters also classify
-> some real SQLite tests as units. Please clarify that grading interpretation.
-
-### Mike — Team C
-
-> Web messaging passed recipient privacy, no-admin-override, read-state persistence,
-> compose, and parallel HTTP checks. The latest shared wireframes include inbox
-> and compose; please add a message-detail screen and show the unread-to-read
-> transition. New case-duplicate account creation is now blocked on our account
-> side. Your model code was not changed; the acceptance fixture only seeds an
-> intentionally old ambiguous identity to retain the fail-closed regression test.
+Terminal editing remains a previous-assignment carry-over question, distinct
+from HW7 web editing. Each member must still confirm their own system test.
 
 ### All members
 

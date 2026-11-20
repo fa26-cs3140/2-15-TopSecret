@@ -388,4 +388,19 @@ class AppControllerTest {
         verifyNoInteractions(auditLog);
     }
 
+    @Test
+    void countryAndMissionReadPathsAuditTheirExistingRecordAndResolveRelationships() {
+        var country = new Country("France", 62, new Facility[0]);
+        when(facilityManager.getCountries()).thenReturn(List.of(country));
+        when(facilityManager.getCountry(62)).thenReturn(country);
+        when(missionManager.getRecords("id", "%")).thenReturn(List.of(
+                new Mission(7, "Recon", new int[0], new int[0], 1)));
+        assertEquals("62. France", controller.listRecords(RecordType.COUNTRY));
+        assertTrue(controller.readRecord(RecordType.COUNTRY, 62, standard).contains("France"));
+        assertTrue(controller.readRecord(RecordType.MISSION, 7, standard).contains("Recon"));
+        assertTrue(controller.relatedRecords(RecordType.COUNTRY, 62).isEmpty());
+        verify(auditLog).log("agent_7", "READ", "COUNTRY", "62");
+        verify(auditLog).log("agent_7", "READ", "MISSION", "7");
+    }
+
 }
