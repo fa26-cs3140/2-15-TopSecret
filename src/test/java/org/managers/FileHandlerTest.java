@@ -90,4 +90,12 @@ public class FileHandlerTest {
                 fileHandler.readFile("doesNotExist.txt")
         );
     }
+    @Test
+    void deleteFileRemovesOnlyTheNamedFileAndMissingFilesAreIdempotent() throws IOException {
+        assertTrue(fileHandler.deleteFile("file1.txt"));
+        assertFalse(Files.exists(testDirectory.resolve("file1.txt")));
+        assertTrue(Files.exists(testDirectory.resolve("file2.txt")));
+        assertTrue(fileHandler.deleteFile("file1.txt"));
+    }
+
 }
