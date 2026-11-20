@@ -19,10 +19,7 @@ public class PageHandler implements HttpHandler {
     private final EditHandler edits;
     private final MessageWebHandler messaging;
 
-    public PageHandler(AppController controller, SessionManager sessions) {
-        this(controller, sessions, null);
-    }
-
+    // messaging may be null, in which case /messages pages are not found.
     public PageHandler(AppController controller, SessionManager sessions, MessageWebHandler messaging) {
         if (controller == null || sessions == null) {
             throw new IllegalArgumentException("Arguments cannot be null.");
