@@ -23,6 +23,7 @@ public class WebServer {
     private final SessionManager sessions;
     private final int port;
     private HttpServer server;
+    private java.util.concurrent.ExecutorService requests;
     private final MessageWebHandler messaging;
 
     public WebServer(AppController controller, UserAccountManager accounts, SessionManager sessions, int port) {
@@ -64,6 +65,10 @@ public class WebServer {
             }
         };
         server.createContext("/", exchange -> handleSafely(exchange, navigation));
+        // Independent workers keep one unfinished form from blocking every other user.
+        requests = new java.util.concurrent.ThreadPoolExecutor(4, 8, 30,
+                java.util.concurrent.TimeUnit.SECONDS, new java.util.concurrent.ArrayBlockingQueue<>(64));
+        server.setExecutor(requests);
         server.start();
     }
 
@@ -123,6 +128,8 @@ public class WebServer {
         if (server != null) {
             server.stop(0);
             server = null;
+            requests.shutdownNow();
+            requests = null;
         }
     }
 
@@ -148,7 +155,11 @@ public class WebServer {
 
     // Reads and decodes an application/x-www-form-urlencoded request body.
     static Map<String, String> readForm(HttpExchange exchange) throws IOException {
-        return parseForm(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+        byte[] body = exchange.getRequestBody().readNBytes(65_537);
+        if (body.length > 65_536) {
+            throw new IllegalArgumentException("Form exceeds the 64 KiB limit.");
+        }
+        return parseForm(new String(body, StandardCharsets.UTF_8));
     }
 
     // "a=1&b=x+y" -> {a=1, b=x y}; pairs without '=' are ignored.

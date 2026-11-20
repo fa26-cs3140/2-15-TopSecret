@@ -95,6 +95,29 @@ class WebServerIntegrationTest {
     }
 
     @Test
+    void oneIncompleteLoginBodyDoesNotBlockAnotherVisitor() throws Exception {
+        try (var stalled = new java.net.Socket("localhost", TEST_PORT)) {
+            stalled.getOutputStream().write(("POST /login HTTP/1.1\r\nHost: localhost:" + TEST_PORT
+                    + "\r\nContent-Length: 100\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\nusername=p")
+                    .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            stalled.getOutputStream().flush();
+            HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + TEST_PORT + "/"))
+                    .timeout(java.time.Duration.ofSeconds(3)).GET().build();
+            assertEquals(200, client.send(request, HttpResponse.BodyHandlers.ofString()).statusCode());
+        }
+    }
+
+    @Test
+    void oversizedLoginFormIsRejectedWithoutAuthenticating() throws Exception {
+        var request = HttpRequest.newBuilder(URI.create("http://localhost:" + TEST_PORT + "/login"))
+                .POST(HttpRequest.BodyPublishers.ofString("username=" + "x".repeat(65_536))).build();
+        var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(400, response.statusCode());
+        assertTrue(response.headers().firstValue("Set-Cookie").isEmpty());
+        verify(accounts, never()).verifyLogin(anyString(), anyString());
+    }
+
+    @Test
     void rootShowsLoginForm() throws Exception {
         HttpResponse<String> response = get("/", null);
 
