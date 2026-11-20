@@ -27,18 +27,21 @@ public final class HtmlPage {
             .append("<title>Top Secret - ")
             .append(safeTitle)
             .append("</title>\n")
-            .append("<link rel=\"stylesheet\" href=\"/css/style.css\">\n")
+            //.append("<link rel=\"stylesheet\" href=\"/view/css/style.css>\n")
             .append("</head>\n<body>\n")
-            .append("<h1 class=\"topdown-on-load\">Top Secret</h1>\n");
+            .append("<h1>Top Secret</h1>\n");
 
         // Navbar (only available after login)
         if (loggedIn) {
             html.append("<nav aria-label=\"Main navigation\">\n")
-                .append("<a class=\"topdown-on-load\" href=\"/menu\">Menu</a> | ")
-                .append("<a class=\"topdown-on-load\" href=\"/briefs\">Briefs</a> | ")
-                .append("<a class=\"topdown-on-load\" href=\"/agents\">Agents</a> | ")
-                .append("<a class=\"topdown-on-load\" href=\"/facilities\">Facilities</a> | ")
-                .append("<a class=\"topdown-on-load\" href=\"/countries\">Countries</a>");
+                .append("<a href=\"/menu\">Menu</a> | ")
+                .append("<a href=\"/briefs\">Briefs</a> | ")
+                .append("<a href=\"/agents\">Agents</a> | ")
+                .append("<a href=\"/facilities\">Facilities</a> | ")
+                .append("<a href=\"/countries\">Countries</a> |")
+                .append("<a href=\"/facilities\">Facilities</a> | ")
+                .append("<a href=\"/missions\">Missions</a> | ")
+                .append("<a href=\"/messages\">Messages</a>");
 
             // TODO: add Missions when the controller supports it
 
@@ -79,7 +82,7 @@ public final class HtmlPage {
 
             String item = escape(lines[i]);
 
-            html.append("<li class = \"leftright-on-load\">");
+            html.append("<li>");
 
             if (isSafeInternalPath(href)) {
                 html.append("<a href=\"")

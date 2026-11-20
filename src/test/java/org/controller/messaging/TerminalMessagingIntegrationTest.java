@@ -28,24 +28,68 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 class TerminalMessagingIntegrationTest {
 
     @Test
-    void displayedOptionsSendMultilineAndDisplayInbox() {
+    void sendsMultilineMessageUsingOptionNine() {
         MessageService service = mock(MessageService.class);
-        when(service.getAgents()).thenReturn(List.of(new Agent(1, "Ghost", "1990-01-01", null, null, 1)));
-        Message message = new Message(1, "sender", 1, "Ghost", "line one\nline two", LocalDateTime.now());
-        when(service.sendMessage(1, message.getBody())).thenReturn(message);
-        when(service.getInbox()).thenReturn(List.of(message));
 
-        String output = run("9\n1\nline one\nline two\n.\n10\n0\n", service);
+        when(service.getAgents()).thenReturn(List.of(
+                new Agent(1, "Ghost", "1990-01-01", null, null, 1)
+        ));
 
-        assertTrue(output.contains("9. Send an agent message\n10. My messages"));
+        String body = "line one\nline two";
+
+        Message sent = new Message(
+                1, "sender", 1, "Ghost", body, LocalDateTime.now()
+        );
+
+        when(service.sendMessage(1, body)).thenReturn(sent);
+
+        String output = run("9\n1\nline one\nline two\n.\n0\n", service);
+
         assertTrue(output.contains("Message sent to Ghost"));
-        assertTrue(output.contains(message.getBody()));
-        verify(service).sendMessage(1, message.getBody());
+        verify(service).sendMessage(1, body);
+    }
+
+    @Test
+    void selectingMessageMarksItAsRead() {
+        MessageService service = mock(MessageService.class);
+
+        Message unread = new Message(
+                5,
+                "Ghost",
+                1,
+                "sender",
+                "Meet at HQ tomorrow",
+                LocalDateTime.now(),
+                false
+        );
+
+        Message read = new Message(
+                unread.getId(),
+                unread.getSenderUsername(),
+                unread.getRecipientAgentId(),
+                unread.getRecipientName(),
+                unread.getBody(),
+                unread.getSentAt(),
+                true
+        );
+
+        when(service.getInbox()).thenReturn(List.of(unread));
+        when(service.readMessage(5)).thenReturn(read);
+
+        // 10 = My Messages, 1 = first message, 0 = exit.
+        String output = run("10\n1\n0\n", service);
+
+        assertTrue(output.contains("[Unread]"));
+        assertTrue(output.contains("Meet at HQ tomorrow"));
+        assertTrue(output.contains("Status: Read"));
+
         verify(service).getInbox();
+        verify(service).readMessage(5);
     }
 
     @Test
@@ -80,5 +124,29 @@ class TerminalMessagingIntegrationTest {
         ui.enableMessaging(messages);
         ui.run();
         return output.toString();
+    }
+
+
+    @Test
+    void returningFromInboxDoesNotMarkMessagesAsRead() {
+        MessageService service = mock(MessageService.class);
+
+        Message unread = new Message(
+                5, "Ghost", 1, "sender",
+                "Secret message", LocalDateTime.now(), false
+        );
+
+        when(service.getInbox()).thenReturn(List.of(unread));
+
+        // Open inbox, immediately return, then exit application.
+        String output = run("10\n0\n0\n", service);
+
+        assertTrue(output.contains("[Unread]"));
+
+        // The message body should not be displayed yet.
+        assertFalse(output.contains("Secret message"));
+
+        // No message was opened.
+        verify(service, never()).readMessage(anyLong());
     }
 }
