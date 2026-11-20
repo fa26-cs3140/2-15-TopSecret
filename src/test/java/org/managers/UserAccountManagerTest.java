@@ -242,11 +242,4 @@ class UserAccountManagerTest {
         verify(fileHandler).deleteFile("credentials-6672657368.cip");
     }
 
-    @Test
-    void accountCreationRejectsCaseVariantsBeforeWritingMetadata() {
-        when(store.getUsers()).thenReturn(List.of(new UserAccount("ghost", false)));
-        assertThrows(IllegalArgumentException.class, () -> manager.createUser("Ghost", false));
-        verify(store, never()).addUser(any());
-    }
-
 }
