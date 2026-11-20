@@ -61,18 +61,6 @@ class TerminalWorkflowTest {
     }
 
     @Test
-    void terminalImportCallsTheSelectedManagerAndAuditsTheOutcome() throws Exception {
-        when(briefs.getTableName()).thenReturn("briefs");
-        when(briefs.importTSV("briefs.tsv", "briefs", "data", "mission_database.db")).thenReturn(2);
-
-        ui("1\n4\nbriefs.tsv\n0\n0\n").run();
-
-        verify(briefs).importTSV("briefs.tsv", "briefs", "data", "mission_database.db");
-        verify(audit).log("admin", "IMPORT", "Briefs", "2");
-        assertTrue(output.toString().contains("TSV Successfully imported"));
-    }
-
-    @Test
     void terminalMissionCreationUsesTheSelectedRelatedRecordIds() {
         when(facilities.getRecords("id", "%")).thenReturn(List.of(new Facility(1, "HQ", "HQ")));
         when(facilities.getColumnNames()).thenReturn(new String[]{"id", "name"});

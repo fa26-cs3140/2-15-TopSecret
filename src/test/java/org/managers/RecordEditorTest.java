@@ -74,6 +74,16 @@ class RecordEditorTest {
         verifyNoInteractions(store);
     }
 
+    @Test
+    void importsRequireAnAdministratorAndUseTheTransactionalBatchStore() {
+        var records = java.util.List.of(BRIEF);
+        assertThrows(SecurityException.class, () -> editor().importRecords(null, records));
+        assertThrows(SecurityException.class, () -> editor().importRecords(new UserAccount("agent", false), records));
+        verifyNoInteractions(store);
+        when(store.createAll(eq(records), any())).thenReturn(java.util.List.of(42));
+        assertEquals(java.util.List.of(42), editor().importRecords(ADMIN, records));
+    }
+
     private RecordEditor<Brief> editor() {
         return new RecordEditor<>(RecordType.BRIEF, store, Brief::getId, CLOCK);
     }

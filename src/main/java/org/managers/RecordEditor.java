@@ -7,6 +7,7 @@ import org.model.UserAccount;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.List;
 import java.util.function.ToIntFunction;
 
 /** Authorizes record changes requested by an authenticated controller. */
@@ -19,6 +20,9 @@ public final class RecordEditor<T> {
      */
     public interface Store<T> {
         int create(T record, AuditEvent auditEvent);
+
+        /** Imports every record and its audit entries atomically. */
+        List<Integer> createAll(List<T> records, AuditEvent auditEvent);
 
         boolean update(int id, T record, AuditEvent auditEvent);
     }
@@ -45,6 +49,11 @@ public final class RecordEditor<T> {
     public int create(UserAccount actor, T record) {
         AuditEvent event = authorize(actor, "CREATE");
         return store.create(Objects.requireNonNull(record), event);
+    }
+
+    public List<Integer> importRecords(UserAccount actor, List<T> records) {
+        AuditEvent event = authorize(actor, "CREATE");
+        return store.createAll(List.copyOf(records), event);
     }
 
     public boolean update(UserAccount actor, T record) {

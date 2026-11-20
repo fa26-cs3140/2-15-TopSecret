@@ -166,6 +166,13 @@ public class AppController {
         }
     }
 
+    public int importRecords(RecordType type, java.nio.file.Path path, UserAccount user)
+            throws java.io.IOException {
+        requireEditor(user);
+        List<Object> records = new org.managers.RecordImport().read(type, path);
+        return editor(type).importRecords(user, records).size();
+    }
+
     private RecordEditor<Object> editor(RecordType type) {
         return new RecordEditor<>(type, changes, record -> switch (record) {
             case Brief brief -> brief.getId();
