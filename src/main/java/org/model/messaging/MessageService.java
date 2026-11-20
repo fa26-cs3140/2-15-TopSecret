@@ -22,4 +22,7 @@ public interface MessageService {
      * case. No admin override; no UI-supplied recipient. Ordered oldest ID first.
      */
     List<Message> getInbox();
+
+    /** Opens a message belonging to the authenticated user and marks it as read. */
+    Message readMessage(long messageId);
 }
