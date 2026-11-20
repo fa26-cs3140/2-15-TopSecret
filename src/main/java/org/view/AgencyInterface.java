@@ -203,10 +203,50 @@ public class AgencyInterface {
         }
     }
 
+
     private void showMyMessages() {
-        if (messages == null) { invalidSelection(); return; }
-        try { messages.showInbox(); }
-        catch (IllegalStateException | IllegalArgumentException e) {
+        if (messages == null) {
+            invalidSelection();
+            return;
+        }
+
+        try {
+            // Display the inbox without marking messages as read
+            List<org.model.messaging.Message> inbox = messages.showInbox();
+
+            if (inbox.isEmpty()) {
+                return;
+            }
+
+            output.print("Enter message number (0 to return): ");
+
+            String input = readLine();
+
+            int selection;
+
+            try {
+                selection = Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                output.println("Invalid message number.");
+                return;
+            }
+
+            if (selection == 0) {
+                return;
+            }
+
+            if (selection < 1 || selection > inbox.size()) {
+                output.println("Invalid message number.");
+                return;
+            }
+
+            // Convert the displayed list number into the actual message ID.
+            long messageId = inbox.get(selection - 1).getId();
+
+            // Opening the message marks it as read in SQLite.
+            messages.readMessage(messageId);
+
+        } catch (IllegalStateException | IllegalArgumentException e) {
             output.println("Inbox unavailable. Please contact an administrator.");
         }
     }
