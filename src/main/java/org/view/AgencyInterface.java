@@ -402,8 +402,6 @@ public class AgencyInterface {
 
     private Boolean importRecords(RecordType type)
     {
-        // TODO: Log imports. Rewrite aManager to allow for dynamic parameters (only first two are
-        // guarenteed not null)
         output.println(this.SEPARATOR);
         output.print("Input path to file: ");
         String pathToTSV = readLine();

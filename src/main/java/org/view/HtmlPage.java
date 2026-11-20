@@ -29,6 +29,7 @@ public final class HtmlPage {
             .append("<title>Top Secret - ")
             .append(safeTitle)
             .append("</title>\n")
+            //.append("<link rel=\"stylesheet\" href=\"/view/css/style.css>\n")
             .append("</head>\n<body>\n")
             .append("<h1>Top Secret</h1>\n");
 
