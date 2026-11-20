@@ -72,16 +72,16 @@ public class AgentManager extends IDatabaseManager<Agent>
         try (Connection c = connect(); var statement = c.prepareStatement(sql)) {
             statement.setString(1, key);
             try (ResultSet rs = statement.executeQuery()) {
-            while (rs.next()) {
-                agents.add(new Agent(
-                            rs.getInt(this.columnNames[0]),
-                            rs.getString(this.columnNames[1]),
-                            rs.getString(this.columnNames[2]),
-                            rs.getString(this.columnNames[3]),
-                            rs.getString(this.columnNames[4]),
-                            rs.getInt(this.columnNames[5])
-                            ));
-            }
+                while (rs.next()) {
+                    agents.add(new Agent(
+                                rs.getInt(this.columnNames[0]),
+                                rs.getString(this.columnNames[1]),
+                                rs.getString(this.columnNames[2]),
+                                rs.getString(this.columnNames[3]),
+                                rs.getString(this.columnNames[4]),
+                                rs.getInt(this.columnNames[5])
+                                ));
+                }
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Unable to read agents.", e);

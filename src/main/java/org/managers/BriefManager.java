@@ -69,10 +69,10 @@ public class BriefManager extends IDatabaseManager<Brief>
         try (Connection c = connect(); var statement = c.prepareStatement(sql)) {
             statement.setString(1, key);
             try (ResultSet rs = statement.executeQuery()) {
-            while (rs.next()) {
-                briefs.add(new Brief(rs.getInt("id"), rs.getString("title"), rs.getString("date"),
-                        rs.getString("text"), (Integer) rs.getObject("mission_id")));
-            }
+                while (rs.next()) {
+                    briefs.add(new Brief(rs.getInt("id"), rs.getString("title"), rs.getString("date"),
+                            rs.getString("text"), (Integer) rs.getObject("mission_id")));
+                }
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Unable to read briefs.", e);
