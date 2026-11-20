@@ -42,6 +42,19 @@ public final class SqliteMessageStore implements MessageStore {
             ORDER BY id
             """;
 
+
+    private static final String MARK_AS_READ = """
+            UPDATE agent_messages
+            SET is_read = 1
+            WHERE id = ? AND recipient_name = ? COLLATE NOCASE
+            """;
+
+    private static final String SELECT_MESSAGE = """
+            SELECT *
+            FROM agent_messages
+            WHERE id = ? AND recipient_name = ? COLLATE NOCASE
+            """;
+
     private final String url;
 
     public SqliteMessageStore(String url) {
@@ -70,6 +83,10 @@ public final class SqliteMessageStore implements MessageStore {
                     statement.execute(sql);
             }
 
+            // Check whether is_read column exists
+            // If not, SQLite adds and marks existing messages as unread by default
+            migrateReadStatus(connection);
+
         } catch (java.io.IOException | SQLException e) {
             throw new IllegalStateException("Cannot initialize messages.", e);
         }
@@ -88,6 +105,34 @@ public final class SqliteMessageStore implements MessageStore {
 
         return connection;
     }
+
+
+    /** Helper: Adds the read-status column to databases (created before HW 7) */
+    private void migrateReadStatus(Connection connection) throws SQLException {
+        boolean columnExists = false;
+
+        try (Statement statement = connection.createStatement();
+             ResultSet columns = statement.executeQuery("PRAGMA table_info(agent_messages)")) {
+
+            while (columns.next()) {
+                if ("is_read".equalsIgnoreCase(columns.getString("name"))) {
+                    columnExists = true;
+                    break;
+                }
+            }
+        }
+
+        if (!columnExists) {
+            try (Statement statement = connection.createStatement()) {
+                statement.execute("""
+                    ALTER TABLE agent_messages
+                    ADD COLUMN is_read INTEGER NOT NULL DEFAULT 0
+                    CHECK(is_read IN (0, 1))
+                    """);
+            }
+        }
+    }
+
     @Override
     public Message save (Message message) {
         if (message == null || message.getId() != 0)
