@@ -67,6 +67,14 @@ public class ProgramControl {
         // The database will now just be called "mission_database"
         // and it will contain a table for all mission information
         // Information in the database should be ciphered
+        
+        // Do not run the program, just display a help menu.
+        if (args[0] == "-h")
+        {
+            String text = this.fileHandler.readFile("data/help.txt");
+            System.out.println(text);
+            return;
+        }
 
         // Ensure that the file already exists, if not create it.
         if (!this.getAvailableFiles().contains(databaseFile))
