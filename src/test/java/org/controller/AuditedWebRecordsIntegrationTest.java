@@ -304,6 +304,56 @@ class AuditedWebRecordsIntegrationTest {
         }
     }
 
+    @Test
+    void failedAssignmentReadsReturn503WithoutOfferingAnEmptyEditForm() throws Exception {
+        int facility = create("facilities", Map.of("name", "HQ", "abbreviation", "HQ", "countryId", "1"));
+        int brief = create("briefs", Map.of("title", "Notes", "date", "2020-01-01", "text", "Text"));
+        int agent = create("agents", Map.of("name", "ghost", "dateOfBirth", "1990-01-01",
+                "facilityId", String.valueOf(facility)));
+        int mission = create("missions", Map.of("title", "Recon", "facilityId", String.valueOf(facility),
+                "briefIds", String.valueOf(brief), "agentIds", String.valueOf(agent)));
+        for (String table : java.util.List.of("j_mission_briefs", "j_mission_agents", "missions")) {
+            try (var connection = DriverManager.getConnection(url); var statement = connection.createStatement()) {
+                statement.execute("ALTER TABLE " + table + " RENAME TO unavailable_table");
+            }
+            try {
+                var response = get("/missions/" + mission + "/edit", cookie);
+                assertEquals(503, response.statusCode());
+                assertFalse(response.body().contains("<form"));
+                assertEquals(503, post("/missions/" + mission + "/edit", Map.of("title", "Changed",
+                        "facilityId", String.valueOf(facility)), cookie).statusCode());
+            } finally {
+                try (var connection = DriverManager.getConnection(url); var statement = connection.createStatement()) {
+                    statement.execute("ALTER TABLE unavailable_table RENAME TO " + table);
+                }
+            }
+        }
+        var saved = new MissionManager(url).getRecords("id", String.valueOf(mission)).getFirst();
+        assertArrayEquals(new int[]{brief}, saved.getBriefIds());
+        assertArrayEquals(new int[]{agent}, saved.getAgentIds());
+        assertEquals("Recon", saved.getTitle());
+    }
+
+    @Test
+    void createUpdateAndReadAuditTimesUseUtcRegardlessOfLocalTimeZone() throws Exception {
+        java.util.TimeZone original = java.util.TimeZone.getDefault();
+        java.time.LocalDateTime before = java.time.LocalDateTime.now(java.time.ZoneOffset.UTC).minusSeconds(1);
+        try {
+            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("America/New_York"));
+            int country = create("countries", Map.of("name", "Clock test"));
+            edit("countries", country, Map.of("name", "Updated clock test"));
+            assertEquals(200, get("/countries/" + country, cookie).statusCode());
+        } finally {
+            java.util.TimeZone.setDefault(original);
+        }
+        java.time.LocalDateTime after = java.time.LocalDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(1);
+        var entries = audit.getAuditLog();
+        assertEquals(java.util.List.of("CREATE", "UPDATE", "READ"),
+                entries.stream().map(org.model.AuditLogEntry::getAction).toList());
+        assertTrue(entries.stream().allMatch(entry -> !entry.getTimestamp().isBefore(before)
+                && !entry.getTimestamp().isAfter(after)));
+    }
+
     private String login(String username, String password) throws Exception {
         HttpResponse<String> response = post("/login", Map.of("username", username, "password", password), null);
         assertEquals(303, response.statusCode());
