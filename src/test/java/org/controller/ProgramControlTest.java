@@ -26,7 +26,8 @@ public class ProgramControlTest {
                 mock(AgentManager.class),
                 mock(FacilityManager.class),
                 mock(AuditLogManager.class),
-                mock(UserAccountManager.class)
+                mock(UserAccountManager.class),
+                mock(MissionManager.class)
         );
     }
 
@@ -134,7 +135,41 @@ public class ProgramControlTest {
 
     private ProgramControl controlWithAccounts(UserAccountManager accounts) {
         return new ProgramControl(mock(FileHandler.class), mock(BriefManager.class), mock(AgentManager.class),
-                mock(FacilityManager.class), mock(AuditLogManager.class), accounts);
+                mock(FacilityManager.class), mock(AuditLogManager.class), accounts, mock(MissionManager.class));
+    }
+
+    @Test
+    void loadTestDataImportsOnlyEmptyTables() throws Exception {
+        BriefManager briefs = mock(BriefManager.class);
+        AgentManager agents = mock(AgentManager.class);
+        FacilityManager facilities = mock(FacilityManager.class);
+        when(briefs.getRecords("id", "%")).thenReturn(List.of(mock(org.model.Brief.class)));
+        when(agents.getRecords("id", "%")).thenReturn(List.of());
+        when(facilities.getRecords("id", "%")).thenReturn(List.of());
+        when(agents.getTableName()).thenReturn("agents");
+        when(facilities.getTableName()).thenReturn("facilities");
+
+        new ProgramControl(mock(FileHandler.class), briefs, agents, facilities, mock(AuditLogManager.class),
+                mock(UserAccountManager.class), mock(MissionManager.class)).loadTestData();
+
+        org.mockito.InOrder order = inOrder(facilities, agents);
+        order.verify(facilities).importTSV("data/facilities.tsv", "facilities", "data", "mission_database.db");
+        order.verify(agents).importTSV("data/agents.tsv", "agents", "data", "mission_database.db");
+        verify(briefs, never()).importTSV(anyString(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void loadTestDataKeepsGoingWhenOneImportFails() throws Exception {
+        BriefManager briefs = mock(BriefManager.class);
+        AgentManager agents = mock(AgentManager.class);
+        when(agents.getRecords("id", "%")).thenReturn(List.of());
+        when(briefs.getRecords("id", "%")).thenReturn(List.of());
+        when(agents.importTSV(anyString(), any(), anyString(), anyString())).thenThrow(new java.io.IOException("missing"));
+
+        new ProgramControl(mock(FileHandler.class), briefs, agents, mock(FacilityManager.class), mock(AuditLogManager.class),
+                mock(UserAccountManager.class), mock(MissionManager.class)).loadTestData();
+
+        verify(briefs).importTSV(eq("data/briefs.tsv"), any(), eq("data"), eq("mission_database.db"));
     }
 
     @Test
@@ -155,5 +190,27 @@ public class ProgramControlTest {
         assertNotNull(server);
         assertEquals(3013, server.getPort());
         server.stop();
+    }
+
+    @Test
+    void runPreparesDatabaseAndStopsWhenWebViewCannotStart() throws Exception {
+        FileHandler files = mock(FileHandler.class);
+        FacilityManager facilities = mock(FacilityManager.class);
+        MissionManager missions = mock(MissionManager.class);
+        UserAccountManager accounts = mock(UserAccountManager.class);
+        when(files.getAvailableFiles()).thenReturn(List.of());
+        when(accounts.hasUsers()).thenReturn(false);
+
+        new ProgramControl(files, mock(BriefManager.class), mock(AgentManager.class), facilities,
+                mock(AuditLogManager.class), accounts, missions).run(new String[]{"-web"});
+
+        verify(files).writeFile("mission_database.db", "");
+        verify(missions).createTable();
+        verify(facilities).importTSV(eq("data/facilities.tsv"), any(), eq("data"), eq("mission_database.db"));
+    }
+
+    @Test
+    void defaultConstructorUsesRepositoryData() {
+        assertDoesNotThrow(() -> new ProgramControl());
     }
 }

@@ -1,236 +1,81 @@
 # Top Secret
 
-Top Secret is a Java command-line application for managing and searching classified mission briefs. The application imports mission data from a tab-separated values (TSV) file into SQLite, provides an interactive terminal menu for viewing and searching briefs, and includes reusable file, cipher, and credential-management components.
+UVA CS 3140 team application with a terminal interface and an authenticated HTML view with administrator record editing.
 
-## Features
+## Build and run
 
-- List all available mission briefs.
-- Browse and read briefs, agents, and facilities through the interactive menu.
-- Allow administrators to add briefs, agents, and facilities.
-- Restrict record creation and audit-log review to administrator accounts.
-- Record read and create operations in a persistent audit log.
-- Store user account metadata in SQLite and store each user's encrypted password separately.
-- Import tabular mission data into SQLite when the database is initialized.
-- Read and decipher encrypted data files using character mappings from `data/key.txt`.
-- Create users, authenticate users, and change passwords through the account-management layer.
-- Run unit tests, integration tests, and JaCoCo coverage reports with Gradle.
+Use the checked-in Gradle wrapper with a compatible Java installation:
 
-## Technology
-
-- Java
-- Gradle 9.6
-- SQLite
-- SQLite JDBC driver
-- JUnit 6
-- Mockito
-
-## Project Structure
-
-```text
-.
-├── data/                         Runtime data files
-│   ├── mission_briefs.tsv        Source mission data
-│   ├── mission_briefs.db         SQLite database
-│   ├── key.txt                   Cipher character mappings
-│   ├── *.txt                     Plaintext sample data
-│   └── *.cip                     Encrypted credential/data files
-├── docs/                         Design notes, schemas, plans, and UML artifacts
-├── src/main/java/org/example/    Application and persistence services
-├── src/main/java/org/model/      Brief, agent, facility, and mission models
-├── src/test/java/org/example/    Unit and integration tests
-├── build.gradle.kts              Gradle build configuration
-├── gradlew                       Gradle wrapper for Unix-like systems
-└── gradlew.bat                   Gradle wrapper for Windows
+```sh
+./gradlew test
+./gradlew build
+java -jar build/libs/TopSecret.jar
 ```
 
-## Architecture
+Run from the repository root so the application can find `data/key.txt` and its
+SQLite database. The terminal prompts to create the first administrator account
+when no accounts exist; otherwise it prompts for login. `--change-password`
+opens password change after authentication.
 
-The application starts in `TopSecret`, initializes persistence and authentication services, and launches `UserInterface` for the authenticated user.
-
-| Component | Responsibility |
-| --- | --- |
-| `TopSecret` | Application entry point and startup orchestration |
-| `ProgramControl` | Initializes the database, account services, and application flow |
-| `UserInterface` | Authenticated interactive menu for briefs, agents, facilities, and audit logs |
-| `AgencyDataService` | Data-access contract for retrieving and creating agency records |
-| `DatabaseManager` | SQLite persistence for briefs, agents, and facilities |
-| `UserAccountManager` | Validates users, authenticates accounts, and manages encrypted passwords |
-| `UserAccountStore` / `SqliteUserAccountStore` | Persist and retrieve account metadata |
-| `AuditLogManager` | Validates and records content operations |
-| `AuditLogStore` / `SqliteAuditLogStore` | Persist and retrieve audit entries |
-| `MissionSearch` | Provides mission-text search support |
-| `SearchResult` | Carries search matches and status messages |
-| `FileHandler` | Reads, writes, and lists files under the data directory |
-| `CipherKey` | Validates and stores substitution-cipher mappings |
-| `Cipher` | Encrypts and decrypts text using a `CipherKey` |
-| `CredentialManager` | Defines the credential-management contract |
-| `CredentialManagerLibrary` | Stores and verifies encrypted credentials |
-| `DebugHelper` | Provides lightweight diagnostic output |
-
-## Data Model
-
-The SQLite database now supports agency records, user accounts, and audit events:
-
-```sql
-facilities (
-    id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    abbreviation TEXT NOT NULL
-)
-
-agents (
-    id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    date_of_birth TEXT NOT NULL,
-    date_of_death TEXT,
-    notes TEXT,
-    facility_id INTEGER NOT NULL REFERENCES facilities(id)
-)
-
-briefs (
-    id INTEGER PRIMARY KEY,
-    title TEXT NOT NULL,
-    date TEXT NOT NULL,
-    text TEXT NOT NULL,
-    mission_id INTEGER UNIQUE
-)
-```
-
-The `Agent`, `Brief`, `Facility`, and `Mission` classes in `src/main/java/org/model/` represent database records in the application layer. User passwords are not stored in SQLite; each account uses a separate ciphered credential file.
-
-Audit entries record the username, action, content type, content identifier, and timestamp for operations such as reading or creating records.
-
-## User Roles and Menu
-
-After authentication, users can:
-
-- List and read briefs, agents, and facilities.
-- Add records when they are administrators.
-- Review the audit log when they are administrators.
-- Exit the application.
-
-The UI uses record IDs when reading or creating records. Agents reference an existing facility, and model validation occurs before records are inserted into SQLite.
-
-## Requirements
-
-- Java 17 or newer
-- A shell capable of running the Gradle wrapper
-
-The Gradle wrapper downloads the configured Gradle distribution and project dependencies as needed.
-
-## Build and Run
-
-From the project root, make the Gradle wrapper executable if necessary:
-
-```bash
-chmod +x gradlew
-```
-
-Run the application with:
-
-```bash
-./gradlew run
-```
-
-The current interactive menu provides:
-
-```text
-1. Briefs
-2. Agents
-3. Facilities
-4. Review audit log       (administrators only)
-5. Change password
-0. Exit
-```
-
-To change your password right after logging in, pass the `--change-password` option:
-
-```bash
-./gradlew run --args="--change-password"
-```
-
-### Web view
-
-Start the read-only web view instead of the terminal menu with the `-web` option:
-
-```bash
-./gradlew run --args="-web"
-```
-
-or, from the packaged jar:
-
-```bash
+```sh
 java -jar build/libs/TopSecret.jar -web
 ```
 
-Then open http://localhost:3002/ and log in. The first account must be created in the terminal; the web view does not start until an account exists. The login sets a session cookie that is cleared when the browser closes. Pages: `/menu`, `/briefs`, `/briefs/{id}`, `/agents`, `/agents/{id}`, `/facilities`, `/facilities/{id}`, `/audit` (admins only), and `/logout`.
+The web view listens at http://localhost:3002/. Accounts must already exist.
+The browser login uses session cookies. The server expires a token after 30
+minutes of inactivity and refreshes activity on an authenticated request.
+Administrators can create and edit records over the web. Each content change and
+its audit entry commit together. Detail pages link to related agency records. Countries are listed at /countries
+and terminal option 13. Facilities require a Country ID selected from that list.
+Country names can be edited and appear dynamically at related facilities.
+Existing facilities keep their data during migration and remain unassigned
+until a user selects a country.
 
-To build the application:
+To administer the running server from the terminal, start both in one process:
 
-```bash
-./gradlew build
+```sh
+java -jar build/libs/TopSecret.jar -web-admin
 ```
 
-The packaged application can be generated with:
+After terminal login, option 11 searches agency records. Administrators can use
+option 12 to list active web tokens and revoke one. The server stops when this
+terminal exits.
 
-```bash
-./gradlew jar
+## Agent messaging
+
+After terminal login, choose **9. Send an agent message**, select an existing agent
+by ID, and write the message. A line containing `.` sends; `/cancel` cancels.
+Choose **10. My messages** to view messages addressed to your username, matched
+case-insensitively to the selected agent's name. No admin privileges are needed,
+and admin status does not grant access to another user's inbox.
+
+Messages may be sent before the recipient account exists. For example, a message
+to agent Ghost becomes visible when the `ghost` account is created and logs in.
+On startup, the app attempts to load the sample TSVs into empty tables.
+
+## Source layout
+
+- `org.runtime`: application entry point (`TopSecret`).
+- `org.controller`: startup, authentication/session navigation and web controllers.
+- `org.managers`: shared database and account/audit services.
+- `org.model`: data models; `org.model.messaging` contains message storage/service.
+- `org.view`: terminal and HTML views.
+- `src/test/java/org`: unit and integration tests matching the active packages.
+
+## Verification
+
+```sh
+./gradlew test unitTest integrationTest jacocoTestReport jacocoUnitTestReport build
 ```
 
-## Testing
+The complete suite runs with `test`. The `unitTest` and `integrationTest`
+tasks also run separately. See the [Team D verification notes](docs/team-d/VERIFICATION.md)
+for the Homework 7 test results and remaining shared dependencies.
 
-Run the full test suite with:
+## Documentation
 
-```bash
-./gradlew test
-```
-
-Run isolated unit tests and persistence/cross-component integration tests separately:
-
-```bash
-./gradlew unitTest
-./gradlew integrationTest
-```
-
-Generate JaCoCo coverage reports with:
-
-```bash
-./gradlew jacocoTestReport
-./gradlew jacocoUnitTestReport
-```
-
-Tests cover cipher and key validation, file handling, account management, audit logging, database operations, model validation, program startup, and UI behavior.
-
-## Cipher and Credential Files
-
-`data/key.txt` contains two character-mapping lines:
-
-1. The original character set.
-2. The corresponding encrypted character set.
-
-Both lines must have the same length, and characters must be unique within each line. `CredentialManagerLibrary` uses the cipher for the legacy credential flow, while `UserAccountManager` writes per-user files named from the username's encoded bytes.
-
-These files contain application data for local development and testing. Do not use real passwords or sensitive credentials in the repository.
-
-## Documentation and UML
-
-The `docs/` directory contains:
-
-- Class design notes and UML text files.
-- Database and audit-log schemas.
-- User-account, data-model, and UML artifacts.
-- Homework work plans and test plans.
-
-The project-wide visual UML diagram is available at [`docs/UML Diagram.png`](docs/UML%20Diagram.png). Text UML and ERD descriptions are also available in `docs/`.
-
-The Java source and the documentation files should be kept in sync when class responsibilities or data flows change.
-
-## Team
-
-The project documentation identifies the following responsibilities:
-
-- Zaid Member A
-- Dillon Member B
-- Mike Ly Member C
-- Vrisag Desinani Member D
-- Credential-management ownership is documented as pending assignment in `docs/team.txt`
+See the [documentation index](docs/README.md) for current component references.
+[Team D documentation](docs/team-d/README.md) includes messaging, account/audit
+schemas, the prioritized backlog, test evidence, and current design diagrams.
+Older Team D plans and duplicate diagrams were removed; Git retains their history.
+Shared component documentation remains subject to its owners' refactor review.

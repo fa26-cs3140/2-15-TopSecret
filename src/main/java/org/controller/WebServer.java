@@ -1,15 +1,19 @@
 package org.controller;
 
 import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.managers.UserAccountManager;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
-// HTTP server for the read-only web view, started with the -web switch.
+// HTTP server for authenticated record viewing and editing.
 public class WebServer {
 
     public static final int DEFAULT_PORT = 3002;
@@ -19,15 +23,22 @@ public class WebServer {
     private final SessionManager sessions;
     private final int port;
     private HttpServer server;
+    private final MessageWebHandler messaging;
 
     public WebServer(AppController controller, UserAccountManager accounts, SessionManager sessions, int port) {
+        this(controller, accounts, sessions, port, null);
+    }
+
+    public WebServer(AppController controller, UserAccountManager accounts, SessionManager sessions, int port, MessageWebHandler messaging) {
         if (controller == null || accounts == null || sessions == null) {
             throw new IllegalArgumentException("Arguments cannot be null.");
         }
+
         this.controller = controller;
         this.accounts = accounts;
         this.sessions = sessions;
         this.port = port;
+        this.messaging = messaging;
     }
 
     // Serves the login form at / and /login and every other page through PageHandler.
@@ -37,18 +48,39 @@ public class WebServer {
             throw new IllegalStateException("No user accounts exist. Create the first account in the terminal.");
         }
         LoginHandler login = new LoginHandler(accounts, sessions);
-        PageHandler pages = new PageHandler(controller, sessions);
+        PageHandler pages = new PageHandler(controller, sessions, messaging);
 
         server = HttpServer.create(new InetSocketAddress(port), 0);
-        server.createContext("/login", login);
-        server.createContext("/", exchange -> {
+        server.createContext("/login", exchange -> handleSafely(exchange, login));
+        HttpHandler navigation = exchange -> {
             if (exchange.getRequestURI().getPath().equals("/")) {
                 login.handle(exchange);
             } else {
                 pages.handle(exchange);
             }
-        });
+        };
+        server.createContext("/", exchange -> handleSafely(exchange, navigation));
         server.start();
+    }
+
+    private static void handleSafely(HttpExchange exchange, HttpHandler handler) throws IOException {
+        try {
+            if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                String origin = exchange.getRequestHeaders().getFirst("Origin");
+                String site = exchange.getRequestHeaders().getFirst("Sec-Fetch-Site");
+                String expectedOrigin = "http://" + exchange.getRequestHeaders().getFirst("Host");
+                if ("cross-site".equalsIgnoreCase(site)
+                        || (origin != null && !origin.equalsIgnoreCase(expectedOrigin))) {
+                    send(exchange, 403, "<p>Cross-origin form submissions are not allowed.</p>");
+                    return;
+                }
+            }
+            handler.handle(exchange);
+        } catch (IllegalArgumentException malformed) {
+            send(exchange, 400, "<p>Invalid request data.</p>");
+        } catch (IllegalStateException unavailable) {
+            send(exchange, 503, "<p>The requested data is temporarily unavailable.</p>");
+        }
     }
 
     public void stop() {
@@ -59,7 +91,7 @@ public class WebServer {
     }
 
     public int getPort() {
-        return port;
+        return server == null ? port : server.getAddress().getPort();
     }
 
     static void send(HttpExchange exchange, int status, String html) throws IOException {
@@ -76,5 +108,23 @@ public class WebServer {
         exchange.getResponseHeaders().set("Location", location);
         exchange.sendResponseHeaders(303, -1);
         exchange.close();
+    }
+
+    // Reads and decodes an application/x-www-form-urlencoded request body.
+    static Map<String, String> readForm(HttpExchange exchange) throws IOException {
+        return parseForm(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+    }
+
+    // "a=1&b=x+y" -> {a=1, b=x y}; pairs without '=' are ignored.
+    static Map<String, String> parseForm(String body) {
+        Map<String, String> values = new HashMap<>();
+        for (String pair : body.split("&")) {
+            String[] parts = pair.split("=", 2);
+            if (parts.length == 2) {
+                values.put(URLDecoder.decode(parts[0], StandardCharsets.UTF_8),
+                        URLDecoder.decode(parts[1], StandardCharsets.UTF_8));
+            }
+        }
+        return values;
     }
 }

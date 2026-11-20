@@ -1,0 +1,128 @@
+HW7 Team Member B (Control) - Work Plan
+=======================================
+
+Role: the editing workflow. Administrators can create and edit records in the web view.
+A new record starts from an empty form with fields for its type; editing starts from a
+form filled with the record's current values. Styling comes from Team A's CSS. Users and
+account details are still managed only in the terminal.
+
+Branch: work happens on short branches cut from NewDatabaseManagerRefactor and merged back
+through pull requests into NewDatabaseManagerRefactor (never straight into main).
+
+
+1. Design
+---------
+
+URLs (all require a valid session; all editing requires admin):
+
+  GET  /<type>/new         empty form for a new record
+  POST /<type>/new         create the record, then 303 redirect to /<type>/<id>
+  GET  /<type>/<id>/edit   form filled with the record's current values
+  POST /<type>/<id>/edit   update the record, then 303 redirect to /<type>/<id>
+
+  <type> is briefs, agents, facilities, missions (and countries once Team A adds them).
+  Non-admins get 403 "Access denied". An unknown type or ID gets 404.
+  Invalid input re-shows the same form with an error message and the values the user
+  typed, so nothing is lost (status 200, no redirect).
+
+Classes:
+
+  org.controller.EditHandler   (new) parses edit URLs and runs the GET/POST workflow.
+                               PageHandler hands it any /new or /<id>/edit request after
+                               the session check, so login handling stays in one place.
+  org.controller.RecordForms   (new) lists the form fields for each record type.
+  org.controller.AppController (extended) shared control logic for the web and terminal:
+                                 canEdit(user)
+                                 formValues(type, id)          current values for the edit form
+                                 createRecord(type, values, user)  validates, saves, logs CREATE
+                                 updateRecord(type, id, values, user)  validates, saves, logs UPDATE
+  org.view.FormField           (new) one form input: name, label, kind, required.
+  org.view.FormView            (new) renders a form as plain HTML. Team A's CSS styles it;
+                               no inline styles and no JavaScript.
+
+Edit and create links: list pages get a "New <type>" link and detail pages get an "Edit"
+link, shown only to admins.
+
+
+2. Dependencies on other roles
+------------------------------
+
+  Team D (model/data): create and update functions for every type, and the audit log
+    capturing every change. B calls those functions from AppController instead of writing
+    SQL. Needed by mid week 2.
+  Team A (view): CSS for forms and the page menu; the Country type. When Country exists,
+    the facility form gains a country field (countryId) and RecordForms adds countries.
+  Team D (access control): the 30-minute sliding session timeout and session listing touch
+    SessionManager, which B wrote in HW6. B reviews those changes; D owns the feature.
+
+
+3. Week 1 (this commit set)
+---------------------------
+
+  - This work plan, backlog and refactoring list.
+  - Stubs: EditHandler, RecordForms, FormField, FormView, and the new AppController methods.
+    Stubs throw UnsupportedOperationException until week 2, except where the logic is
+    trivial (form field lists, URL parsing, the admin check), which is done now.
+  - Tests: passing tests for the finished pieces, and drafted week 2 tests marked
+    @Disabled so the shared build stays green.
+  - Class diagram updated with the new classes.
+
+
+4. Week 2
+---------
+
+  - Implement FormView, AppController create/update/formValues, EditHandler.
+  - Wire EditHandler into PageHandler; add New/Edit links for admins.
+  - Remove @Disabled from the drafted tests; reach 100% method coverage on B's classes.
+  - Refactoring items below.
+  - Final class diagram and a system test from a fresh clone.
+
+  Status (end of week 2): all of the above done. Every B class has 100% method coverage.
+  Backlog items 3 and 5 were fixed here because web editing depends on them:
+    - IDatabaseManager.update now binds values; every manager's updateRecord uses one shared,
+      injection-safe updateColumn (column names checked against getColumnNames()).
+    - MissionManager accepts missions with no briefs or agents, and replaceAssignments lets an
+      edited mission change its briefs and agents in one transaction.
+  Refactoring items 1, 2, 3 and 5 are done (PageHandler routes split, one lookup per record type,
+  form parsing moved to WebServer, AppController rejects a null MissionManager).
+  Items 4 and 6 (ProgramControl.run split, old cipher code) remain; run() is now covered by a test.
+  When Team A adds countries (RecordType.COUNTRY), RecordForms and AppController need a COUNTRY case;
+  the compiler will flag every switch that needs one.
+
+
+5. Backlog from team code review
+--------------------------------
+
+Open bugs and gaps found by testing the HW6 submission (owner in brackets):
+
+  1. [D/C] Main menu options 9 and 10 are swapped: "9. Send an agent message" opens the
+     inbox and "10. My messages" sends a message.
+  2. [A/C] No way to edit records in the terminal (HW6 requirement).
+  3. [Model] Adding a mission with zero briefs fails ("For input string") although a
+     mission may have zero or more briefs.
+  4. [Model] Debug output ("[insert]: Added breifId ...") prints in the normal terminal.
+  5. [Model] Every manager's updateRecord pastes values straight into the SQL string, so a
+     quote in user input breaks the query and allows SQL injection. Web editing sends user
+     input through this path, so it must use prepared statements first. (Blocks B week 2.)
+  6. [Docs] HW6 ERD PDF missing; docs/mission_database_schema.txt describes an old table.
+  7. [Docs] Checklist item 4: remove documentation for previous versions from docs/
+     (HW5 PDF, old *-uml.txt files, HW6 PDFs once HW7 versions exist). B removes its own
+     HW6 work plan and controller notes in this commit set.
+  8. [Team] Stray test.txt in the repository root.
+
+
+6. Refactoring (B's code), in priority order
+--------------------------------------------
+
+  1. PageHandler.handle is one long method. Split it into small route methods (menu, audit,
+     list, detail) so edit routes can be added cleanly and each route is testable.
+  2. AppController repeats getRecords("id", "%").stream().filter(id) for every type. Use
+     one lookup helper (or a getRecord(id) from the managers if Team D adds one).
+  3. LoginHandler.parseForm is used by login and will be used by EditHandler. Move it to
+     WebServer next to send() and redirect().
+  4. ProgramControl.run is long and mostly untested (50% line coverage). Split account
+     creation and login into their own methods and test them.
+  5. Null checks: AppController and ProgramControl constructors accept a null
+     MissionManager. Reject it like the other managers.
+  6. ProgramControl still has a "TODO: Figure out how cipher works" comment and HW4-era
+     getFileContents methods; remove what is no longer used.

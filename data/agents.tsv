@@ -1,11 +1,11 @@
-Name    Date
-Vanguard	June 14, 1985
-Ghost	November 22, 1992
-Mirage	March 03, 1988
-Cinder	September 12, 1995
-Falcon	January 30, 1982
-Siren	July 19, 1990
-Echo	May 05, 1987
-Wraith	December 08, 1993
-Oracle	October 25, 1984
-Jackal	February 11, 1991
+Name	DateOfBirth	DateOfDeath	Notes	FacilityID
+Vanguard	1985-06-14			1
+Ghost	1992-11-22			2
+Mirage	1988-03-03			3
+Cinder	1995-09-12			4
+Falcon	1982-01-30			5
+Siren	1990-07-19			6
+Echo	1987-05-05			1
+Wraith	1993-12-08			2
+Oracle	1984-10-25			3
+Jackal	1991-02-11			4
