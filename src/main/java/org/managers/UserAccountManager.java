@@ -83,7 +83,8 @@ public class UserAccountManager implements CredentialManager {
         if (!isValidUsername(username)) {
             throw new IllegalArgumentException("Invalid username.");
         }
-        if (accountStore.getUser(username) != null) {
+        if (accountStore.getUser(username) != null || accountStore.getUsers().stream()
+                .anyMatch(account -> account.getUsername().equalsIgnoreCase(username))) {
             throw new IllegalArgumentException("Username already exists.");
         }
 
@@ -116,11 +117,19 @@ public class UserAccountManager implements CredentialManager {
             throw new IllegalArgumentException("Invalid password.");
         }
 
-        UserAccount account = createUser(username, true);
+        if (!isValidUsername(username)) {
+            throw new IllegalArgumentException("Invalid username.");
+        }
         if (!writePassword(username, password)) {
+            fileHandler.deleteFile(credentialFile(username));
             throw new IllegalStateException("Unable to save password.");
         }
-        return account;
+        try {
+            return createUser(username, true);
+        } catch (RuntimeException failure) {
+            fileHandler.deleteFile(credentialFile(username));
+            throw failure;
+        }
     }
 
     public UserAccount getUser(String username) {

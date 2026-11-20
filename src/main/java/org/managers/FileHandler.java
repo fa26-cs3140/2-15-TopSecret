@@ -103,4 +103,14 @@ public class FileHandler {
         }
 
     }
+    /** Removes an incomplete credential file during account-creation rollback. */
+    public boolean deleteFile(String filename) {
+        try {
+            java.nio.file.Files.deleteIfExists(new File(dataDirectory, filename).toPath());
+            return true;
+        } catch (IOException failure) {
+            return false;
+        }
+    }
+
 }

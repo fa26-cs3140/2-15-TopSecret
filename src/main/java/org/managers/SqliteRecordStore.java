@@ -12,6 +12,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 /** Saves a complete content record and its audit entry in one SQLite transaction. */
@@ -26,6 +28,40 @@ public final class SqliteRecordStore implements RecordEditor.Store<Object> {
     @Override
     public int create(Object record, RecordEditor.AuditEvent event) {
         return save(0, record, event);
+    }
+
+    @Override
+    public List<Integer> createAll(List<Object> records, RecordEditor.AuditEvent event) {
+        if (records.isEmpty()) {
+            return List.of();
+        }
+        try (Connection connection = DriverManager.getConnection(url)) {
+            try (var statement = connection.createStatement()) {
+                statement.execute("PRAGMA foreign_keys = ON");
+                statement.execute("PRAGMA busy_timeout = 5000");
+            }
+            connection.setAutoCommit(false);
+            try {
+                List<Integer> ids = new ArrayList<>();
+                for (Object record : records) {
+                    int id = write(connection, 0, record);
+                    if (record instanceof Mission mission) {
+                        assignments(connection, id, mission);
+                    }
+                    audit(connection, id, event);
+                    ids.add(id);
+                }
+                audit(connection, ids.size(), new RecordEditor.AuditEvent(event.username(), "IMPORT",
+                        event.type(), event.timestamp()));
+                connection.commit();
+                return List.copyOf(ids);
+            } catch (SQLException | RuntimeException failure) {
+                connection.rollback();
+                throw failure;
+            }
+        } catch (SQLException failure) {
+            throw new IllegalArgumentException("Unable to import records and audit entries.", failure);
+        }
     }
 
     @Override

@@ -128,8 +128,6 @@ class UserAccountManagerTest {
         assertThrows(IllegalArgumentException.class,
                 () -> manager.createFirstUser("first_user", "lower"));
 
-        when(store.getUser("first_user")).thenReturn(null);
-        when(store.addUser(any(UserAccount.class))).thenReturn(true);
         when(cipher.cipher("PWD:Alpha1:END")).thenReturn("encrypted");
         when(fileHandler.writeFile("credentials-66697273745f75736572.cip", "encrypted")).thenReturn(false);
         assertThrows(IllegalStateException.class,
@@ -236,4 +234,19 @@ class UserAccountManagerTest {
         assertFalse(manager.setInitialPassword("../abc", "Alpha1"));
         verifyNoInteractions(store, fileHandler, cipher);
     }
+    @Test
+    void firstAccountStoreFailureRemovesTheSavedCredentialFile() {
+        when(cipher.cipher("PWD:Alpha1:END")).thenReturn("encrypted");
+        when(fileHandler.writeFile(anyString(), eq("encrypted"))).thenReturn(true);
+        assertThrows(IllegalStateException.class, () -> manager.createFirstUser("fresh", "Alpha1"));
+        verify(fileHandler).deleteFile("credentials-6672657368.cip");
+    }
+
+    @Test
+    void accountCreationRejectsCaseVariantsBeforeWritingMetadata() {
+        when(store.getUsers()).thenReturn(List.of(new UserAccount("ghost", false)));
+        assertThrows(IllegalArgumentException.class, () -> manager.createUser("Ghost", false));
+        verify(store, never()).addUser(any());
+    }
+
 }

@@ -137,6 +137,69 @@ class TerminalRecordIntegrityIntegrationTest {
         assertArrayEquals(new int[]{1}, missions.getRecords("id", "%").getFirst().getAgentIds());
     }
 
+    @Test
+    void malformedImportDoesNotLeaveAnEarlierValidRowOrAuditEntry() throws Exception {
+        Path file = directory.resolve("briefs.tsv");
+        java.nio.file.Files.writeString(file, "title\tdate\ttext\nGood\t2020-01-01\tText\nBad\tinvalid\tText\n");
+
+        ui("1\n4\n" + file + "\n0\n0\n").run();
+
+        assertTrue(briefs.getRecords("id", "%").isEmpty());
+        assertTrue(audit.getAuditLog().stream().noneMatch(entry ->
+                entry.getAction().equals("CREATE") || entry.getAction().equals("IMPORT")));
+        assertFalse(output.toString().contains("TSV Successfully imported"));
+    }
+
+    @Test
+    void importAuditFailureRollsBackAllRowsAndTheirCreateEvents() throws Exception {
+        Path file = directory.resolve("briefs.tsv");
+        java.nio.file.Files.writeString(file, "title\tdate\ttext\nFirst\t2020-01-01\tText\nSecond\t2020-01-02\tText\n");
+        try (var connection = DriverManager.getConnection(url); var statement = connection.createStatement()) {
+            statement.execute("CREATE TRIGGER reject_import BEFORE INSERT ON audit_log "
+                    + "WHEN NEW.action = 'IMPORT' BEGIN SELECT RAISE(ABORT, 'test'); END");
+        }
+
+        ui("1\n4\n" + file + "\n0\n0\n").run();
+
+        assertTrue(briefs.getRecords("id", "%").isEmpty());
+        assertTrue(audit.getAuditLog().stream().noneMatch(entry -> entry.getAction().equals("CREATE")));
+    }
+
+    @Test
+    void supportedImportsPersistEachRecordAndTheBatchAudit() throws Exception {
+        Path briefFile = directory.resolve("briefs.tsv");
+        Path facilityFile = directory.resolve("facilities.tsv");
+        Path agentFile = directory.resolve("agents.tsv");
+        java.nio.file.Files.writeString(briefFile, "title\tdate\ttext\nO'Brien\t2020-01-01\tText\n");
+        java.nio.file.Files.writeString(facilityFile, "name\tabbreviation\tcountry\nHQ\tHQ\t1\nLegacy\tL\n\n");
+        java.nio.file.Files.writeString(agentFile, "name\tbirth\tdeath\tnotes\tfacility\nghost\t1990-01-01\t\t\t1\n");
+
+        ui("1\n4\n" + briefFile + "\n0\n3\n4\n" + facilityFile
+                + "\n0\n2\n4\n" + agentFile + "\n0\n0\n").run();
+
+        assertEquals("O'Brien", briefs.getRecords("id", "%").getFirst().getTitle());
+        assertEquals(2, facilities.getRecords("id", "%").size());
+        assertEquals(0, facilities.getRecords("name", "Legacy").getFirst().getCountryID());
+        assertEquals(1, agents.getRecords("id", "%").size());
+        assertNull(agents.getRecords("id", "%").getFirst().getDateOfDeath());
+        var imports = audit.getAuditLog().stream().filter(entry -> entry.getAction().equals("IMPORT")).toList();
+        assertEquals(List.of("1", "2", "1"), imports.stream().map(org.model.AuditLogEntry::getContentIdentifier).toList());
+        assertEquals(4, audit.getAuditLog().stream().filter(entry -> entry.getAction().equals("CREATE")).count());
+    }
+
+    @Test
+    void invalidForeignKeyRollsBackAnEarlierValidImportedAgent() throws Exception {
+        facilities.addRecord("HQ", "HQ", 1);
+        Path file = directory.resolve("agents.tsv");
+        java.nio.file.Files.writeString(file, "name\tbirth\tdeath\tnotes\tfacility\n"
+                + "first\t1990-01-01\t\t\t1\nsecond\t1990-01-01\t\t\t99999\n");
+
+        ui("2\n4\n" + file + "\n0\n0\n").run();
+
+        assertTrue(agents.getRecords("id", "%").isEmpty());
+        assertTrue(audit.getAuditLog().stream().noneMatch(entry -> entry.getAction().equals("CREATE")));
+    }
+
     private AgencyInterface ui(String input) {
         AgencyInterface ui = new AgencyInterface(agents, facilities, briefs, accounts, missions, audit,
                 loggedInAdmin, new Scanner(input), new PrintStream(output));

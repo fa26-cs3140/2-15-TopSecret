@@ -43,11 +43,15 @@ class RecordPersistenceUnitTest {
 
             assertEquals(7, store.create(new org.model.Country("Country", 1, new Facility[0]), event));
 
+            assertEquals(java.util.List.of(), store.createAll(java.util.List.of(), event));
+            assertEquals(java.util.List.of(7, 7), store.createAll(java.util.List.of(
+                    new Brief(1, "First", "2020-01-01", "text", null),
+                    new Brief(2, "Second", "2020-01-01", "text", null)), event));
             verify(prepared).setObject(1, "O'Brien");
-            verify(connection, times(4)).setAutoCommit(false);
-            verify(connection, times(4)).commit();
+            verify(connection, times(5)).setAutoCommit(false);
+            verify(connection, times(5)).commit();
             verify(connection, never()).rollback();
-            verify(connection, times(4)).prepareStatement(startsWith("INSERT INTO audit_log"));
+            verify(connection, times(7)).prepareStatement(startsWith("INSERT INTO audit_log"));
             verify(connection, never()).prepareStatement(contains("O'Brien"));
         }
     }

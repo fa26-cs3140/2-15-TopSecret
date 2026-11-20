@@ -131,7 +131,7 @@ POS = {
     "WebServer": (700, 165), "LoginHandler": (580, 245), "SessionManager": (850, 245), "PageHandler": (700, 305),
     "EditHandler": (850, 345), "RecordForms": (850, 405), "AppController": (440, 395),
     "RecordEditor": (20, 480), "SqliteRecordStore": (165, 480), "IDatabaseManager": (330, 480),
-    "RecordRelationships": (820, 480),
+    "RecordRelationships": (820, 480), "RecordImport": (625, 480), "RecordEditor.Store": (470, 480),
     "BriefManager": (20, 550), "AgentManager": (150, 550),
     "FacilityManager": (280, 550), "MissionManager": (410, 550), "UserAccountManager": (595, 550),
     "AuditLogManager": (742, 550), "SqliteMessageStore": (870, 550),
@@ -162,7 +162,9 @@ EDGES = [  # (from, to, kind): inh = extends, real = implements, assoc = holds a
     ("MissionManager", "Mission", "dep"), ("UserAccountManager", "UserAccount", "dep"),
     ("AuditLogManager", "AuditLogEntry", "dep"), ("SqliteMessageStore", "Message", "dep"),
     ("SessionManager", "UserAccount", "assoc"),
-    ("AppController", "RecordEditor", "dep"), ("RecordEditor", "SqliteRecordStore", "assoc"),
+    ("AppController", "RecordImport", "dep"),
+    ("AppController", "RecordEditor", "dep"), ("RecordEditor", "RecordEditor.Store", "assoc"),
+    ("SqliteRecordStore", "RecordEditor.Store", "real"),
     ("AppController", "RecordRelationships", "dep"), ("PageHandler", "RelatedRecordView", "dep"),
     ("WebServer", "MessageWebHandler", "dep"), ("MessageWebHandler", "MessageHtmlView", "dep"),
     ("Country", "Facility", "assoc"),
@@ -239,7 +241,7 @@ h1 {{ font-size: 18pt; margin: 0 0 4px; }} h2 {{ font-size: 12pt; margin: 0 0 2p
 .pname {{ font-weight: bold; border-bottom: 1px solid #000; margin-bottom: 3px; }}
 .prole {{ color: #333; font-style: italic; margin: 0 0 4px; }}
 .legend {{ margin-top: 8px; color: #333; }}
-svg {{ display: block; width: 100%; height: 6.9in; margin-top: 6px; }}
+svg {{ display: block; width: 100%; height: 6.2in; margin-top: 6px; }}
 table {{ border-collapse: collapse; width: 100%; margin-top: 8px; }}
 td, th {{ border: 1px solid #666; padding: 2px 5px; text-align: left; }} th {{ background: #e5e5e5; }}
 .brk {{ break-before: page; }}

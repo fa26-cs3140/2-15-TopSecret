@@ -131,6 +131,11 @@ public class SqliteUserAccountStore implements UserAccountStore {
                 + "is_admin INTEGER NOT NULL DEFAULT 0)";
         try (Connection connection = connect(); Statement statement = connection.createStatement()) {
             statement.execute(sql);
+            // Preserve existing rows while preventing new case-ambiguous identities,
+            // including inserts racing in separate account-store instances.
+            statement.execute("CREATE TRIGGER IF NOT EXISTS users_unique_identity BEFORE INSERT ON users "
+                    + "WHEN EXISTS (SELECT 1 FROM users WHERE username = NEW.username COLLATE NOCASE) "
+                    + "BEGIN SELECT RAISE(ABORT, 'Username already exists ignoring case'); END");
         } catch (SQLException e) {
             throw new IllegalStateException("Unable to initialize users table.", e);
         }

@@ -537,12 +537,8 @@ public class AgencyInterface {
         String pathToTSV = readLine();
         int recordsAdded = 0;
         try {
-            recordsAdded = switch (type) {
-                case BRIEF -> bManager.importTSV(pathToTSV, bManager.getTableName(), "data", "mission_database.db");
-                case AGENT -> aManager.importTSV(pathToTSV, aManager.getTableName(), "data", "mission_database.db");
-                case FACILITY -> fManager.importTSV(pathToTSV, fManager.getTableName(), "data", "mission_database.db");
-                case MISSION, COUNTRY -> 0;
-            };
+            recordsAdded = controller.importRecords(type, java.nio.file.Path.of(pathToTSV),
+                    uManager.getUser(currentUser.getUsername()));
         } catch (IllegalArgumentException e) {
             output.println("Unable to import TSV file.");
         } catch (IOException e) {
@@ -560,7 +556,6 @@ public class AgencyInterface {
         if (recordsAdded == 0) { output.println("Unable to import TSV file."); }
         else { output.println("TSV Successfully imported!"); }
 
-        auditLog.log(currentUser.getUsername(), "IMPORT", type.getTitle(), "%d".formatted(recordsAdded));
 
         return recordsAdded > 0;
     }
