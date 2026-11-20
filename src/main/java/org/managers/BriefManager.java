@@ -61,17 +61,21 @@ public class BriefManager extends IDatabaseManager<Brief>
     @Override 
     public List<Brief> getRecords(String column, String key) 
     {
+        if (!java.util.Arrays.asList(columnNames).contains(column)) {
+            throw new IllegalArgumentException("Unknown brief column.");
+        }
         List<Brief> briefs = new ArrayList<>();
-        try (Connection c = connect();
-             ResultSet rs = c.createStatement().executeQuery("SELECT * FROM " + this.tableName + 
-                                                            " WHERE " + column + " LIKE " + "\'" + key + "\'" + 
-                                                            " ORDER BY id")) {
+        String sql = "SELECT * FROM briefs WHERE " + column + " LIKE ? ORDER BY id";
+        try (Connection c = connect(); var statement = c.prepareStatement(sql)) {
+            statement.setString(1, key);
+            try (ResultSet rs = statement.executeQuery()) {
             while (rs.next()) {
                 briefs.add(new Brief(rs.getInt("id"), rs.getString("title"), rs.getString("date"),
                         rs.getString("text"), (Integer) rs.getObject("mission_id")));
             }
+            }
         } catch (SQLException e) {
-            DebugHelper.debugPrintln(e.getMessage());
+            throw new IllegalStateException("Unable to read briefs.", e);
         }
 
         return briefs;

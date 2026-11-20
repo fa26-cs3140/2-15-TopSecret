@@ -64,11 +64,14 @@ public class AgentManager extends IDatabaseManager<Agent>
     @Override 
     public List<Agent> getRecords(String column, String key)
     {
+        if (!java.util.Arrays.asList(columnNames).contains(column)) {
+            throw new IllegalArgumentException("Unknown agent column.");
+        }
         List<Agent> agents = new ArrayList<>();
-        try (Connection c = connect();
-             ResultSet rs = c.createStatement().executeQuery("SELECT * FROM " + this.tableName + 
-                                                            " WHERE " + column + " LIKE " + "\'" + key + "\'" + 
-                                                            " ORDER BY " + this.columnNames[0])) {
+        String sql = "SELECT * FROM agents WHERE " + column + " LIKE ? ORDER BY id";
+        try (Connection c = connect(); var statement = c.prepareStatement(sql)) {
+            statement.setString(1, key);
+            try (ResultSet rs = statement.executeQuery()) {
             while (rs.next()) {
                 agents.add(new Agent(
                             rs.getInt(this.columnNames[0]),
@@ -79,8 +82,9 @@ public class AgentManager extends IDatabaseManager<Agent>
                             rs.getInt(this.columnNames[5])
                             ));
             }
+            }
         } catch (SQLException e) {
-            DebugHelper.debugPrintln(e.getMessage());
+            throw new IllegalStateException("Unable to read agents.", e);
         }
 
         return agents;
