@@ -47,7 +47,10 @@ public class WebServer {
         server.createContext("/login", exchange -> handleSafely(exchange, login));
         server.createContext("/css/", exchange -> serveStaticResource(exchange));
         HttpHandler navigation = exchange -> {
-            if (exchange.getRequestURI().getPath().equals("/")) {
+            // Java parses "///" as an empty host plus "/", so check the raw request target.
+            if (exchange.getRequestURI().toString().startsWith("//")) {
+                send(exchange, 404, "<p>Page not found.</p>");
+            } else if (exchange.getRequestURI().getPath().equals("/")) {
                 login.handle(exchange);
             } else {
                 pages.handle(exchange);
