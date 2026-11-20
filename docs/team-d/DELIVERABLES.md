@@ -110,6 +110,25 @@ These are not fixed by rewriting documentation:
   columns in notes rather than inserting them into the conceptual ERD.
 - Confirm every teammate has run the final built JAR.
 
+## Specific shared-document inaccuracies to hand off
+
+These files were inspected but left unchanged:
+
+| Shared file | Exact correction needed |
+| --- | --- |
+| `README.md`, Agent messaging section | Add current web inbox/compose/message-detail routes and read/unread behavior; the section currently describes terminal messaging only. The linked Team D notes now provide current schema/run evidence, but do not replace the missing web instructions. |
+| `docs/README.md`, final paragraph | It says messaging wireframes are needed when messaging becomes available; messaging is already integrated. Link current PDFs and state the remaining messaging-screen gap accurately. |
+| `docs/HW7-TeamB-WorkPlan.txt`, lines 23 and 89 | Countries are described as a future dependency even though country forms/routes are implemented. |
+| `docs/HW7-TeamB-WorkPlan.txt`, line 80 | The blanket claim that every B class has 100% method coverage is no longer current: the two-argument PageHandler constructor is missed in the latest full report. |
+| `docs/data-models/DataModelOverview.txt`, lines 4-5 and entity list | The shared PDF no longer inventories the exact current system; web messaging classes and Message read state are missing there. The overview itself does not describe the integrated message/read-state model. |
+| `docs/filehandler.txt`, constructor/method list | The directory-taking overload is incorrectly listed as a second FileHandler(); actual signature is FileHandler(String dataDirectory). writeFile(String, String): boolean is missing from the API notes. |
+| `docs/HW7-ClassDiagram.pdf` | Add the actual current messaging/startup classes, read flag, methods, and associations; see Team C handoff above. Team D's scoped PDF does not silently replace this whole-system deliverable. |
+
+The Cipher, CipherKey, CredentialManager, CredentialManagerLibrary, and
+DebugHelper notes were also read. No additional substantive API mismatch was
+established for those notes in this review; that is not a claim of perfect
+legacy architecture or exhaustive behavioral verification.
+
 ## Suggested group message
 
 > I rechecked NewDatabaseManagerRefactor: all 483 tests and the build pass. The
