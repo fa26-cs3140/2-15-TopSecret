@@ -4,15 +4,41 @@ public class Country
 {
     private Facility[] facilities;
     private String name;
+    private int id;
 
-    public Country(Facility[] facilities)
+    public Country(String name, int id, Facility[] facilities)
     {
-        this.facilities = facilities;
+        this.setFacilities(facilities);
+        this.setID(id);
+        this.setName(name);
     }
 
     public String getName()
     {
         return this.name;
+    }
+
+    private void setName(String name)
+    {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Name cannot be blank or null");
+        }
+
+        Boolean validCountry = false;
+        for (Countries c : Countries.values())
+        {
+            if (name.equals(c.getName()))
+            {
+                validCountry = true;
+            }
+        }
+
+        if (!validCountry) {
+            throw new IllegalArgumentException("Name cannot be blank or null");
+        }
+
+        // Values confirmed we good
+        this.name = name;
     }
 
     public Facility[] getFacilities()
@@ -25,12 +51,19 @@ public class Country
         this.facilities = facilities;
     }
 
-    public void addFacility(Facility facility)
+    private void setID(int id)
     {
-        // Round about way to allocate some more memory for this
-        Facility[] temp = new Facility[this.facilities.length + 1];
-        for (int i = 0; i < this.facilities.length; i++) temp[i] = facilities[i];
-        temp[facilities.length + 1] = facility;
-        this.facilities = temp;
+        if (id <= 0 || id > 196) {
+            throw new IllegalArgumentException("ID out of range");
+        }
+
+        this.id = id;
     }
+
+    public int getID()
+    {
+        return this.id;
+    }
+
+
 }
