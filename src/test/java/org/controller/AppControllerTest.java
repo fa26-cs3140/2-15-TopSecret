@@ -120,6 +120,14 @@ class AppControllerTest {
     }
 
     @Test
+    void readFacilityShowsItsCountry() {
+        when(facilityManager.getRecords("id", "%")).thenReturn(List.of(new Facility(2, "Rose Garden", "RG", 62)));
+        when(facilityManager.getCountry(62)).thenReturn(new Country("France", 62, new Facility[0]));
+
+        assertTrue(controller.readRecord(RecordType.FACILITY, 2, standard).contains("Country: France"));
+    }
+
+    @Test
     void readUnknownRecordIsNotAudited() {
         when(briefManager.getRecords("id", "%")).thenReturn(List.of());
 
