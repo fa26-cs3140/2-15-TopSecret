@@ -10,12 +10,12 @@ Executed with Java 26 and the repository's Gradle wrapper:
 
 | Check | Result |
 | --- | --- |
-| Full test suite | 448 passed, zero failures, zero errors, zero skips |
-| Separate unit task | 366 passed |
+| Full test suite | 451 passed, zero failures, zero errors, zero skips |
+| Separate unit task | 369 passed |
 | Separate integration task | 82 passed |
 | Gradle build and packaged JAR | Passed |
 | Project method coverage, complete suite | 443 / 443 methods, 100% |
-| Project method coverage, unit task | 398 / 443 methods, 89.8% |
+| Project method coverage, unit task | 400 / 443 methods, 90.3% |
 | New Team D services, link view, and session manager | 100% method coverage in both the isolated unit task and complete suite |
 
 The Team D coverage statement includes RecordEditor and AuditEvent,
@@ -134,3 +134,19 @@ the server behavior; it is not a claim of a complete browser security audit.
 The packaged-JAR country/session workflow was rerun successfully after these
 changes. No database schema or wireframe changes were needed. The shared class
 diagram was regenerated to include the terminal persistence injection boundary.
+
+## Post-merge country/controller compatibility
+
+Verified the fix branch against shared commit 1f07161 after PR #22 merged.
+The conflict resolution had restored legacy calls to a removed save() helper,
+removed COUNTRY form cases, and disconnected the -web-admin session wiring.
+The repair uses the existing transactional editor for creates/updates, restores
+country forms and values, and reconnects the account-aware shared session
+manager. Team B's facility country selections and updated sample data remain.
+
+Country creation/renaming, facility reassignment, audit rollback, and session
+revocation pass through the existing integration tests and packaged-JAR system
+workflow. The controller regression explicitly checks that country writes and
+facility country changes carry their values and audit metadata into the same
+transactional store. Test mocks target that store instead of obsolete manager
+writes. No schema or public API changes were required.
