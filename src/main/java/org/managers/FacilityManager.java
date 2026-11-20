@@ -159,32 +159,33 @@ public class FacilityManager extends IDatabaseManager<Facility>
      */
     public Country getCountry(Countries countryEnum)
     {
-        List<Facility> facs = new ArrayList<>();
-        String name = countryEnum.getName();
-        String query = "SELECT name FROM countries WHERE name LIKE '?'";
-        int outId = -1;
-        String outName = "";
+        return this.getCountry(countryEnum.getName());
+        // List<Facility> facs = new ArrayList<>();
+        // String name = countryEnum.getName();
+        // String query = "SELECT name FROM countries WHERE name LIKE '?'";
+        // int outId = -1;
+        // String outName = "";
 
-        // Get country id from facility
-        try (Connection c = connect(); PreparedStatement s = c.prepareStatement(query))
-        {
-            s.setString(1, name);
-            ResultSet rs = s.executeQuery();
-            // Pass header
-            rs.next();
-            outName = rs.getString("name");
-            outId = rs.getInt("id");
-            
-        } catch (SQLException e) {
-            return null;
-        }
+        // // Get country id from facility
+        // try (Connection c = connect(); PreparedStatement s = c.prepareStatement(query))
+        // {
+        //     s.setString(1, name);
+        //     ResultSet rs = s.executeQuery();
+        //     // Pass header
+        //     rs.next();
+        //     outName = rs.getString("name");
+        //     outId = rs.getInt("id");
+        //     
+        // } catch (SQLException e) {
+        //     return null;
+        // }
 
-        // Get facilities
-        facs = this.getRecords(columnNames[3], "" + outId);
-        Facility[] outFacs = facs.toArray(new Facility[0]);
-        Country out = new Country(outName, outId, outFacs);
+        // // Get facilities
+        // facs = this.getRecords(columnNames[3], "" + outId);
+        // Facility[] outFacs = facs.toArray(new Facility[0]);
+        // Country out = new Country(outName, outId, outFacs);
 
-        return out;
+        // return out;
     }
 
     public Country getCountry(int countryId)
@@ -192,17 +193,24 @@ public class FacilityManager extends IDatabaseManager<Facility>
         if (countryId <= 0 || countryId > 196) return null;
 
         List<Facility> facs = new ArrayList<>();
-        String query = "SELECT name FROM countries WHERE id = ?";
+        String query = "SELECT id, name FROM countries WHERE id = ?";
         String outName = "";
         int outId = -1;
         try (Connection c = connect(); PreparedStatement s = c.prepareStatement(query))
         {
             s.setInt(1, countryId);
-            ResultSet rs = s.executeQuery();
-            rs.next(); // Pass header
-
-            outName = rs.getString("name");
-            outId = rs.getInt("id");
+            try (ResultSet rs = s.executeQuery())
+            {
+                if (rs.next()) // If valid query
+                {
+                    outName = rs.getString("name");
+                    outId = rs.getInt("id");
+                } 
+                else 
+                {
+                    return null;
+                }
+            }
 
         } catch (SQLException e) {
             return null;
@@ -218,13 +226,14 @@ public class FacilityManager extends IDatabaseManager<Facility>
     public Country getCountry(String name)
     {
         List<Facility> facs = new ArrayList<>();
-        String query = "SELECT id, name FROM countries WHERE name LIKE ?";
+        String query = "SELECT id, name FROM countries WHERE name LIKE ? LIMIT 1";
         String outName = "";
         int outId = -1;
+        String cleaned = name.trim().replace("'", "’").replaceFirst("(?i)^the\\s+", "");
 
         try (Connection c = connect(); PreparedStatement s = c.prepareStatement(query))
         {
-            s.setString(1, name + "%");
+            s.setString(1, "%" + cleaned + "%");
             try (ResultSet rs = s.executeQuery())
             {
                 if (rs.next()) // If valid query

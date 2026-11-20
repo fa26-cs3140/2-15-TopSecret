@@ -371,7 +371,7 @@ public class AgencyInterface {
                 case BRIEF -> bManager.addRecord(prompt("Title: "), prompt("Date (yyyy-mm-dd): "),
                         prompt("Text: ")).getId();
                 case AGENT -> addAgent();
-                case FACILITY -> fManager.addRecord(prompt("Name: "), prompt("Abbreviation: ")).getId();
+                case FACILITY -> fManager.addRecord(prompt("Name: "), prompt("Abbreviation: "), promptCountry("Country: ")).getId();
                 case MISSION -> addMission();
             };
             if (id != null) {
@@ -382,6 +382,20 @@ public class AgencyInterface {
             output.println("Unable to add " + type.getSingular() + ": " + e.getMessage());
         }
         output.println(this.SEPARATOR);
+    }
+    
+    // Helper function for addRecord
+    private int promptCountry(String prompt)
+    {
+        String input = prompt(prompt);
+        Country country = fManager.getCountry(input);
+        if (country == null)
+        {
+            DebugHelper.debugPrintln("Country was null!");
+            return promptCountry(prompt); // for now, reprompt
+        }
+
+        return country.getID();
     }
 
     private Boolean importRecords(RecordType type)

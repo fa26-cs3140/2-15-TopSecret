@@ -54,7 +54,7 @@ public class AppController {
             case AGENT -> agentManager.getRecords("id", "%").stream()
                     .map(a -> a.getId() + ". " + a.getName()).toList();
             case FACILITY -> facilityManager.getRecords("id", "%").stream()
-                    .map(f -> f.getId() + ". " + f.getName() + " (" + f.getAbbreviation() + ")").toList();
+                    .map(f -> f.getId() + ". " + f.getName() + " (" + f.getAbbreviation() + ") " + "[" + facilityManager.getCountry(f.getCountryID()).getName() + "]").toList();
             case MISSION -> missionManager.getRecords("id", "%").stream()
                     .map(m -> m.getId() + ". " + m.getTitle()).toList();
         };
@@ -132,7 +132,7 @@ public class AppController {
                     .getId();
             case AGENT -> agentManager.addRecord(new Agent(1, v.get("name"), v.get("dateOfBirth"),
                     v.get("dateOfDeath"), v.get("notes"), facilityId(v))).getId();
-            case FACILITY -> facilityManager.addRecord(new Facility(1, v.get("name"), v.get("abbreviation"))).getId();
+            case FACILITY -> facilityManager.addRecord(new Facility(1, v.get("name"), v.get("abbreviation"), Integer.parseInt(v.get("countryId")))).getId();
             case MISSION -> missionManager.addRecord(new Mission(1, v.get("title"), briefIds(v), agentIds(v),
                     facilityId(v))).getId();
         };
@@ -159,7 +159,7 @@ public class AppController {
                 save(agentManager, id, v, "name", "dateOfBirth", "dateOfDeath", "notes", "facilityId");
             }
             case FACILITY -> {
-                new Facility(id, v.get("name"), v.get("abbreviation"));
+                new Facility(id, v.get("name"), v.get("abbreviation"), Integer.parseInt(v.get("countryId")));
                 save(facilityManager, id, v, "name", "abbreviation");
             }
             case MISSION -> {

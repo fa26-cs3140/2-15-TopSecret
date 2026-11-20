@@ -75,7 +75,7 @@ public class ProgramControl {
 
         // Then import the data from the relevant .tsv file as a .db
         this.createModelTables();
-        this.loadTestData();
+        // this.loadTestData();
 
         // -web starts the read-only web view instead of the terminal menu
         if (LaunchOptions.isWebMode(args))
