@@ -17,14 +17,21 @@ public class PageHandler implements HttpHandler {
     private final AppController controller;
     private final SessionManager sessions;
     private final EditHandler edits;
+    private final MessageWebHandler messaging;
 
     public PageHandler(AppController controller, SessionManager sessions) {
+        this(controller, sessions, null);
+    }
+
+    public PageHandler(AppController controller, SessionManager sessions, MessageWebHandler messaging) {
         if (controller == null || sessions == null) {
             throw new IllegalArgumentException("Arguments cannot be null.");
         }
+
         this.controller = controller;
         this.sessions = sessions;
         this.edits = new EditHandler(controller);
+        this.messaging = messaging;
     }
 
     @Override
@@ -37,6 +44,17 @@ public class PageHandler implements HttpHandler {
         }
 
         String path = exchange.getRequestURI().getPath();
+
+        // Messaging request
+        if (path.equals("/messages") || path.startsWith("/messages/")) {
+            if (messaging == null) { // if messaging hasn't been initialized
+                send(exchange, user, 404, "Not Found", "<p>Page not found.</p>");
+            } else {
+                messaging.handle(exchange, user);
+            }
+            return;
+        }
+
         if (EditHandler.parse(path) != null) {
             edits.handle(exchange, user);
             return;
