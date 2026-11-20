@@ -1,13 +1,23 @@
 # Team D model and access control
 
 Team D's Homework 7 work provides audited content persistence, related-record
-navigation, terminal search, and web session administration. The feature branch
-is `team-d-hw7-week2`, based on the shared `NewDatabaseManagerRefactor` branch
-and preserving the Week 1 commits.
+navigation, terminal search, and web session administration. The current integrated
+branch is `NewDatabaseManagerRefactor`; the Week 1
+and Week 2 feature commits remain in its history. Documentation was checked
+against `18a534c` on 2026-11-20. Main is not the team's current working branch.
 
 - [Current design, ERD, and wireframes](DESIGN.md)
 - [Completed work and remaining team dependencies](WORK-PLAN.md)
-- [Test results and coverage](VERIFICATION.md)
+- [Test results, coverage, and confirmed failure cases](VERIFICATION.md)
+- [Grading checklist and teammate handoff](DELIVERABLES.md)
+- [Team D UML PDF](TeamD-ClassDiagram.pdf)
+- [Entity-only ERD PDF](TeamD-ERD.pdf)
+- [Team D wireframe PDF](TeamD-Wireframes.pdf)
+- [Shared team roster](../../teams.txt)
+
+Team D: Vrisag Desinani; UVA computing ID `fae9xd`; GitHub `VrisagDesinani`.
+The PDFs cover Team D's responsibilities and integration boundaries. They do not
+replace the shared whole-system UML or Team C's messaging screen wireframes.
 
 ## Running the application
 
@@ -97,6 +107,26 @@ by the existing account manager. Tests verify separate passwords, password
 replacement, and the account-table columns.
 
 Terminal option 9 sends a message and option 10 opens the current user's inbox.
-Team C owns Homework 7's web messaging center and read indicators. The content
-edit/search services operate on agency records. The existing messaging privacy
-tests remain active.
+Team C's Homework 7 web messaging center and read indicators are integrated.
+The shared navigation opens `/messages`; Team C maintains its inbox, compose,
+and message-detail behavior. The same session manager authenticates messaging
+and record requests. The content edit/search services operate on agency records.
+Case-duplicate accounts currently trigger an ambiguous-identity error in messaging;
+this is an open account/messaging integration issue, not a privacy override.
+
+## Tests and remaining work
+
+Run `./gradlew test build` for the complete suite/build, and use
+`./gradlew unitTest integrationTest jacocoTestReport jacocoUnitTestReport` for
+separate tasks and reports. Current combined method coverage is 464/468 (99.15%);
+it exceeds the pasted >95% threshold but misses this homework's 100% target.
+The explicitly listed core services have 61/61 method coverage. Consult
+VERIFICATION.md for exact scope; some legacy integration tests run in unitTest.
+
+The documentation does not certify that the application is bug-free. Open Team
+D/shared failures include partial-import audit counts, quoted terminal mission
+lookups, silent brief/agent read errors, failed credential-file bootstrap, and
+case-duplicate messaging identities. Startup help, shared screen designs, and
+the current whole-system UML need their owners' attention. DELIVERABLES.md
+contains the actionable handoff and distinguishes grading gaps from optional
+hardening. No production code was changed for this documentation update.

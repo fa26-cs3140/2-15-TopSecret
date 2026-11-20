@@ -1,152 +1,121 @@
-# Homework 7 verification
+# Team D verification and limits
 
-## Automated results
+Verified against `NewDatabaseManagerRefactor` commit `18a534c` on 2026-11-20.
+The working submission branch is NewDatabaseManagerRefactor; results for the
+older main branch are not used as current branch failures.
 
-Executed with Java 26 and the repository's Gradle wrapper:
+## Reproducible commands
 
 ```sh
 ./gradlew test build unitTest integrationTest jacocoTestReport jacocoUnitTestReport
 ```
 
-| Check | Result |
+Executed with Java 26 and the repository wrapper, using cached dependencies with
+`--offline --no-daemon`. Reports are generated under `build/reports`.
+
+| Check | Measured result |
 | --- | --- |
-| Full test suite | 451 passed, zero failures, zero errors, zero skips |
-| Separate unit task | 369 passed |
-| Separate integration task | 82 passed |
-| Gradle build and packaged JAR | Passed |
-| Project method coverage, complete suite | 443 / 443 methods, 100% |
-| Project method coverage, unit task | 400 / 443 methods, 90.3% |
-| New Team D services, link view, and session manager | 100% method coverage in both the isolated unit task and complete suite |
+| Full test suite | 483 passed; zero failures, errors, or skips |
+| Unit task | 389 passed |
+| Integration task | 94 passed |
+| Gradle build / packaged JAR | Passed |
+| Complete-suite method coverage | 464 / 468 = 99.15% |
+| Unit-task method coverage | 410 / 468 = 87.61% |
+| Team D core services listed below | 61 / 61 methods in both tasks |
 
-The Team D coverage statement includes RecordEditor and AuditEvent,
-SqliteRecordStore, RecordSearch, RecordRelationships, RelatedRecordView,
-and SessionManager. JaCoCo-generated record filtering applies. Method coverage
-measures whether a method executes; the acceptance cases below exercise
-failure paths and complete workflows as well.
+The Team D core-services measurement covers RecordEditor and AuditEvent,
+SqliteRecordStore, RecordSearch and Match, RecordRelationships, RelatedRecordView,
+and SessionManager and its Session/SessionSummary records. This is an explicitly
+scoped result; it does not establish 100% coverage for every historical account
+class, shared controller, teammate feature, or the entire application.
+JaCoCo applies its normal generated-record filtering.
 
-Unit tests use Mockito for record stores, account services, and the JDBC
-transaction protocol. Integration tests use temporary SQLite databases and
-real HTTP servers. The existing Gradle task filters determine the separate
-suite membership. Tests use the normal application constructors and routes.
+The complete suite exceeds the pasted >95% grading threshold, but does not meet
+the current homework's explicit 100% target. If the TA measures only isolated
+unit tests, the unit-task result does not meet >95%. Do not substitute combined
+coverage for unit-only coverage without confirming the grading method.
 
-The complete-suite report has zero missed methods. The additional regression
-checks exercise startup delegation and failure reporting, file-directory
-reconfiguration, utility accessors, terminal role changes, record imports, and
-mission creation. An unused unimplemented audit-table stub was removed after
-confirming that the application has no callers.
+Four complete-suite methods are missed: WebServer.serveStaticResource, its CSS
+context lambda, PageHandler(AppController, SessionManager), and
+ProgramControl.createMessageWebHandler. Some real SQLite tests are classified
+under unitTest by the existing name filters; this is a suite-classification gap.
 
-## Acceptance cases exercised
+## Unit and integration evidence
 
-- Create and edit briefs, agents, facilities, missions, and countries over HTTP.
-- Preserve generated IDs, optional nulls, apostrophes, and multiline content.
-- Replace mission assignments, including empty lists.
-- Persist username, action, content type, record ID, and timestamp in audit.
-- Roll back scalar values, assignments, and creation after a forced audit failure.
-- Reject standard-user POSTs and revoke a demoted administrator's edit access.
-- Render related links in every current record direction and escape labels.
-- Return 404 for missing details without recording a READ event.
-- Search all current record text fields through the terminal menu.
-- Refresh active sessions beyond their original lifetime and expire them at
-  the exact 30-minute idle boundary.
-- List and revoke a live token through the authenticated terminal.
-- Preserve separate ciphered password files and invalidate an old password
-  after replacement.
+Unit tests use Mockito for persistence, account lookups, and the JDBC transaction
+protocol. Representative coverage includes RecordEditorTest,
+RecordSearchTest, RecordRelationshipsTest, RecordPersistenceUnitTest,
+SessionManagerTest, and SessionTimeoutTest.
 
-## Packaged application system test
+The exact class-pair integration naming rule has existing examples:
 
-Ran the built JAR against a temporary copy of the data directory. Created an
-administrator through the terminal, restarted in `-web-admin` mode, logged in
-over HTTP, created/read/edited a brief, and inspected the persisted audit
-fields. Listed and revoked that live token through terminal option 12. Its
-next HTTP request redirected to login. Terminal option 11 found the edited
-body, and terminal exit stopped the server cleanly. The process exited with 0.
+- `src/test/java/org/view/AgencyInterfaceAuditLogManagerTest.java` integrates
+  AgencyInterface with the real AuditLogManager and temporary SQLite.
+- `src/test/java/org/view/AgencyInterfaceBriefManagerTest.java` integrates the
+  terminal view and real BriefManager.
 
-## Country integration checks
+Additional Team D integration tests include AuditedWebRecordsIntegrationTest,
+SqliteRecordStoreIntegrationTest, RecordRelationshipsIntegrationTest,
+TerminalAccessIntegrationTest, and TerminalRecordIntegrityIntegrationTest.
+The class-pair examples satisfy the naming evidence independently of the
+additional `...IntegrationTest` names. Their current Gradle suite classification
+still needs review; no tests were renamed by this documentation update.
 
-The country feature is integrated from Team A's shared commits. Tests cover
-initial seeding, repeated initialization, migration of an existing facility
-table, preservation of IDs and data, newly created country IDs beyond the
-seed count, country renaming, country/facility links, country search,
-reassignment, invalid IDs, authorization, and rollback after an audit failure.
+## Acceptance behavior exercised
 
-The packaged JAR also passed a country workflow in a temporary data directory.
-It created and renamed a country over HTTP, assigned a facility, followed both
-related links, found the renamed country from terminal search, inspected the
-persisted audit entries, and revoked the live token from the terminal. A restart
-preserved the edited country name and left the country count unchanged.
+- Confirm all 196 supplied country names match the seed enum exactly and in order.
+- Create/edit all five content types and preserve IDs, optional values, and
+  multiline content; validate foreign references and reject non-admin writes.
+- Commit scalar changes, mission junction changes, and one CREATE/UPDATE audit
+  row atomically; roll back after forced audit failure.
+- Persist username, action, content type, record identifier, and UTC timestamp.
+- Show escaped related-record links; missing web details return 404 without READ.
+- Search brief title/date/body, agent name/birth/death/notes, facility
+  name/abbreviation, mission title, and country name.
+- Refresh sessions after record/messaging requests, reject the exact 30-minute
+  idle boundary, reload permissions, invalidate deleted accounts, list active
+  tokens without refreshing them, and revoke a live token from the terminal.
+- Preserve separate ciphered passwords, reject a replaced password, and keep
+  password values out of SQLite account metadata.
+- Reject malformed form encoding, foreign-origin POSTs, forged roles/tokens,
+  invalid references, and unsafe static-resource paths.
 
-Team C's web messaging and Team A's final styling/help remain separate shared
-submission work. Country integration and the whole-project method target are
-complete on this branch.
+## Additional stress and system evidence
 
-## Final formatting and documentation audit
+The 2026-11-20 external audit at `184eed4` completed 307 assertion checks,
+including 80 concurrent country writes on independent connections and 120
+parallel completed login/read pairs. Unique IDs and matching audit rows were
+verified. Recipient isolation, read flags, escaping, timeout, revocation,
+permission changes, and audit rollback passed. That external harness is not
+included in the Gradle/JaCoCo totals above.
 
-Messaging model production files and model tests match the shared branch so
-Team C can apply its own rewrite. Terminal view readability changes and controller
-messaging regression-test corrections remain in this branch.
-The full suite and build pass with that scope. Replaced
-superseded class notes and older homework diagrams with the maintained class
-PDF, ERD, and wireframes. The current model overview and team roles now match
-the code and Homework 7 responsibilities.
+The packaged-JAR country/session workflow passed at `184eed4`: first admin,
+terminal login, -web-admin startup, HTTP login, country create/rename, facility
+assignment, related links, persisted audit, terminal country search, live-token
+revocation, and restart without duplicate seeds. The same workflow was rerun
+at `18a534c` for this documentation update. Each other team member must still
+personally acknowledge the assignment's individual system-test requirement.
 
-## Adversarial testing
+## Confirmed unresolved cases
 
-The real HTTP/SQLite and terminal tests reproduced five failures before their
-fixes. Malformed form encoding now returns 400, encoded slash-only paths return
-404, and a storage read outage returns 503 with a generic response. The server
-continues accepting requests after these failures. Terminal mission navigation
-accepts existing facilities with IDs other than 1, and an unknown facility name
-reports an error without crashing or saving a mission.
+These are documented findings, not implemented fixes:
 
-Additional tests pass hostile SQL/HTML strings through create and read routes,
-attempt role spoofing in form fields, use forged/missing/deleted-account cookies,
-and create countries concurrently. Values stay literal, labels are escaped,
-unauthorized changes are rejected, and concurrent IDs and audit entries remain
-consistent. The full suite passes with zero failed, errored, or skipped tests.
+1. Terminal mission lookup drops a brief such as O'Brien after an unbound SQL
+   lookup fails; the UI still reports successful mission creation.
+2. A TSV with a valid first row and invalid second row leaves partial data while
+   the terminal records an IMPORT count of zero; no per-record CREATE is logged.
+3. BriefManager/AgentManager swallow read failures as empty results. Mission
+   reads correctly fail explicitly, but that behavior is not universal.
+4. A failed first-admin credential-file write leaves metadata with no working
+   password, stranding normal bootstrap/login.
+5. Case-sensitive accounts ghost/Ghost can both be created, but the messaging
+   identity guard rejects both as ambiguous. No privacy bypass was observed.
+6. An incomplete login POST blocks other requests until the connection closes.
 
-## Follow-up adversarial review
+The latest help stub still does not provide usable -h output, and terminal
+record editing from the previous supplied assignment remains absent. Those
+startup/view deliverables are assigned to the team in DELIVERABLES.md rather
+than changed as part of this documentation-only work.
 
-The packaged application exposed four further bugs that are now covered by
-regression tests:
-
-- Terminal role checks reload the account, including a second check after a
-  creation prompt and before saving. A demoted administrator cannot create
-  content or review the audit log through an existing terminal login.
-- Terminal creation of all five content types uses AppController and the same
-  transactional store as web creation. A rejected audit insert rolls back the
-  record and mission assignments. The terminal reports the failure and remains
-  usable; logout reports an unavailable audit store without crashing.
-- Mission and mission-assignment read failures throw a storage exception.
-  HTTP edit requests return 503 rather than offering a misleading empty form;
-  submissions during the outage preserve all existing assignments.
-- All new audit timestamps use UTC, including terminal and READ events.
-  A regression test changes the process time zone to America/New_York and
-  checks CREATE, UPDATE, and READ timestamps against the same UTC interval.
-  Historical timestamps have no stored offset and are preserved as-is.
-
-Cross-origin POSTs carrying a foreign/null Origin or cross-site fetch metadata
-are rejected before login or content handling. Cookies explicitly use
-SameSite=Lax. Tests confirm that a valid administrator cookie does not bypass
-that check and same-origin forms still save normally. Requests without browser
-origin metadata remain supported for terminal/system-test clients. This verifies
-the server behavior; it is not a claim of a complete browser security audit.
-
-The packaged-JAR country/session workflow was rerun successfully after these
-changes. No database schema or wireframe changes were needed. The shared class
-diagram was regenerated to include the terminal persistence injection boundary.
-
-## Post-merge country/controller compatibility
-
-Verified the fix branch against shared commit 1f07161 after PR #22 merged.
-The conflict resolution had restored legacy calls to a removed save() helper,
-removed COUNTRY form cases, and disconnected the -web-admin session wiring.
-The repair uses the existing transactional editor for creates/updates, restores
-country forms and values, and reconnects the account-aware shared session
-manager. Team B's facility country selections and updated sample data remain.
-
-Country creation/renaming, facility reassignment, audit rollback, and session
-revocation pass through the existing integration tests and packaged-JAR system
-workflow. The controller regression explicitly checks that country writes and
-facility country changes carry their values and audit metadata into the same
-transactional store. Test mocks target that store instead of obsolete manager
-writes. No schema or public API changes were required.
+There is no claim that all possible bugs have been exhausted or that a grade
+is guaranteed. Later commits require revalidation.
