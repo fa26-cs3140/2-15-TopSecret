@@ -29,10 +29,8 @@ public final class AuthenticatedMessageService implements MessageService {
             MessageStore store,
             UserAccount authenticatedUser) {
 
-        if (agents == null || users == null || store == null || authenticatedUser == null
-                || authenticatedUser.getUsername() == null) {
+        if (agents == null || users == null || store == null || authenticatedUser == null || authenticatedUser.getUsername() == null)
             throw new IllegalArgumentException("Authenticated messaging dependencies required.");
-        }
 
         this.agents = agents;
         this.users = users;
@@ -45,9 +43,8 @@ public final class AuthenticatedMessageService implements MessageService {
      * Helper: Checks that the account still exists and its identity is unambiguous.
      */
     private void requireAccount() {
-        if (users.getUser(username) == null) {
+        if (users.getUser(username) == null)
             throw new IllegalArgumentException("Authenticated account no longer exists.");
-        }
 
         long matchingAccounts = users
                 .getUsers()
@@ -55,24 +52,21 @@ public final class AuthenticatedMessageService implements MessageService {
                 .filter(user -> user.getUsername().equalsIgnoreCase(username))
                 .count();
 
-        if (matchingAccounts != 1) {
+        if (matchingAccounts != 1)
             throw new IllegalStateException("Ambiguous account identity. Resolve case-duplicate accounts before messaging.");
-        }
     }
 
     @Override
     public List<Agent> getAgents() {
         requireAccount();
-        return List.copyOf(agents.getRecords("id", "%"));
+        return List.copyOf(agents.getRecords("id","%"));
     }
 
-    @Override
-    public Message sendMessage(int agentId, String body) {
+    @Override public Message sendMessage (int agentId,String body) {
         requireAccount();
 
-        if (body == null || body.isBlank()) {
+        if (body == null || body.isBlank())
             throw new IllegalArgumentException("Message cannot be blank.");
-        }
 
         Agent recipient = findAgentById(agentId);
         Message message = new Message(
@@ -94,8 +88,7 @@ public final class AuthenticatedMessageService implements MessageService {
                 .orElseThrow(() -> new IllegalArgumentException("No such agent."));
     }
 
-    @Override
-    public List<Message> getInbox() {
+    @Override public List<Message> getInbox() {
         requireAccount();
         return store.findForRecipient(username);
     }

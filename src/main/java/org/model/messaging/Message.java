@@ -29,27 +29,10 @@ public final class Message {
         this.sentAt = sentAt;
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public String getSenderUsername() {
-        return senderUsername;
-    }
-
-    public int getRecipientAgentId() {
-        return recipientAgentId;
-    }
-
-    public String getRecipientName() {
-        return recipientName;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public LocalDateTime getSentAt() {
-        return sentAt;
-    }
+    public long getId() { return id; }
+    public String getSenderUsername() { return senderUsername; }
+    public int getRecipientAgentId() { return recipientAgentId; }
+    public String getRecipientName() { return recipientName; }
+    public String getBody() { return body; }
+    public LocalDateTime getSentAt() { return sentAt; }
 }
