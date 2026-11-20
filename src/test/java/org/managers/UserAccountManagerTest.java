@@ -49,13 +49,14 @@ class UserAccountManagerTest {
         assertTrue(manager.isValidUsername("agent_7"));
         assertTrue(manager.isValidUsername("field-agent"));
         assertTrue(manager.isValidUsername("a1_"));
-        assertFalse(manager.isValidUsername("Ghost"));
-        assertFalse(manager.isValidUsername("GHOST"));
+
 
         assertFalse(manager.isValidUsername(null));
         assertFalse(manager.isValidUsername("ab"));
         assertFalse(manager.isValidUsername("bad name"));
         assertFalse(manager.isValidUsername("bad!"));
+        assertFalse(manager.isValidUsername("Ghost"));
+        assertFalse(manager.isValidUsername("GHOST"));
     }
 
     @Test
