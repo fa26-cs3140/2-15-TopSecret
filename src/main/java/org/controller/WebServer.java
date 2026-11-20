@@ -23,15 +23,22 @@ public class WebServer {
     private final SessionManager sessions;
     private final int port;
     private HttpServer server;
+    private final MessageWebHandler messaging;
 
     public WebServer(AppController controller, UserAccountManager accounts, SessionManager sessions, int port) {
+        this(controller, accounts, sessions, port, null);
+    }
+
+    public WebServer(AppController controller, UserAccountManager accounts, SessionManager sessions, int port, MessageWebHandler messaging) {
         if (controller == null || accounts == null || sessions == null) {
             throw new IllegalArgumentException("Arguments cannot be null.");
         }
+
         this.controller = controller;
         this.accounts = accounts;
         this.sessions = sessions;
         this.port = port;
+        this.messaging = messaging;
     }
 
     // Serves the login form at / and /login and every other page through PageHandler.
@@ -41,7 +48,7 @@ public class WebServer {
             throw new IllegalStateException("No user accounts exist. Create the first account in the terminal.");
         }
         LoginHandler login = new LoginHandler(accounts, sessions);
-        PageHandler pages = new PageHandler(controller, sessions);
+        PageHandler pages = new PageHandler(controller, sessions, messaging);
 
         server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/login", exchange -> handleSafely(exchange, login));
